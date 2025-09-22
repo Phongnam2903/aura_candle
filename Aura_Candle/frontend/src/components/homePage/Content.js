@@ -28,53 +28,65 @@ const Content = () => {
 
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const swiperRef = useRef(null);
-  // Sản phẩm nổi bật
+
+
+  // Danh sách sản phẩm
   const featuredProducts = [
     {
       id: 1,
       name: "Hoa nhài",
       img: "https://nenthomagaya.com/wp-content/uploads/2021/11/nen-thom-agaya-candle-cup-thu-duc-72.jpeg",
+
       price: "150.000đ",
+      description: "Mùi hương hoa nhài nhẹ nhàng, tạo cảm giác thư giãn và dễ chịu.",
     },
     {
       id: 2,
       name: "Oải hương",
-      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWD67Bj8YhPkh_8uJxqXNd_5cjzyYRFVIscg&s",
+      img2: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWD67Bj8YhPkh_8uJxqXNd_5cjzyYRFVIscg&s",
+      img: "https://api.fostech.vn/public/file/shared/661754d7dd9a934550094085",
       price: "150.000đ",
+      description: "Tinh dầu oải hương giúp giảm căng thẳng, hỗ trợ giấc ngủ sâu.",
     },
     {
       id: 3,
       name: "Vani",
       img: "https://3mhome.vn/wp-content/uploads/2022/02/nen-thom-vanilla.jpg",
       price: "150.000đ",
+      description: "Hương vani ngọt ngào, mang lại không gian ấm áp và dễ chịu.",
     },
   ];
-
-  // Danh sách sản phẩm
+  // Sản phẩm nổi bật
   const products = [
     {
       id: 4,
       name: "Hoa nhài",
       img: "https://nenthomagaya.com/wp-content/uploads/2021/11/nen-thom-agaya-candle-cup-thu-duc-72.jpeg",
+      img2: "https://product.hstatic.net/200000666175/product/nen_thom_sap_dauj_nanh_8339edc63d294649a6760cd36fde2f87_large.jpg",
       price: "145.000đ",
       oldPrice: "190.000đ",
       discount: "-24%",
+      description: "Nến thơm hoa nhài tự nhiên, hương thơm thanh khiết, giảm căng thẳng.",
     },
     {
       id: 5,
       name: "Oải hương",
-      img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWD67Bj8YhPkh_8uJxqXNd_5cjzyYRFVIscg&s",
+      img: "https://api.fostech.vn/public/file/shared/661754d7dd9a934550094085",
+      img2: "https://product.hstatic.net/1000098547/product/bartek_lavender_fields___soap_115g-lavender_fields__1__9f3e957b1ab64e7e86410f7034fb4490_grande.jpg",
       price: "199.000đ",
       oldPrice: "240.000đ",
       discount: "-17%",
+      description: "Nến thơm oải hương mang lại sự thư giãn, phù hợp khi nghỉ ngơi.",
     },
     {
       id: 6,
       name: "Vani",
       img: "https://3mhome.vn/wp-content/uploads/2022/02/nen-thom-vanilla.jpg",
+      img2: "https://product.hstatic.net/200000455983/product/vanilla___wood_2_230gr_a6391dd77fa44bb695ad23e1e1493c79_1024x1024.png",
       price: "120.000đ",
       oldPrice: "150.000đ",
       discount: "-20%",
+      description: "Hương vani dịu nhẹ, tạo không gian ấm cúng, thích hợp cho gia đình.",
     },
   ];
 
@@ -219,63 +231,48 @@ const Content = () => {
           Sản phẩm nổi bật
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {featuredProducts.map((sp) => (
-            <div
-              key={sp.id}
-              onClick={() => handleViewDetail(sp.id)}
-              className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl cursor-pointer"
-            >
-              <img src={sp.img} alt={sp.name} className="w-full h-100 object-cover" />
-              <div className="p-4">
-                <h4 className="font-semibold text-lg">{`Nến thơm ${sp.name}`}</h4>
-                <p className="text-gray-600">Giá: {sp.price}</p>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // chặn event click ở div cha
-                    alert(`Đã thêm ${sp.name} vào giỏ hàng`);
-                  }}
-                  className="mt-3 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
-                >
-                  Thêm vào giỏ
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-
-      {/* Sản phẩm */}
-      <section className="py-16 px-6 bg-gray-50">
-        <h3 className="text-2xl font-semibold text-center text-gray-800 mb-8">
-          Sản phẩm
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {products.map((sp) => (
             <div
               key={sp.id}
               onClick={() => handleViewDetail(sp.id)}
               className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl relative cursor-pointer"
             >
-              {/* Nhãn giảm giá */}
-              <span className="absolute top-2 left-2 bg-red-500 text-white text-sm px-2 py-1 rounded">
-                {sp.discount}
-              </span>
-
-              <img src={sp.img} alt={sp.name} className="w-full h-100 object-cover" />
+              {/* Ảnh sản phẩm + hover đổi ảnh */}
+              <div className="relative w-full h-100 overflow-hidden">
+                {/* Nhãn giảm giá */}
+                <span className="absolute top-2 left-2 bg-red-500 text-white text-sm px-2 py-1 rounded">
+                  {sp.discount}
+                </span>
+                <img
+                  src={sp.img}
+                  alt={sp.name}
+                  className="w-full h-full object-cover transition duration-300 group-hover:opacity-0"
+                />
+                {sp.img2 && (
+                  <img
+                    src={sp.img2}
+                    alt={`${sp.name} khác`}
+                    className="w-full h-full object-cover absolute top-0 left-0 opacity-0 hover:opacity-100 transition duration-300"
+                  />
+                )}
+              </div>
 
               <div className="p-4">
                 <h4 className="font-semibold text-lg mb-1">{`Nến thơm ${sp.name}`}</h4>
+                {/* Description */}
+                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                  {sp.description}
+                </p>
                 <div className="flex items-center space-x-2">
                   <p className="text-red-500 font-bold">{sp.price}</p>
                   <p className="text-gray-400 line-through">{sp.oldPrice}</p>
                 </div>
                 <button
                   onClick={(e) => {
-                    e.stopPropagation(); // chặn event click ở div cha
+                    e.stopPropagation();
                     alert(`Đã thêm ${sp.name} vào giỏ hàng`);
                   }}
-                  className="mt-3 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
+                  className="mt-3 px-3 py-2 bg-pink-500 text-white text-sm rounded-lg hover:bg-pink-600 transition"
                 >
                   Thêm vào giỏ
                 </button>
@@ -289,6 +286,41 @@ const Content = () => {
           </button>
         </div>
       </section>
+
+      {/* Sản phẩm */}
+      <section className="py-16 px-6 bg-gray-50">
+        <h3 className="text-2xl font-semibold text-center text-gray-800 mb-8">
+          Sản phẩm
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {featuredProducts.map((sp) => (
+            <div
+              key={sp.id}
+              onClick={() => handleViewDetail(sp.id)}
+              className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl cursor-pointer"
+            >
+              <img src={sp.img} alt={sp.name} className="w-full h-100 object-cover" />
+              <div className="p-4">
+                <h4 className="font-semibold text-lg">{`Nến thơm ${sp.name}`}</h4>
+                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                  {sp.description}
+                </p>
+                <p className="text-red-500 font-bold">Giá: {sp.price}</p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // chặn event click ở div cha
+                    alert(`Đã thêm ${sp.name} vào giỏ hàng`);
+                  }}
+                  className="mt-3 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
+                >
+                  Thêm vào giỏ
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Tin tức nổi bật */}
       <section className="py-16 px-6 bg-white">
         <h3 className="text-2xl font-semibold text-center text-gray-800 mb-8">
