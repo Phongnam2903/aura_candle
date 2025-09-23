@@ -103,38 +103,10 @@ const Header = () => {
             setShowCart(false);
           }}
         >
-          <FaUser className="text-lg hover:text-pink-500" />
+          <Link to="/login"> <FaUser className="text-lg hover:text-pink-500" /> </Link>
           <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
             Tài khoản
           </span>
-          {/* Show User */}
-          {showUser && (
-            <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl p-6 w-80 z-50 animate-in slide-in-from-top-2 duration-200">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">Đăng nhập tài khoản</h3>
-                <div className="space-y-3">
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Mật khẩu"
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                  />
-                  <button className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-medium transition-colors">
-                    Đăng nhập
-                  </button>
-                </div>
-                <div className="text-center">
-                  <button className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline transition-colors">
-                    Khách hàng mới? Tạo tài khoản
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Cart */}
