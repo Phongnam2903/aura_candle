@@ -11,8 +11,6 @@ import { Link } from "react-router-dom";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [showUser, setShowUser] = useState(false);
-  const [showCart, setShowCart] = useState(false);
 
   return (
     <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center relative">
@@ -68,8 +66,6 @@ const Header = () => {
         <div className="relative group cursor-pointer flex flex-col items-center"
           onClick={() => {
             setShowSearch(!showSearch);
-            setShowUser(false);
-            setShowCart(false);
           }}
         >
           <FaSearch className="text-lg hover:text-pink-500" />
@@ -96,13 +92,7 @@ const Header = () => {
         </div>
 
         {/* User */}
-        <div className="relative group cursor-pointer flex flex-col items-center"
-          onClick={() => {
-            setShowUser(!showUser);
-            setShowSearch(false);
-            setShowCart(false);
-          }}
-        >
+        <div className="relative group cursor-pointer flex flex-col items-center">
           <Link to="/login"> <FaUser className="text-lg hover:text-pink-500" /> </Link>
           <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
             Tài khoản
@@ -110,33 +100,14 @@ const Header = () => {
         </div>
 
         {/* Cart */}
-        <div className="relative group cursor-pointer flex flex-col items-center"
-          onClick={() => {
-            setShowCart(!showCart);
-            setShowSearch(false);
-            setShowUser(false);
-          }}
-        >
-          <FaShoppingCart className="text-lg hover:text-pink-500" />
+        <div className="relative group cursor-pointer flex flex-col items-center">
+          <Link to="/cart"><FaShoppingCart className="text-lg hover:text-pink-500" /></Link>
           <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] px-[5px] py-[1px] rounded-full">
             0
           </span>
           <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
             Giỏ hàng
           </span>
-          {showCart && (
-            <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl p-6 w-80 z-50 animate-in slide-in-from-top-2 duration-200">
-              <div className="text-center space-y-4">
-                <div className="text-gray-400">
-                  <FaShoppingCart className="text-4xl mx-auto mb-3 opacity-50" />
-                  <p className="text-gray-600 font-medium">Chưa có sản phẩm trong giỏ hàng</p>
-                </div>
-                <button className="w-full border border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white py-3 rounded-lg font-medium transition-all">
-                  Trở về trang sản phẩm
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
