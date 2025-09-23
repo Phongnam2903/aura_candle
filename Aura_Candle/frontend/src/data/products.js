@@ -1,0 +1,32 @@
+export const products = [
+    {
+        id: 4,
+        name: "Hoa nhài",
+        img: "https://nenthomagaya.com/wp-content/uploads/2021/11/nen-thom-agaya-candle-cup-thu-duc-72.jpeg",
+        img2: "https://product.hstatic.net/200000666175/product/nen_thom_sap_dauj_nanh_8339edc63d294649a6760cd36fde2f87_large.jpg",
+        price: "145.000đ",
+        oldPrice: "190.000đ",
+        discount: "-24%",
+        description: "Nến thơm hoa nhài tự nhiên, hương thơm thanh khiết, giảm căng thẳng.",
+    },
+    {
+        id: 5,
+        name: "Oải hương",
+        img: "https://api.fostech.vn/public/file/shared/661754d7dd9a934550094085",
+        img2: "https://product.hstatic.net/1000098547/product/bartek_lavender_fields___soap_115g-lavender_fields__1__9f3e957b1ab64e7e86410f7034fb4490_grande.jpg",
+        price: "199.000đ",
+        oldPrice: "240.000đ",
+        discount: "-17%",
+        description: "Nến thơm oải hương mang lại sự thư giãn, phù hợp khi nghỉ ngơi.",
+    },
+    {
+        id: 6,
+        name: "Vani",
+        img: "https://3mhome.vn/wp-content/uploads/2022/02/nen-thom-vanilla.jpg",
+        img2: "https://product.hstatic.net/200000455983/product/vanilla___wood_2_230gr_a6391dd77fa44bb695ad23e1e1493c79_1024x1024.png",
+        price: "120.000đ",
+        oldPrice: "150.000đ",
+        discount: "-20%",
+        description: "Hương vani dịu nhẹ, tạo không gian ấm cúng, thích hợp cho gia đình.",
+    },
+];

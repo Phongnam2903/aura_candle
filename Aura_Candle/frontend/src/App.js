@@ -1,10 +1,19 @@
 import React from "react";
-import HomePage from "./pages/HomePage";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import HomeScreen from "./pages/HomeScreen";
 import './index.css';
+import ProductDetailScreen from "./pages/ProductDetailScreen";
+import ScrollToTop from "./components/Scroll/ScrollToTop";
 
 function App() {
   return (
-    <HomePage />
+    <BrowserRouter>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<HomeScreen />} />
+        <Route path="/product/:id" element={<ProductDetailScreen />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

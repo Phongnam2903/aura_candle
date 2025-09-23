@@ -6,6 +6,7 @@ import {
   FaMapMarkerAlt,
   FaBars,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,7 +37,14 @@ const Header = () => {
           }`}
       >
         <ul className="flex flex-col gap-4 md:flex-row md:gap-6 text-gray-700 font-medium">
-          <li className="text-pink-600 cursor-pointer">Trang chủ</li>
+          <li>
+            <Link
+              to="/"
+              className="text-pink-600 hover:text-pink-500 transition"
+            >
+              Trang chủ
+            </Link>
+          </li>
           <li className="cursor-pointer hover:text-pink-500">Nến Thơm</li>
           <li className="cursor-pointer hover:text-pink-500">Set Quà Tặng</li>
           <li className="cursor-pointer hover:text-pink-500">Phụ Kiện</li>

@@ -1,129 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { categories } from "../../data/categories";
+import { featuredProducts } from "../../data/featuredProducts";
+import { newsData } from "../../data/news";
+import { products } from "../../data/products";
 import "swiper/css";
+import { useNavigate } from "react-router-dom";
 
 const Content = () => {
 
-
-  // Danh mục sản phẩm
-  const categories = [
-    {
-      name: "Nến thơm cốc thủy tinh",
-      img: "https://muamuaonline.com/upload/deals/files/1136-nen-thom-trong-ly-thuy-tinh-giup-giam-cang-thang_1308473456.jpg",
-    },
-    {
-      name: "Nến thơm hộp thiếc",
-      img: "https://img.lazcdn.com/g/p/78ef4f6136be0f6dfec1c9f30af3c01e.jpg_720x720q80.jpg",
-    },
-    {
-      name: "Set quà tặng",
-      img: "https://www.onatree.vn/cdn/shop/products/z3511810996034_421f7283444826bfe57f41ad5988a342_1200x1200.jpg?v=1721008448",
-    },
-    {
-      name: "Tinh dầu thơm",
-      img: "https://product.hstatic.net/200000666175/product/ch_tan_qua_tang_sinh_nhat_nguoi_yeu_ban_gai_dam_cuoi_thu_gian_vintage4_393f9b5ae3cd4c459461e1ba30761f0f_master.jpg",
-    },
-  ];
-
+  const navigate = useNavigate();
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const swiperRef = useRef(null);
 
-
-  // Danh sách sản phẩm
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Hoa nhài",
-      img: "https://nenthomagaya.com/wp-content/uploads/2021/11/nen-thom-agaya-candle-cup-thu-duc-72.jpeg",
-
-      price: "150.000đ",
-      description: "Mùi hương hoa nhài nhẹ nhàng, tạo cảm giác thư giãn và dễ chịu.",
-    },
-    {
-      id: 2,
-      name: "Oải hương",
-      img2: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWD67Bj8YhPkh_8uJxqXNd_5cjzyYRFVIscg&s",
-      img: "https://api.fostech.vn/public/file/shared/661754d7dd9a934550094085",
-      price: "150.000đ",
-      description: "Tinh dầu oải hương giúp giảm căng thẳng, hỗ trợ giấc ngủ sâu.",
-    },
-    {
-      id: 3,
-      name: "Vani",
-      img: "https://3mhome.vn/wp-content/uploads/2022/02/nen-thom-vanilla.jpg",
-      price: "150.000đ",
-      description: "Hương vani ngọt ngào, mang lại không gian ấm áp và dễ chịu.",
-    },
-  ];
-  // Sản phẩm nổi bật
-  const products = [
-    {
-      id: 4,
-      name: "Hoa nhài",
-      img: "https://nenthomagaya.com/wp-content/uploads/2021/11/nen-thom-agaya-candle-cup-thu-duc-72.jpeg",
-      img2: "https://product.hstatic.net/200000666175/product/nen_thom_sap_dauj_nanh_8339edc63d294649a6760cd36fde2f87_large.jpg",
-      price: "145.000đ",
-      oldPrice: "190.000đ",
-      discount: "-24%",
-      description: "Nến thơm hoa nhài tự nhiên, hương thơm thanh khiết, giảm căng thẳng.",
-    },
-    {
-      id: 5,
-      name: "Oải hương",
-      img: "https://api.fostech.vn/public/file/shared/661754d7dd9a934550094085",
-      img2: "https://product.hstatic.net/1000098547/product/bartek_lavender_fields___soap_115g-lavender_fields__1__9f3e957b1ab64e7e86410f7034fb4490_grande.jpg",
-      price: "199.000đ",
-      oldPrice: "240.000đ",
-      discount: "-17%",
-      description: "Nến thơm oải hương mang lại sự thư giãn, phù hợp khi nghỉ ngơi.",
-    },
-    {
-      id: 6,
-      name: "Vani",
-      img: "https://3mhome.vn/wp-content/uploads/2022/02/nen-thom-vanilla.jpg",
-      img2: "https://product.hstatic.net/200000455983/product/vanilla___wood_2_230gr_a6391dd77fa44bb695ad23e1e1493c79_1024x1024.png",
-      price: "120.000đ",
-      oldPrice: "150.000đ",
-      discount: "-20%",
-      description: "Hương vani dịu nhẹ, tạo không gian ấm cúng, thích hợp cho gia đình.",
-    },
-  ];
-
-  //Tin tức
-  const newsData = [
-    {
-      id: 1,
-      title:
-        "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Sự Kiện - Event Lớn",
-      date: "20 Tháng 09, 2025",
-      description:
-        "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Sự Kiện - Event Lớn...",
-      image: "https://cdn.hstatic.net/files/200000666175/article/z6973103465917_bb75323dbc076712846dfd63d5e4735e_d4bc109947314beeb162790f7f898bc6_grande.jpg",
-      link: "#",
-    },
-    {
-      id: 2,
-      title: "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Thiền – Yoga",
-      date: "20 Tháng 09, 2025",
-      description:
-        "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Thiền – Yoga...",
-      image: "https://cdn.hstatic.net/files/200000666175/article/z6999667987112_4b3e2c993b0d25b6550c8810d5f25e80_3e2c4d6b47d04ee787a262351c7ee9a3_grande.jpg",
-      link: "#",
-    },
-    {
-      id: 3,
-      title: "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Tiệm Quà Tặng",
-      date: "20 Tháng 09, 2025",
-      description:
-        "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Tiệm Quà Tặng...",
-      image: "https://cdn.hstatic.net/files/200000666175/article/z6999668611612_207c06f925c522772bf62cda88c5bad4_ea2c9d9d5f97476e879f6bd859069770_grande.jpg",
-      link: "#",
-    },
-  ];
-
-  const handleViewDetail = (id) => {
-    alert(`Xem chi tiết sản phẩm có ID: ${id}`);
+  const handleViewProductDetail = (id) => {
+    navigate(`/product/${id}`);
   };
 
   const handleViewCategories = (name) => {
@@ -234,7 +126,7 @@ const Content = () => {
           {products.map((sp) => (
             <div
               key={sp.id}
-              onClick={() => handleViewDetail(sp.id)}
+              onClick={() => handleViewProductDetail(sp.id)}
               className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl relative cursor-pointer"
             >
               {/* Ảnh sản phẩm + hover đổi ảnh */}
@@ -296,7 +188,7 @@ const Content = () => {
           {featuredProducts.map((sp) => (
             <div
               key={sp.id}
-              onClick={() => handleViewDetail(sp.id)}
+              onClick={() => handleViewProductDetail(sp.id)}
               className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl cursor-pointer"
             >
               <img src={sp.img} alt={sp.name} className="w-full h-100 object-cover" />

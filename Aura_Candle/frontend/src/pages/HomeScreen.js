@@ -2,7 +2,7 @@ import React from "react";
 import Layout from "../layout/Layout";
 import Content from "../components/homePage/Content";
 
-const HomePage = () => {
+const HomeScreen = () => {
   return (
     <Layout>
       <Content />
@@ -10,4 +10,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default HomeScreen;
