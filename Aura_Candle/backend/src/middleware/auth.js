@@ -13,7 +13,7 @@ const verifyToken = (req, res, next) => {
       .json({ error: "Invalid token format. Use Bearer token." });
   }
 
-  jwt.verify(token.split(" ")[1], process.env.JWT_SECRET, (err, decoded) => {
+  jwt.verify(token.split(" ")[1], JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).json({ error: "Unauthorized. Invalid token!" });
     }
@@ -22,25 +22,14 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-const isAdmin = (req, res, next) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ error: "Access denied. Admins only." });
-  }
-  next();
-};
+function authorize(...roles) {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: "Access denied." });
+    }
+    next();
+  };
+}
 
-const isSeller = (req, res, next) => {
-  if (req.user.role !== "owner") {
-    return res.status(403).json({ error: "Access denied. Owners only." });
-  }
-  next();
-};
 
-const isCustomer = (req, res, next) => {
-  if (req.user.role !== "customer") {
-    return res.status(403).json({ error: "Access denied. Customers only." });
-  }
-  next();
-};
-
-module.exports = { verifyToken, isAdmin, isSeller, isCustomer };
+module.exports = { verifyToken, authorize };

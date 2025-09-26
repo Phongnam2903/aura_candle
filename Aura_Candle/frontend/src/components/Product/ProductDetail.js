@@ -1,21 +1,52 @@
 import React, { useState } from "react";
 import { FaFacebookF, FaTwitter, FaPinterestP } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
 import { products } from "../../data/products";
-
-
+import { useCart } from "../../context/CartContext";
+import { toast } from "react-toastify";
+import { featuredProducts } from "../../data/featuredProducts";
 const ProductDetail = () => {
     const { id } = useParams();
-    const product = products.find(p => p.id === parseInt(id));
+    const product =
+        products.find((p) => p.id === parseInt(id)) ||
+        featuredProducts.find((p) => p.id === parseInt(id));
     const [quantity, setQuantity] = useState(1);
+    const navigate = useNavigate();
+    const { dispatch } = useCart();
 
     if (!product) {
-        return <div className="p-6">Không tìm thấy sản phẩm</div>
+        return <div className="p-6">Không tìm thấy sản phẩm</div>;
     }
 
     const increase = () => setQuantity((prev) => prev + 1);
-    const decrease = () =>
-        setQuantity((prev) => (prev > 1 ? prev - 1 : 1)); // không cho < 1
+    const decrease = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+
+    //  hàm thêm giỏ hàng
+    const handleAddToCart = () => {
+        dispatch({
+            type: "ADD",
+            item: {
+                ...product,
+                quantity,
+                image: product.img,
+            },
+        });
+        toast.success("🛒 Đã thêm vào giỏ hàng!");
+    };
+    const handleBuyNow = () => {
+        // Thêm vào giỏ trước
+        dispatch({
+            type: "ADD",
+            item: {
+                ...product,
+                quantity,
+                image: product.img,
+            },
+        });
+        // Chuyển đến trang checkout
+        navigate("/checkout");
+    };
 
     return (
         <div className="bg-gray-50 min-h-screen py-8">
@@ -30,7 +61,6 @@ const ProductDetail = () => {
                                 alt={product.name}
                                 className="rounded-lg w-full object-cover"
                             />
-                            {/* mũi tên chuyển ảnh trái/phải */}
                             <button className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow hover:bg-white">
                                 ‹
                             </button>
@@ -60,16 +90,30 @@ const ProductDetail = () => {
 
                         {/* Giá */}
                         <div className="flex items-center gap-3">
+                            {/* Giá hiện tại */}
                             <span className="text-red-600 text-3xl font-bold">
-                                {product.price.toLocaleString()}
+                                {product.price
+                                    ? product.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                                    : "0"}đ
                             </span>
-                            <span className="text-gray-400 line-through text-lg">
-                                {product.oldPrice?.toLocaleString()}
-                            </span>
-                            <span className="text-white bg-red-500 text-sm font-semibold px-2 py-1 rounded">
-                                {product.discount}
-                            </span>
+
+                            {/* Chỉ render oldPrice nếu tồn tại */}
+                            {product.oldPrice && (
+                                <span className="text-gray-400 line-through text-lg">
+                                    {product.oldPrice
+                                        .toString()
+                                        .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ
+                                </span>
+                            )}
+
+                            {/* Chỉ render discount nếu có */}
+                            {product.discount && (
+                                <span className="text-white bg-red-500 text-sm font-semibold px-2 py-1 rounded">
+                                    {product.discount}
+                                </span>
+                            )}
                         </div>
+
 
                         {/* Mùi hương / Tiêu đề */}
                         <div>
@@ -112,12 +156,10 @@ const ProductDetail = () => {
                         <div>
                             <h3 className="font-medium mb-2">Số lượng:</h3>
                             <div className="flex items-center border rounded-lg w-32">
-                                <button className="px-3 py-2"
-                                    onClick={decrease}>-</button>
+                                <button className="px-3 py-2" onClick={decrease}>-</button>
                                 <input
                                     type="number"
                                     value={quantity}
-                                    onChange={(e) => setQuantity(parseInt(e.target.value))}
                                     readOnly
                                     min={1}
                                     className="w-16 text-center outline-none"
@@ -128,10 +170,17 @@ const ProductDetail = () => {
 
                         {/* Nút hành động */}
                         <div className="flex gap-4">
-                            <button className="flex-1 bg-amber-400 hover:bg-amber-500 text-white py-3 rounded-lg font-semibold">
+                            {/*  thêm onClick */}
+                            <button
+                                onClick={handleAddToCart}
+                                className="flex-1 bg-amber-400 hover:bg-amber-500 text-white py-3 rounded-lg font-semibold"
+                            >
                                 THÊM VÀO GIỎ
                             </button>
-                            <button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold">
+                            <button
+                                onClick={handleBuyNow}
+                                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold"
+                            >
                                 MUA NGAY
                             </button>
                         </div>
@@ -163,7 +212,6 @@ const ProductDetail = () => {
                     </div>
                 </div>
 
-
                 {/* Description */}
                 <div className="bg-white mt-10 p-6 rounded-xl shadow">
                     <h2 className="text-lg font-semibold mb-3">Mô tả sản phẩm</h2>
@@ -179,7 +227,10 @@ const ProductDetail = () => {
                     <h2 className="text-xl font-bold mb-4">Sản phẩm liên quan</h2>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                         {[...Array(5)].map((_, i) => (
-                            <div key={i} className="bg-white rounded-xl p-3 shadow hover:shadow-lg transition">
+                            <div
+                                key={i}
+                                className="bg-white rounded-xl p-3 shadow hover:shadow-lg transition"
+                            >
                                 <img
                                     src="https://via.placeholder.com/200x200"
                                     alt="related"
@@ -199,7 +250,10 @@ const ProductDetail = () => {
                     <h2 className="text-xl font-bold mb-4">Sản phẩm đã xem</h2>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} className="bg-white rounded-xl p-3 shadow hover:shadow-lg transition">
+                            <div
+                                key={i}
+                                className="bg-white rounded-xl p-3 shadow hover:shadow-lg transition"
+                            >
                                 <img
                                     src="https://via.placeholder.com/200x200"
                                     alt="viewed"

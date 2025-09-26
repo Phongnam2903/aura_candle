@@ -21,10 +21,13 @@ app.use(
 // API routes
 const productRouter = require("./src/routes/ProductRoutes");
 const materialRouter = require("./src/routes/MaterialRoutes");
+const authRouter = require("./src/routes/UserRoutes");
+
 
 
 app.use("/product", productRouter);
 app.use("/material", materialRouter);
+app.use("/auth", authRouter);
 
 
 // Start server

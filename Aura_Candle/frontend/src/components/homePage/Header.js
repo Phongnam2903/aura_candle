@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaSearch,
   FaUser,
@@ -7,10 +7,23 @@ import {
   FaBars,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
 
 const Header = () => {
+  const { cart } = useCart();
+  const [user, setUser] = useState(null);
+  const totalItems = cart.reduce((sum, i) => sum + (i.quantity || 1), 0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
 
   return (
     <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center relative">
@@ -47,7 +60,14 @@ const Header = () => {
           <li className="cursor-pointer hover:text-pink-500">Set Quà Tặng</li>
           <li className="cursor-pointer hover:text-pink-500">Phụ Kiện</li>
           <li className="cursor-pointer hover:text-pink-500">Giới thiệu</li>
-          <li className="cursor-pointer hover:text-pink-500">Blog</li>
+          <li>
+            <Link
+              to="/blog"
+              className="cursor-pointer hover:text-pink-500"
+            >
+              Blog
+            </Link>
+          </li>
         </ul>
       </nav>
 
@@ -61,7 +81,21 @@ const Header = () => {
             <strong>Võ Như Hưng, Ph...</strong>
           </span>
         </div>
-
+        {/* User */}
+        <div className="relative group flex flex-col items-center">
+          {user ? (
+            <div className="text-sm font-semibold text-gray-800">
+              {user.name}
+            </div>
+          ) : (
+            <Link to="/login">
+              <FaUser className="text-lg hover:text-pink-500" />
+              <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
+                Tài khoản
+              </span>
+            </Link>
+          )}
+        </div>
         {/* Search */}
         <div className="relative group cursor-pointer flex flex-col items-center"
           onClick={() => {
@@ -91,19 +125,15 @@ const Header = () => {
           )}
         </div>
 
-        {/* User */}
-        <div className="relative group cursor-pointer flex flex-col items-center">
-          <Link to="/login"> <FaUser className="text-lg hover:text-pink-500" /> </Link>
-          <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
-            Tài khoản
-          </span>
-        </div>
+
 
         {/* Cart */}
         <div className="relative group cursor-pointer flex flex-col items-center">
-          <Link to="/cart"><FaShoppingCart className="text-lg hover:text-pink-500" /></Link>
+          <Link to="/cart">
+            <FaShoppingCart className="text-lg hover:text-pink-500" />
+          </Link>
           <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] px-[5px] py-[1px] rounded-full">
-            0
+            {totalItems}
           </span>
           <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
             Giỏ hàng

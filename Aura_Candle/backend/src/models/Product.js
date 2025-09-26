@@ -9,8 +9,7 @@ const ProductSchema = new mongoose.Schema({
     stock: { type: Number, default: 0 },
     weightGrams: Number,
     isActive: { type: Boolean, default: true },
-    images: [String], // or [{url, alt}]
-    // how much material needed per product:
+    images: [String],
     materials: [{
         material: { type: mongoose.Schema.Types.ObjectId, ref: 'Material', required: true },
         quantity: { type: Number, required: true } // in material.unit (eg grams, ml, pieces)

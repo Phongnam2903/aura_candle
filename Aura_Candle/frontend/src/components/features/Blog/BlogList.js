@@ -1,21 +1,76 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
-const dummy = [
-  { id: 1, title: "Decor phòng ngủ với nến thơm", excerpt: "Biến phòng ngủ thành spa mini..." },
-  { id: 2, title: "Chọn mùi hương hợp tính cách", excerpt: "Mỗi cung hoàng đạo..." }
-];
+import { newsData } from "../../../data/news"; // đường dẫn tới file data của bạn
 
 export default function BlogList() {
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Relax Corner Blog</h1>
-      {dummy.map(post => (
-        <Link key={post.id} to={`/blog/${post.id}`} className="block mb-4 hover:text-pink-600">
-          <h2 className="text-xl font-semibold">{post.title}</h2>
-          <p className="text-gray-600">{post.excerpt}</p>
-        </Link>
-      ))}
+    <div className="bg-gray-50 min-h-screen py-10">
+      <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-[3fr_1fr] gap-8 items-start">
+        {/* --------- Main Content --------- */}
+        <div className="space-y-8">
+          <h1 className="text-3xl font-bold mb-6 text-gray-800">Tin tức</h1>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {newsData.map((post) => (
+              <div
+                key={post.id}
+                className="bg-white border rounded-xl overflow-hidden shadow-md group hover:shadow-lg transition"
+              >
+                <Link to={post.link || "#"} className="block">
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    className="w-full h-56 object-cover group-hover:opacity-90 transition"
+                  />
+                  <div className="p-4">
+                    <h2 className="text-lg font-semibold mb-1 group-hover:text-pink-600">
+                      {post.title}
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-2">{post.date}</p>
+                    <p className="text-gray-700 text-sm line-clamp-3">
+                      {post.description}
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {/* Phân trang */}
+          <div className="flex justify-center mt-6 space-x-2">
+            {[1, 2, 3, 4].map((p) => (
+              <button
+                key={p}
+                className="px-3 py-1 border text-sm rounded bg-white hover:bg-pink-600 hover:text-white shadow-sm"
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* --------- Sidebar --------- */}
+        <aside className="space-y-6">
+          <div className="bg-white shadow-md rounded-xl p-4">
+            <h3 className="font-semibold mb-3 text-gray-800">Sản phẩm nổi bật</h3>
+            <ul className="space-y-3 text-sm text-gray-700">
+              <li className="hover:text-pink-600 cursor-pointer">Nến thơm Luxury</li>
+              <li className="hover:text-pink-600 cursor-pointer">Tinh dầu thiên nhiên</li>
+              <li className="hover:text-pink-600 cursor-pointer">Bộ quà tặng cao cấp</li>
+            </ul>
+          </div>
+
+          <div className="bg-white shadow-md rounded-xl p-4">
+            <h3 className="font-semibold mb-3 text-gray-800">Danh mục bài viết</h3>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li className="hover:text-pink-600 cursor-pointer">Tin tức</li>
+              <li className="hover:text-pink-600 cursor-pointer">Decor</li>
+              <li className="hover:text-pink-600 cursor-pointer">Blog</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
     </div>
+
   );
 }

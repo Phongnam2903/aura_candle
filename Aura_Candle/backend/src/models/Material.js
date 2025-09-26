@@ -26,7 +26,6 @@ const MaterialSchema = new mongoose.Schema({
 });
 
 // Tạo model Material từ schema
-const Material = mongoose.model('Material', MaterialSchema);
+const Material = mongoose.model('Material', MaterialSchema, "materials");
 
-// Export để dùng trong controller
 module.exports = Material;
