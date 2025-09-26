@@ -5,17 +5,18 @@ import {
   FaShoppingCart,
   FaMapMarkerAlt,
   FaBars,
+  FaSignOutAlt,
 } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 
 const Header = () => {
   const { cart } = useCart();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const totalItems = cart.reduce((sum, i) => sum + (i.quantity || 1), 0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -24,6 +25,14 @@ const Header = () => {
     }
   }, []);
 
+  // --- Hàm đăng xuất ---
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    setUser(null);
+    navigate("/login"); // hoặc navigate("/") nếu muốn về trang chủ
+  };
 
   return (
     <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center relative">
@@ -43,8 +52,8 @@ const Header = () => {
       {/* Navigation */}
       <nav
         className={`${isMenuOpen
-          ? "absolute top-full left-0 w-full bg-white shadow-md p-4 md:hidden z-50"
-          : "hidden md:flex"
+            ? "absolute top-full left-0 w-full bg-white shadow-md p-4 md:hidden z-50"
+            : "hidden md:flex"
           }`}
       >
         <ul className="flex flex-col gap-4 md:flex-row md:gap-6 text-gray-700 font-medium">
@@ -61,10 +70,7 @@ const Header = () => {
           <li className="cursor-pointer hover:text-pink-500">Phụ Kiện</li>
           <li className="cursor-pointer hover:text-pink-500">Giới thiệu</li>
           <li>
-            <Link
-              to="/blog"
-              className="cursor-pointer hover:text-pink-500"
-            >
+            <Link to="/blog" className="cursor-pointer hover:text-pink-500">
               Blog
             </Link>
           </li>
@@ -81,14 +87,26 @@ const Header = () => {
             <strong>Võ Như Hưng, Ph...</strong>
           </span>
         </div>
-        {/* User */}
+
+        {/* User + Logout */}
         <div className="relative group flex flex-col items-center">
           {user ? (
-            <div className="text-sm font-semibold text-gray-800">
-              {user.name}
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <span className="text-sm font-semibold text-gray-800">
+                {user.name}
+              </span>
+              {/* Dropdown */}
+              <div className="absolute top-full mt-2 right-0 bg-white border rounded shadow-md opacity-0 group-hover:opacity-100 transition z-50">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                >
+                  <FaSignOutAlt /> Đăng xuất
+                </button>
+              </div>
             </div>
           ) : (
-            <Link to="/login">
+            <Link to="/login" className="relative group flex flex-col items-center">
               <FaUser className="text-lg hover:text-pink-500" />
               <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
                 Tài khoản
@@ -96,8 +114,10 @@ const Header = () => {
             </Link>
           )}
         </div>
+
         {/* Search */}
-        <div className="relative group cursor-pointer flex flex-col items-center"
+        <div
+          className="relative group cursor-pointer flex flex-col items-center"
           onClick={() => {
             setShowSearch(!showSearch);
           }}
@@ -125,8 +145,6 @@ const Header = () => {
           )}
         </div>
 
-
-
         {/* Cart */}
         <div className="relative group cursor-pointer flex flex-col items-center">
           <Link to="/cart">
@@ -140,7 +158,6 @@ const Header = () => {
           </span>
         </div>
       </div>
-
     </header>
   );
 };

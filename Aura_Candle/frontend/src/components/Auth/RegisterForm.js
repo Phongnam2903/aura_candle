@@ -11,20 +11,41 @@ export default function RegisterForm() {
         password: "",
     });
     const [message, setMessage] = useState("");
-    const navigate = useNavigate(); // <--- thêm hook
+    const navigate = useNavigate();
 
     function handleChange(e) {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
     }
 
+    // ===== Hàm validate =====
+    function validate() {
+        if (!form.name.trim()) return "Vui lòng nhập họ và tên.";
+        if (!form.gender) return "Vui lòng chọn giới tính.";
+        if (!form.phone.trim()) return "Vui lòng nhập số điện thoại.";
+        if (!/^\d{9,11}$/.test(form.phone))
+            return "Số điện thoại chỉ gồm số và từ 9-11 ký tự.";
+        if (!form.email.trim()) return "Vui lòng nhập email.";
+        if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(form.email))
+            return "Email không hợp lệ.";
+        if (!form.password) return "Vui lòng nhập mật khẩu.";
+        if (form.password.length < 6)
+            return "Mật khẩu phải ít nhất 6 ký tự.";
+        return ""; // không lỗi
+    }
+
     async function handleSubmit(e) {
         e.preventDefault();
+        const error = validate();
+        if (error) {
+            setMessage(error);
+            return;
+        }
+        setMessage("");
+
         try {
             await registerUser(form);
-            // Popup thông báo
             window.alert("Đăng ký thành công!");
-            // Chuyển hướng sang trang đăng nhập
             navigate("/login");
         } catch (err) {
             setMessage(
@@ -38,6 +59,10 @@ export default function RegisterForm() {
             <div className="flex justify-center gap-4 mb-8 text-xl font-semibold">
                 <span className="text-black border-b-2 border-black pb-1">Đăng ký</span>
             </div>
+
+            {message && (
+                <p className="text-center mt-4 text-sm text-red-500">{message}</p>
+            )}
 
             <form className="space-y-4" onSubmit={handleSubmit}>
                 <input
@@ -105,9 +130,6 @@ export default function RegisterForm() {
                 </button>
             </form>
 
-            {message && (
-                <p className="text-center mt-4 text-sm text-red-500">{message}</p>
-            )}
 
             <p className="text-center mt-4 text-sm">
                 Bạn đã có tài khoản?{" "}
