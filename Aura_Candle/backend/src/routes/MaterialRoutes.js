@@ -4,7 +4,7 @@ const router = express.Router();
 const MaterialController = require("../controllers/MaterialController/materailController");
 const { verifyToken, authorize } = require("../middleware/auth");
 // POST /api/materials
-router.post("/createMaterial", verifyToken, authorize("seller"), MaterialController.createMaterial);
+router.post("/", verifyToken, authorize("seller"), MaterialController.createMaterial);
 
 router.get("/", MaterialController.getMaterials);
 router.get("/:id", MaterialController.getMaterialById);

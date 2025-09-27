@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import MaterialForm from "./MaterialForm";
+import { getMaterialById, updateMaterial } from "../../api/material/materialApi";
 
 export default function EditMaterial() {
     const { id } = useParams();
@@ -13,8 +13,8 @@ export default function EditMaterial() {
     useEffect(() => {
         (async () => {
             try {
-                const res = await axios.get(`/api/materials/${id}`);
-                setForm(res.data);
+                const material = await getMaterialById(id);
+                setForm(material);
             } catch {
                 toast.error("Không tải được nguyên liệu");
             }
@@ -28,7 +28,8 @@ export default function EditMaterial() {
         e.preventDefault();
         setLoading(true);
         try {
-            await axios.put(`/api/materials/${id}`, form);
+            console.log("Submitting", id, form);
+            await updateMaterial(id, form);
             toast.success("Cập nhật thành công");
             navigate("/seller/materials");
         } catch {

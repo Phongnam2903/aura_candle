@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { deleteMaterial, getMaterials } from "../../api/material/materialApi";
+
 
 export default function MaterialsPage() {
     const [materials, setMaterials] = useState([]);
@@ -9,8 +10,8 @@ export default function MaterialsPage() {
 
     async function fetchMaterials() {
         try {
-            const res = await axios.get("/api/materials");
-            setMaterials(res.data);
+            const data = await getMaterials();
+            setMaterials(data);
         } catch (err) {
             toast.error("Không thể tải danh sách nguyên liệu");
         } finally {
@@ -21,7 +22,7 @@ export default function MaterialsPage() {
     async function handleDelete(id) {
         if (!window.confirm("Bạn chắc chắn muốn xóa nguyên liệu này?")) return;
         try {
-            await axios.delete(`/api/materials/${id}`);
+            await deleteMaterial(id);
             toast.success("Đã xóa nguyên liệu");
             setMaterials((prev) => prev.filter((m) => m._id !== id));
         } catch {

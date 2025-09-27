@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import MaterialForm from "./MaterialForm";
+import { createMaterial } from "../../api/material/materialApi";
 
 export default function AddMaterial() {
     const [form, setForm] = useState({
@@ -23,15 +23,24 @@ export default function AddMaterial() {
         e.preventDefault();
         setLoading(true);
         try {
-            await axios.post("/api/materials", form);
+            // ép kiểu Number cho các trường số
+            const payload = {
+                ...form,
+                pricePerUnit: Number(form.pricePerUnit),
+                stockQuantity: Number(form.stockQuantity),
+            };
+
+            await createMaterial(payload);
             toast.success("Đã thêm nguyên liệu");
             navigate("/seller/materials");
-        } catch {
-            toast.error("Lỗi khi thêm");
+        } catch (err) {
+            console.error(err.response?.data || err);
+            toast.error(err.response?.data?.message || "Lỗi khi thêm");
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="max-w-3xl mx-auto bg-white p-6 rounded shadow">

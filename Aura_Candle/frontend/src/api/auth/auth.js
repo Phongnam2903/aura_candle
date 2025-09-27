@@ -1,13 +1,16 @@
-import axios from "axios";
+import api from "../axiosInstance";
 
 export async function registerUser(payload) {
-  // payload = { name, gender, phone, email, password }
-  const res = await axios.post("http://localhost:5000/auth/register", payload);
+  const res = await api.post("/auth/register", payload);
   return res.data;
 }
 
 export async function loginUser(payload) {
-  // payload = { email, password }
-  const res = await axios.post("http://localhost:5000/auth/login", payload);
-  return res.data; // backend trả về token, user info,...
+  const res = await api.post("/auth/login", payload);
+  return res.data;
+}
+
+export async function logoutUser() {
+  const res = await api.post("/auth/logout");
+  return res.data;
 }
