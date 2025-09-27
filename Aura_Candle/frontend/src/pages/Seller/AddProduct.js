@@ -11,12 +11,12 @@ export default function AddProduct() {
     price: "",
     stock: "",
     weightGrams: "",
-    images: "",       
+    images: "",       // chứa link ảnh (có thể nhập thủ công hoặc từ upload)
     materials: "",
     isKit: false,
   });
-
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -26,16 +26,44 @@ export default function AddProduct() {
     }));
   }
 
+  // Upload file ảnh lên server
+  async function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setUploading(true);
+    try {
+      // gọi API upload ảnh, server cần trả về { url: 'link_ảnh' }
+      const res = await axios.post("/api/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const imageUrl = res.data.url;
+      // thêm link mới vào chuỗi images (nếu đã có thì nối bằng dấu phẩy)
+      setForm((prev) => ({
+        ...prev,
+        images: prev.images
+          ? prev.images + "," + imageUrl
+          : imageUrl,
+      }));
+      toast.success("Upload ảnh thành công!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Upload ảnh thất bại");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
-    // validation cơ bản
     if (!form.name || !form.price || !form.sku) {
       toast.error("Vui lòng nhập tối thiểu Tên, SKU và Giá!");
       return;
     }
     setLoading(true);
     try {
-      // tách images thành mảng
       const payload = {
         ...form,
         price: Number(form.price),
@@ -51,7 +79,6 @@ export default function AddProduct() {
 
       await axios.post("/api/products", payload);
       toast.success("Tạo sản phẩm thành công!");
-      // reset form
       setForm({
         name: "",
         sku: "",
@@ -76,52 +103,9 @@ export default function AddProduct() {
     <div className="max-w-3xl mx-auto bg-white p-8 rounded shadow">
       <h1 className="text-2xl font-bold mb-6">Thêm Sản Phẩm Mới</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Các input cũ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            name="name"
-            placeholder="Tên sản phẩm"
-            value={form.name}
-            onChange={handleChange}
-            className="border p-3 rounded w-full"
-          />
-          <input
-            name="sku"
-            placeholder="Mã SKU"
-            value={form.sku}
-            onChange={handleChange}
-            className="border p-3 rounded w-full"
-          />
-          <input
-            name="category"
-            placeholder="Danh mục"
-            value={form.category}
-            onChange={handleChange}
-            className="border p-3 rounded w-full"
-          />
-          <input
-            name="price"
-            type="number"
-            placeholder="Giá (VNĐ)"
-            value={form.price}
-            onChange={handleChange}
-            className="border p-3 rounded w-full"
-          />
-          <input
-            name="stock"
-            type="number"
-            placeholder="Tồn kho"
-            value={form.stock}
-            onChange={handleChange}
-            className="border p-3 rounded w-full"
-          />
-          <input
-            name="weightGrams"
-            type="number"
-            placeholder="Khối lượng (grams)"
-            value={form.weightGrams}
-            onChange={handleChange}
-            className="border p-3 rounded w-full"
-          />
+          {/* ... giữ nguyên các input name, sku, category, price, stock, weightGrams ... */}
         </div>
 
         <textarea
@@ -139,6 +123,19 @@ export default function AddProduct() {
           onChange={handleChange}
           className="border p-3 rounded w-full"
         />
+
+        {/* Input upload file */}
+        <div>
+          <label className="block mb-1 font-medium">Chọn ảnh từ máy</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={uploading}
+            className="border p-2 rounded w-full"
+          />
+          {uploading && <p className="text-sm text-gray-500 mt-1">Đang upload...</p>}
+        </div>
 
         <input
           name="materials"

@@ -5,4 +5,12 @@ const { verifyToken, authorize } = require("../middleware/auth");
 
 router.post("/addProduct", verifyToken, authorize("seller"), ProductController.addProduct);
 
+router.get("/", ProductController.getProducts);
+router.get("/:id", ProductController.getProductById);
+
+// UPDATE
+router.put("/:id", verifyToken, authorize("seller"), ProductController.updateProduct);
+
+// DELETE
+router.delete("/:id", verifyToken, authorize("seller"), ProductController.deleteProduct);
 module.exports = router; 

@@ -1,6 +1,12 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaBoxOpen, FaChartPie, FaShoppingBag, FaSignOutAlt } from "react-icons/fa";
+import {
+  FaBoxOpen,
+  FaChartPie,
+  FaShoppingBag,
+  FaSignOutAlt,
+  FaFlask   // icon cho mục Nguyên liệu
+} from "react-icons/fa";
 
 export default function SellerSidebar() {
   const navigate = useNavigate();
@@ -17,12 +23,21 @@ export default function SellerSidebar() {
         <Link to="/seller/dashboard" className="flex items-center gap-2 hover:text-pink-500">
           <FaChartPie /> Dashboard
         </Link>
+
         <Link to="/seller/products" className="flex items-center gap-2 hover:text-pink-500">
           <FaBoxOpen /> Sản phẩm
         </Link>
+
+        {/* ===== Thêm Nguyên liệu ===== */}
+        <Link to="/seller/materials" className="flex items-center gap-2 hover:text-pink-500">
+          <FaFlask /> Nguyên liệu
+        </Link>
+        {/* ============================ */}
+
         <Link to="/seller/orders" className="flex items-center gap-2 hover:text-pink-500">
           <FaShoppingBag /> Đơn hàng
         </Link>
+
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 text-left hover:text-pink-500 mt-auto"

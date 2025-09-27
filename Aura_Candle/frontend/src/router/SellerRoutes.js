@@ -7,6 +7,9 @@ import Orders from "../components/seller/Orders";
 import AddProduct from "../pages/Seller/AddProduct";
 import OrderDetail from "../pages/Seller/OrderDetail";
 import UpdateOrder from "../pages/Seller/UpdateOrder";
+import MaterialsPage from "../components/seller/Materials";
+import AddMaterial from "../components/seller/AddMaterial";
+import EditMaterial from "../components/seller/EditMaterial";
 
 
 export default function SellerRoutes() {
@@ -23,6 +26,9 @@ export default function SellerRoutes() {
                 <Route path="/products/addProducts" element={<AddProduct />} />
                 <Route path="/orders/:id" element={<OrderDetail />} />
                 <Route path="/orders/:id/edit" element={<UpdateOrder />} />
+                <Route path="/materials" element={<MaterialsPage />} />
+                <Route path="/materials/new" element={<AddMaterial />} />
+                <Route path="/materials/:id/edit" element={<EditMaterial />} />
             </Route>
         </Routes>
     );
