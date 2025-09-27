@@ -1,6 +1,6 @@
 import React from "react";
-import Layout from "../layout/Layout";
-import BlogList from "../components/features/Blog/BlogList";
+import Layout from "../../layout/Layout";
+import BlogList from "../../components/features/Blog/BlogList";
 
 
 

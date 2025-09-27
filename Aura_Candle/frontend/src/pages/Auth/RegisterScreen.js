@@ -1,6 +1,6 @@
 import React from "react";
-import Layout from "../layout/Layout";
-import RegisterForm from "../components/Auth/RegisterForm";
+import Layout from "../../layout/Layout";
+import RegisterForm from "../../components/Auth/RegisterForm";
 
 
 export default function RegisterScreen() {

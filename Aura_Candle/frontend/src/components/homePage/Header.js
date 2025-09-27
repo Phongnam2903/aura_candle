@@ -31,7 +31,7 @@ const Header = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("role");
     setUser(null);
-    navigate("/login"); // hoặc navigate("/") nếu muốn về trang chủ
+    navigate("/"); // hoặc navigate("/") nếu muốn về trang chủ
   };
 
   return (
@@ -52,8 +52,8 @@ const Header = () => {
       {/* Navigation */}
       <nav
         className={`${isMenuOpen
-            ? "absolute top-full left-0 w-full bg-white shadow-md p-4 md:hidden z-50"
-            : "hidden md:flex"
+          ? "absolute top-full left-0 w-full bg-white shadow-md p-4 md:hidden z-50"
+          : "hidden md:flex"
           }`}
       >
         <ul className="flex flex-col gap-4 md:flex-row md:gap-6 text-gray-700 font-medium">
@@ -88,25 +88,62 @@ const Header = () => {
           </span>
         </div>
 
-        {/* User + Logout */}
-        <div className="relative group flex flex-col items-center">
+        {/* User + Dropdown */}
+        <div className="relative group">
           {user ? (
-            <div className="flex items-center gap-2 cursor-pointer group">
-              <span className="text-sm font-semibold text-gray-800">
-                {user.name}
-              </span>
-              {/* Dropdown */}
-              <div className="absolute top-full mt-2 right-0 bg-white border rounded shadow-md opacity-0 group-hover:opacity-100 transition z-50">
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                >
-                  <FaSignOutAlt /> Đăng xuất
-                </button>
+            <div className="flex items-center gap-2 cursor-pointer">
+              <FaUser className="text-lg text-gray-700" />
+
+              {/* Dropdown chi tiết */}
+              <div className="absolute right-0 top-full mt-3 w-56 bg-white border border-gray-200 rounded-lg shadow-lg 
+                      opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="px-4 py-2 border-b font-semibold text-gray-700 text-center">
+                  THÔNG TIN TÀI KHOẢN
+                </div>
+                <div className="px-4 py-2 text-center text-sm text-gray-800 font-medium">
+                  {user.name}
+                </div>
+                <ul className="text-sm text-gray-700">
+                  <li>
+                    <Link
+                      to="/account"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                    >
+                      Tài khoản của tôi
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/membership"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                    >
+                      Thông tin hạng thành viên
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/addresses"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                    >
+                      Danh sách địa chỉ
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <FaSignOutAlt /> Đăng xuất
+                    </button>
+                  </li>
+                </ul>
               </div>
             </div>
           ) : (
-            <Link to="/login" className="relative group flex flex-col items-center">
+            <Link
+              to="/login"
+              className="relative flex flex-col items-center group"
+            >
               <FaUser className="text-lg hover:text-pink-500" />
               <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
                 Tài khoản
@@ -114,6 +151,7 @@ const Header = () => {
             </Link>
           )}
         </div>
+
 
         {/* Search */}
         <div

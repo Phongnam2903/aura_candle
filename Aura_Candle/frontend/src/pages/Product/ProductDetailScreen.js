@@ -1,6 +1,6 @@
 import React from "react";
-import Layout from "../layout/Layout";
-import ProductDetail from "../components/Product/ProductDetail";
+import Layout from "../../layout/Layout";
+import ProductDetail from "../../components/Product/ProductDetail";
 
 const ProductDetailScreen = () => {
   return (
