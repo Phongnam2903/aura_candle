@@ -55,10 +55,11 @@ export default function Products() {
               <td className="p-3 border">
                 {p.images?.length > 0 && (
                   <img
-                    src={p.images[0]}
+                    src={`http://localhost:5000${p.images[0]}`}
                     alt={p.name}
                     className="w-16 h-16 object-cover rounded"
                   />
+
                 )}
               </td>
               <td className="p-3 border">{p.name}</td>
