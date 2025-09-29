@@ -5,7 +5,8 @@ import {
   FaChartPie,
   FaShoppingBag,
   FaSignOutAlt,
-  FaFlask   // icon cho mục Nguyên liệu
+  FaFlask,
+  FaTags   // icon cho mục Danh mục
 } from "react-icons/fa";
 
 export default function SellerSidebar() {
@@ -28,11 +29,15 @@ export default function SellerSidebar() {
           <FaBoxOpen /> Sản phẩm
         </Link>
 
-        {/* ===== Thêm Nguyên liệu ===== */}
+        {/* ===== Thêm Danh mục ===== */}
+        <Link to="/seller/categories" className="flex items-center gap-2 hover:text-pink-500">
+          <FaTags /> Danh mục
+        </Link>
+        {/* ======================== */}
+
         <Link to="/seller/materials" className="flex items-center gap-2 hover:text-pink-500">
           <FaFlask /> Nguyên liệu
         </Link>
-        {/* ============================ */}
 
         <Link to="/seller/orders" className="flex items-center gap-2 hover:text-pink-500">
           <FaShoppingBag /> Đơn hàng
