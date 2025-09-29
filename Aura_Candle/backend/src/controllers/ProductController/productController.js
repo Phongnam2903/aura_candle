@@ -56,7 +56,8 @@ const getProducts = async (req, res) => {
         const limitNum = parseInt(limit, 10) || 20;
 
         const products = await Product.find(query)
-            .populate("category", "name") // ⬅️ trả về { _id, name } của category
+            .populate("category", "name")
+            .populate("materials", "name")
             .skip((pageNum - 1) * limitNum)
             .limit(limitNum)
             .sort({ createdAt: -1 });
@@ -79,13 +80,14 @@ const getProducts = async (req, res) => {
 // =============================
 const getProductById = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id).populate(
-            "category",
-            "name"
-        );
-        if (!product)
+        const product = await Product.findById(req.params.id)
+            .populate("category", "name")
+            .populate("materials", "name");
+        if (!product) {
             return res.status(404).json({ message: "Product not found" });
-        res.json(product);
+        }
+
+        res.json(product); // Trả thẳng object product đã được populate
     } catch (error) {
         console.error("Get product error:", error);
         res.status(500).json({ message: "Failed to fetch product", error });

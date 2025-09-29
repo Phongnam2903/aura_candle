@@ -12,15 +12,15 @@ export async function createProducts(data) {
     return res.data;
 }
 
-// export async function deleteMaterial(id) {
-//     return api.delete(`${BASE_URL}/${id}`);
-// }
+export async function deleteProduct(id) {
+    return api.delete(`${BASE_URL}/${id}`);
+}
 
-// export async function updateMaterial(id, data) {
-//     return api.put(`${BASE_URL}/${id}`, data);
-// }
+export async function updateProduct(id, data) {
+    return api.put(`${BASE_URL}/${id}`, data);
+}
 
-// export async function getMaterialById(id) {
-//     const res = await api.get(`${BASE_URL}/${id}`);
-//     return res.data;
-// }
+export async function getProductById(id) {
+    const res = await api.get(`${BASE_URL}/${id}`);
+    return res.data;
+}
