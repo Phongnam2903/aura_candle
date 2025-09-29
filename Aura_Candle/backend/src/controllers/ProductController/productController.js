@@ -47,20 +47,27 @@ const addProduct = async (req, res) => {
 // =============================
 const getProducts = async (req, res) => {
     try {
-        // có thể lọc theo category, keyword, page, limit
         const { category, keyword, page = 1, limit = 20 } = req.query;
         const query = {};
         if (category) query.category = category;
         if (keyword) query.name = { $regex: keyword, $options: "i" };
 
+        const pageNum = parseInt(page, 10) || 1;
+        const limitNum = parseInt(limit, 10) || 20;
+
         const products = await Product.find(query)
-            .skip((page - 1) * limit)
-            .limit(parseInt(limit))
+            .populate("category", "name") // ⬅️ trả về { _id, name } của category
+            .skip((pageNum - 1) * limitNum)
+            .limit(limitNum)
             .sort({ createdAt: -1 });
 
         const total = await Product.countDocuments(query);
 
-        res.json({ total, page: Number(page), products });
+        res.json({
+            total,
+            page: pageNum,
+            products,
+        });
     } catch (error) {
         console.error("Get products error:", error);
         res.status(500).json({ message: "Failed to fetch products", error });
@@ -72,8 +79,12 @@ const getProducts = async (req, res) => {
 // =============================
 const getProductById = async (req, res) => {
     try {
-        const product = await Product.findById(req.params.id);
-        if (!product) return res.status(404).json({ message: "Product not found" });
+        const product = await Product.findById(req.params.id).populate(
+            "category",
+            "name"
+        );
+        if (!product)
+            return res.status(404).json({ message: "Product not found" });
         res.json(product);
     } catch (error) {
         console.error("Get product error:", error);
@@ -90,7 +101,7 @@ const updateProduct = async (req, res) => {
             req.params.id,
             req.body,
             { new: true, runValidators: true }
-        );
+        ).populate("category", "name");
         if (!updatedProduct)
             return res.status(404).json({ message: "Product not found" });
 

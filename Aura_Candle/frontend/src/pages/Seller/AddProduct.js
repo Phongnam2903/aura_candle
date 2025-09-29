@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import Select from 'react-select';
+import { getCategories } from "../../api/category/categoriesApi";
+import { getMaterials } from "../../api/material/materialApi";
+import { createProducts } from "../../api/products/productApi";
 
 export default function AddProduct() {
   const [form, setForm] = useState({
@@ -11,12 +15,29 @@ export default function AddProduct() {
     price: "",
     stock: "",
     weightGrams: "",
-    images: "",       // chứa link ảnh (có thể nhập thủ công hoặc từ upload)
-    materials: "",
+    images: [],
     isKit: false,
+    materials: [], // lưu mảng id nguyên liệu đã chọn
   });
+
+  const [categories, setCategories] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [cats, mats] = await Promise.all([getCategories(), getMaterials()]);
+        setCategories(cats);
+        setMaterials(mats);
+      } catch (err) {
+        console.error(err);
+        toast.error("Không thể tải danh mục hoặc nguyên liệu");
+      }
+    }
+    fetchData();
+  }, []);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -25,27 +46,20 @@ export default function AddProduct() {
       [name]: type === "checkbox" ? checked : value,
     }));
   }
-
-  // Upload file ảnh lên server
   async function handleFileChange(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || !files.length) return;
     const formData = new FormData();
-    formData.append("file", file);
+    for (let f of files) formData.append("files", f);
 
     setUploading(true);
     try {
-      // gọi API upload ảnh, server cần trả về { url: 'link_ảnh' }
-      const res = await axios.post("/api/upload", formData, {
+      const res = await axios.post("http://localhost:5000/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      const imageUrl = res.data.url;
-      // thêm link mới vào chuỗi images (nếu đã có thì nối bằng dấu phẩy)
       setForm((prev) => ({
         ...prev,
-        images: prev.images
-          ? prev.images + "," + imageUrl
-          : imageUrl,
+        images: [...prev.images, ...res.data.files],
       }));
       toast.success("Upload ảnh thành công!");
     } catch (err) {
@@ -58,7 +72,7 @@ export default function AddProduct() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.name || !form.price || !form.sku) {
+    if (!form.name || !form.sku || !form.price) {
       toast.error("Vui lòng nhập tối thiểu Tên, SKU và Giá!");
       return;
     }
@@ -69,15 +83,8 @@ export default function AddProduct() {
         price: Number(form.price),
         stock: Number(form.stock),
         weightGrams: Number(form.weightGrams),
-        images: form.images
-          ? form.images.split(",").map((url) => url.trim())
-          : [],
-        materials: form.materials
-          ? form.materials.split(",").map((m) => m.trim())
-          : [],
       };
-
-      await axios.post("/api/products", payload);
+      await createProducts(payload);
       toast.success("Tạo sản phẩm thành công!");
       setForm({
         name: "",
@@ -87,9 +94,9 @@ export default function AddProduct() {
         price: "",
         stock: "",
         weightGrams: "",
-        images: "",
-        materials: "",
+        images: [],
         isKit: false,
+        materials: [],
       });
     } catch (err) {
       console.error(err);
@@ -103,55 +110,76 @@ export default function AddProduct() {
     <div className="max-w-3xl mx-auto bg-white p-8 rounded shadow">
       <h1 className="text-2xl font-bold mb-6">Thêm Sản Phẩm Mới</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Các input cũ */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* ... giữ nguyên các input name, sku, category, price, stock, weightGrams ... */}
-        </div>
+        <input name="name" placeholder="Tên sản phẩm" value={form.name}
+          onChange={handleChange} className="border p-3 rounded w-full" />
+        <input name="sku" placeholder="SKU" value={form.sku}
+          onChange={handleChange} className="border p-3 rounded w-full" />
 
-        <textarea
-          name="description"
-          placeholder="Mô tả sản phẩm"
-          value={form.description}
-          onChange={handleChange}
-          className="border p-3 rounded w-full h-28"
-        />
+        {/* chọn danh mục */}
+        <select name="category" value={form.category}
+          onChange={handleChange} className="border p-3 rounded w-full">
+          <option value="">-- Chọn danh mục --</option>
+          {categories.map((c) => (
+            <option key={c._id} value={c._id}>{c.name}</option>
+          ))}
+        </select>
 
-        <input
-          name="images"
-          placeholder="Link hình ảnh (cách nhau dấu phẩy)"
-          value={form.images}
-          onChange={handleChange}
-          className="border p-3 rounded w-full"
-        />
+        <textarea name="description" placeholder="Mô tả"
+          value={form.description} onChange={handleChange}
+          className="border p-3 rounded w-full h-24" />
+        <input name="price" type="number" placeholder="Giá (VNĐ)"
+          value={form.price} onChange={handleChange}
+          className="border p-3 rounded w-full" />
+        <input name="stock" type="number" placeholder="Tồn kho"
+          value={form.stock} onChange={handleChange}
+          className="border p-3 rounded w-full" />
+        <input name="weightGrams" type="number" placeholder="Trọng lượng (gram)"
+          value={form.weightGrams} onChange={handleChange}
+          className="border p-3 rounded w-full" />
 
-        {/* Input upload file */}
+        {/* upload ảnh */}
         <div>
-          <label className="block mb-1 font-medium">Chọn ảnh từ máy</label>
+          <label className="block mb-1 font-medium">Chọn ảnh (có thể nhiều)</label>
           <input
             type="file"
+            multiple
             accept="image/*"
             onChange={handleFileChange}
             disabled={uploading}
             className="border p-2 rounded w-full"
           />
           {uploading && <p className="text-sm text-gray-500 mt-1">Đang upload...</p>}
+          <div className="flex flex-wrap gap-2 mt-2">
+            {form.images.map((img, idx) => (
+              <img key={idx} src={`http://localhost:5000${img}`}
+                alt="preview" className="w-24 h-24 object-cover rounded" />
+            ))}
+          </div>
         </div>
 
-        <input
-          name="materials"
-          placeholder="Chất liệu (cách nhau dấu phẩy)"
-          value={form.materials}
-          onChange={handleChange}
-          className="border p-3 rounded w-full"
-        />
+        {/* chọn nhiều nguyên liệu */}
+        <div>
+          <label className="block mb-1 font-medium">Chọn nguyên liệu</label>
+          <Select
+            isMulti
+            options={materials.map(m => ({ value: m._id, label: m.name }))}
+            value={materials.filter(m => form.materials.includes(m._id))
+              .map(m => ({ value: m._id, label: m.name }))}
+            onChange={(selected) =>
+              setForm(prev => ({
+                ...prev,
+                materials: selected.map(s => s.value)
+              }))
+            }
+          />
+
+
+        </div>
 
         <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="isKit"
+          <input type="checkbox" name="isKit"
             checked={form.isKit}
-            onChange={handleChange}
-          />
+            onChange={handleChange} />
           Sản phẩm dạng Kit?
         </label>
 

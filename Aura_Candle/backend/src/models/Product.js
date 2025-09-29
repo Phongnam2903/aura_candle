@@ -10,11 +10,8 @@ const ProductSchema = new mongoose.Schema({
     weightGrams: Number,
     isActive: { type: Boolean, default: true },
     images: [String],
-    materials: [{
-        material: { type: mongoose.Schema.Types.ObjectId, ref: 'Material', required: true },
-        quantity: { type: Number, required: true } // in material.unit (eg grams, ml, pieces)
-    }],
-    isKit: { type: Boolean, default: false }, // kit bán nguyên liệu
+    materials: [{ type: mongoose.Schema.Types.ObjectId, ref: "Material" }],
+    isKit: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 

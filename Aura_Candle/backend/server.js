@@ -7,7 +7,8 @@ const cors = require("cors");
 const productRouter = require("./src/routes/ProductRoutes");
 const materialRouter = require("./src/routes/MaterialRoutes");
 const authRouter = require("./src/routes/UserRoutes");
-const uploadRouter = require("./src/routes/uploadRoutes"); // ⬅️ import mới
+const categoryRouter = require("./src/routes/CategoryRoutes")
+const uploadRouter = require("./src/routes/uploadRoutes");
 
 connectDB();
 const app = express();
@@ -29,9 +30,10 @@ app.use(
 
 // API routes
 app.use("/product", productRouter);
+app.use("/category", categoryRouter);
 app.use("/material", materialRouter);
 app.use("/auth", authRouter);
-app.use("/upload", uploadRouter); // sử dụng route upload
+app.use("/upload", uploadRouter);
 
 // Start server
 const port = process.env.PORT || 5000;
