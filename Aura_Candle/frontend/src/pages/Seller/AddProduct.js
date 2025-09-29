@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Select from 'react-select';
+import Select from "react-select";
+import { useNavigate } from "react-router-dom";
 import { getCategories } from "../../api/category/categoriesApi";
 import { getMaterials } from "../../api/material/materialApi";
 import { createProducts } from "../../api/products/productApi";
 
 export default function AddProduct() {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     sku: "",
@@ -17,23 +20,28 @@ export default function AddProduct() {
     weightGrams: "",
     images: [],
     isKit: false,
-    materials: [], // lưu mảng id nguyên liệu đã chọn
+    materials: [],
+    scents: [],
   });
 
   const [categories, setCategories] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [scentInput, setScentInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [cats, mats] = await Promise.all([getCategories(), getMaterials()]);
+        const [cats, mats] = await Promise.all([
+          getCategories(),
+          getMaterials(),
+        ]);
         setCategories(cats);
         setMaterials(mats);
       } catch (err) {
         console.error(err);
-        toast.error("Không thể tải danh mục hoặc nguyên liệu");
+        toast.error("Không thể tải danh mục / nguyên liệu / mùi hương");
       }
     }
     fetchData();
@@ -46,6 +54,7 @@ export default function AddProduct() {
       [name]: type === "checkbox" ? checked : value,
     }));
   }
+
   async function handleFileChange(e) {
     const files = e.target.files;
     if (!files || !files.length) return;
@@ -68,6 +77,24 @@ export default function AddProduct() {
     } finally {
       setUploading(false);
     }
+  }
+
+  // thêm mùi hương
+  function addScent() {
+    if (!scentInput.trim()) return;
+    setForm((prev) => ({
+      ...prev,
+      scents: [...prev.scents, scentInput.trim()],
+    }));
+    setScentInput("");
+  }
+
+  // xóa mùi hương
+  function removeScent(index) {
+    setForm((prev) => ({
+      ...prev,
+      scents: prev.scents.filter((_, i) => i !== index),
+    }));
   }
 
   async function handleSubmit(e) {
@@ -97,6 +124,7 @@ export default function AddProduct() {
         images: [],
         isKit: false,
         materials: [],
+        scents: [],
       });
     } catch (err) {
       console.error(err);
@@ -108,38 +136,85 @@ export default function AddProduct() {
 
   return (
     <div className="max-w-3xl mx-auto bg-white p-8 rounded shadow">
-      <h1 className="text-2xl font-bold mb-6">Thêm Sản Phẩm Mới</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Thêm Sản Phẩm Mới</h1>
+        {/*nút Back */}
+        <button
+          onClick={() => navigate("/seller/products")}
+          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+        >
+          ← Quay lại
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input name="name" placeholder="Tên sản phẩm" value={form.name}
-          onChange={handleChange} className="border p-3 rounded w-full" />
-        <input name="sku" placeholder="SKU" value={form.sku}
-          onChange={handleChange} className="border p-3 rounded w-full" />
+        <input
+          name="name"
+          placeholder="Tên sản phẩm"
+          value={form.name}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+        />
+        <input
+          name="sku"
+          placeholder="SKU"
+          value={form.sku}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+        />
 
         {/* chọn danh mục */}
-        <select name="category" value={form.category}
-          onChange={handleChange} className="border p-3 rounded w-full">
+        <select
+          name="category"
+          value={form.category}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+        >
           <option value="">-- Chọn danh mục --</option>
           {categories.map((c) => (
-            <option key={c._id} value={c._id}>{c.name}</option>
+            <option key={c._id} value={c._id}>
+              {c.name}
+            </option>
           ))}
         </select>
 
-        <textarea name="description" placeholder="Mô tả"
-          value={form.description} onChange={handleChange}
-          className="border p-3 rounded w-full h-24" />
-        <input name="price" type="number" placeholder="Giá (VNĐ)"
-          value={form.price} onChange={handleChange}
-          className="border p-3 rounded w-full" />
-        <input name="stock" type="number" placeholder="Tồn kho"
-          value={form.stock} onChange={handleChange}
-          className="border p-3 rounded w-full" />
-        <input name="weightGrams" type="number" placeholder="Trọng lượng (gram)"
-          value={form.weightGrams} onChange={handleChange}
-          className="border p-3 rounded w-full" />
+        <textarea
+          name="description"
+          placeholder="Mô tả"
+          value={form.description}
+          onChange={handleChange}
+          className="border p-3 rounded w-full h-24"
+        />
+        <input
+          name="price"
+          type="number"
+          placeholder="Giá (VNĐ)"
+          value={form.price}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+        />
+        <input
+          name="stock"
+          type="number"
+          placeholder="Tồn kho"
+          value={form.stock}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+        />
+        <input
+          name="weightGrams"
+          type="number"
+          placeholder="Trọng lượng (gram)"
+          value={form.weightGrams}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+        />
 
         {/* upload ảnh */}
         <div>
-          <label className="block mb-1 font-medium">Chọn ảnh (có thể nhiều)</label>
+          <label className="block mb-1 font-medium">
+            Chọn ảnh (có thể nhiều)
+          </label>
           <input
             type="file"
             multiple
@@ -148,11 +223,17 @@ export default function AddProduct() {
             disabled={uploading}
             className="border p-2 rounded w-full"
           />
-          {uploading && <p className="text-sm text-gray-500 mt-1">Đang upload...</p>}
+          {uploading && (
+            <p className="text-sm text-gray-500 mt-1">Đang upload...</p>
+          )}
           <div className="flex flex-wrap gap-2 mt-2">
             {form.images.map((img, idx) => (
-              <img key={idx} src={`http://localhost:5000${img}`}
-                alt="preview" className="w-24 h-24 object-cover rounded" />
+              <img
+                key={idx}
+                src={`http://localhost:5000${img}`}
+                alt="preview"
+                className="w-24 h-24 object-cover rounded"
+              />
             ))}
           </div>
         </div>
@@ -162,24 +243,64 @@ export default function AddProduct() {
           <label className="block mb-1 font-medium">Chọn nguyên liệu</label>
           <Select
             isMulti
-            options={materials.map(m => ({ value: m._id, label: m.name }))}
-            value={materials.filter(m => form.materials.includes(m._id))
-              .map(m => ({ value: m._id, label: m.name }))}
+            options={materials.map((m) => ({ value: m._id, label: m.name }))}
+            value={materials
+              .filter((m) => form.materials.includes(m._id))
+              .map((m) => ({ value: m._id, label: m.name }))}
             onChange={(selected) =>
-              setForm(prev => ({
+              setForm((prev) => ({
                 ...prev,
-                materials: selected.map(s => s.value)
+                materials: selected.map((s) => s.value),
               }))
             }
           />
+        </div>
 
-
+        {/* nhập tay nhiều mùi hương */}
+        <div>
+          <label className="block mb-1 font-medium">Mùi hương</label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={scentInput}
+              onChange={(e) => setScentInput(e.target.value)}
+              placeholder="Nhập mùi hương..."
+              className="border p-2 rounded flex-1"
+            />
+            <button
+              type="button"
+              onClick={addScent}
+              className="bg-blue-600 text-white px-4 rounded"
+            >
+              Thêm
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {form.scents.map((s, idx) => (
+              <span
+                key={idx}
+                className="bg-gray-200 px-3 py-1 rounded-full flex items-center gap-2"
+              >
+                {s}
+                <button
+                  type="button"
+                  onClick={() => removeScent(idx)}
+                  className="text-red-500"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
 
         <label className="flex items-center gap-2">
-          <input type="checkbox" name="isKit"
+          <input
+            type="checkbox"
+            name="isKit"
             checked={form.isKit}
-            onChange={handleChange} />
+            onChange={handleChange}
+          />
           Sản phẩm dạng Kit?
         </label>
 

@@ -16,7 +16,7 @@ export default function EditProduct() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Load dữ liệu sản phẩm + danh mục + nguyên liệu
+  // Load dữ liệu
   useEffect(() => {
     (async () => {
       try {
@@ -29,7 +29,6 @@ export default function EditProduct() {
         setCategories(cats);
         setMaterialsList(mats);
 
-        // Lấy mảng id nguyên liệu và lọc bỏ giá trị rỗng
         const matsValue =
           product.materials
             ?.map((m) => m.material?._id || m.material)
@@ -40,6 +39,8 @@ export default function EditProduct() {
           category: product.category?._id || "",
           images: product.images || [],
           materials: matsValue,
+          fragrance: product.fragrance || "",           // thêm nếu 1 mùi
+          fragrances: product.fragrances || [],         // thêm nếu nhiều mùi
         });
       } catch (err) {
         console.error(err);
@@ -56,7 +57,6 @@ export default function EditProduct() {
     }));
   }
 
-  // Bật/tắt chọn nguyên liệu
   function toggleMaterial(mid) {
     setForm((prev) => {
       const exists = prev.materials.includes(mid);
@@ -69,7 +69,6 @@ export default function EditProduct() {
     });
   }
 
-  // Upload nhiều ảnh mới
   async function handleFileChange(e) {
     const files = e.target.files;
     if (!files?.length) return;
@@ -104,8 +103,12 @@ export default function EditProduct() {
         price: Number(form.price),
         stock: Number(form.stock),
         weightGrams: Number(form.weightGrams),
-        // lọc lại materials để chỉ gửi id hợp lệ
         materials: (form.materials || []).filter(Boolean),
+        // Nếu bạn dùng nhiều mùi thì split từ string sang array
+        fragrances:
+          typeof form.fragrances === "string"
+            ? form.fragrances.split(",").map((f) => f.trim()).filter(Boolean)
+            : form.fragrances,
       };
 
       await updateProduct(id, payload);
@@ -124,6 +127,15 @@ export default function EditProduct() {
   return (
     <div className="max-w-3xl mx-auto bg-white p-8 rounded shadow">
       <h1 className="text-2xl font-bold mb-6">Cập Nhật Sản Phẩm</h1>
+
+      {/* Nút Back */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+      >
+        ← Quay lại
+      </button>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           name="name"
@@ -160,6 +172,23 @@ export default function EditProduct() {
           onChange={handleChange}
           className="border p-3 rounded w-full h-24"
           placeholder="Mô tả sản phẩm"
+        />
+
+        {/* Mùi hương */}
+        <input
+          name="fragrance"
+          value={form.fragrance}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+          placeholder="Mùi hương (nếu chỉ 1)"
+        />
+
+        <input
+          name="fragrances"
+          value={Array.isArray(form.fragrances) ? form.fragrances.join(", ") : form.fragrances}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+          placeholder="Nhiều mùi hương (ngăn cách bởi dấu phẩy)"
         />
 
         <input
@@ -213,7 +242,7 @@ export default function EditProduct() {
           </div>
         </div>
 
-        {/* Chọn nguyên liệu */}
+        {/* Nguyên liệu */}
         <div>
           <label className="block font-medium mb-2">Nguyên liệu</label>
           <div className="flex flex-wrap gap-3">

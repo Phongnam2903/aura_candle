@@ -71,6 +71,7 @@ export default function ProductDetail() {
                     <p><strong>Mã SKU:</strong> {product.sku}</p>
                     <p><strong>Danh mục:</strong> {product.category?.name || "Không có"}</p>
                     <p><strong>Giá:</strong> {product.price?.toLocaleString()} đ</p>
+                    <p><strong>Mùi Hương:</strong><td className="p-3 border">{product.fragrance || "Không có"}</td></p>
                     <p><strong>Tồn kho:</strong> {product.stock}</p>
                     <p><strong>Khối lượng:</strong> {product.weightGrams} g</p>
                     <p>

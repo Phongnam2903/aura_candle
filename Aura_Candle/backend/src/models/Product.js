@@ -12,10 +12,10 @@ const ProductSchema = new mongoose.Schema({
     images: [String],
     materials: [{ type: mongoose.Schema.Types.ObjectId, ref: "Material" }],
     isKit: { type: Boolean, default: false },
+    // Thêm mùi hương
+    fragrance: { type: String }, // lưu 1 mùi hương
     createdAt: { type: Date, default: Date.now }
 });
 
 const Product = mongoose.model('Product', ProductSchema, "products");
 module.exports = Product;
-
-

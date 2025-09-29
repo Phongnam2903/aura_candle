@@ -16,6 +16,8 @@ const addProduct = async (req, res) => {
             images,
             materials,
             isKit,
+            fragrance,   // thêm
+            fragrances,  // nếu bạn dùng dạng array
         } = req.body;
 
         const newProduct = new Product({
@@ -29,6 +31,8 @@ const addProduct = async (req, res) => {
             images,
             materials,
             isKit,
+            fragrance,   // nếu dùng 1 mùi
+            fragrances,  // nếu dùng nhiều mùi
         });
 
         await newProduct.save();
@@ -87,7 +91,7 @@ const getProductById = async (req, res) => {
             return res.status(404).json({ message: "Product not found" });
         }
 
-        res.json(product); // Trả thẳng object product đã được populate
+        res.json(product);
     } catch (error) {
         console.error("Get product error:", error);
         res.status(500).json({ message: "Failed to fetch product", error });
@@ -103,7 +107,10 @@ const updateProduct = async (req, res) => {
             req.params.id,
             req.body,
             { new: true, runValidators: true }
-        ).populate("category", "name");
+        )
+            .populate("category", "name")
+            .populate("materials", "name");
+
         if (!updatedProduct)
             return res.status(404).json({ message: "Product not found" });
 

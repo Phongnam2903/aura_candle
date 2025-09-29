@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getProducts } from "../../api/products/productApi";
+import { deleteProduct, getProducts } from "../../api/products/productApi";
 import { Eye } from "lucide-react"; // icon con mắt
 
 export default function Products() {
@@ -24,6 +24,19 @@ export default function Products() {
     fetchData();
   }, []);
 
+  async function handleDelete(id) {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này không?")) return;
+
+    try {
+      await deleteProduct(id);
+      setProducts((prev) => prev.filter((p) => p._id !== id)); // cập nhật UI
+      toast.success("Xóa sản phẩm thành công!");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Lỗi khi xóa sản phẩm");
+    }
+  }
+
   if (loading) return <p>Đang tải sản phẩm...</p>;
 
   return (
@@ -44,6 +57,7 @@ export default function Products() {
             <th className="p-3 border">Ảnh</th>
             <th className="p-3 border">Tên sản phẩm</th>
             <th className="p-3 border">Loại</th>
+            <th className="p-3 border">Mùi Hương</th>
             <th className="p-3 border">Giá</th>
             <th className="p-3 border">Tồn kho</th>
             <th className="p-3 border">Thao tác</th>
@@ -64,6 +78,7 @@ export default function Products() {
               </td>
               <td className="p-3 border">{p.name}</td>
               <td className="p-3 border">{p.category?.name || "-"}</td>
+              <td className="p-3 border">{p.fragrance || "Không có"}</td>
               <td className="p-3 border">{Number(p.price).toLocaleString()}₫</td>
               <td className="p-3 border">{p.stock}</td>
               <td className="p-3 border space-x-2">
@@ -75,9 +90,13 @@ export default function Products() {
                   <Eye size={18} />
                 </button>
                 <button className="px-3 py-1 bg-emerald-500 text-white rounded hover:bg-emerald-600">
-                  Sửa
+                  <Link to={`/seller/products/${p._id}/edit`}>
+                    Sửa
+                  </Link>
                 </button>
-                <button className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
+                <button
+                  onClick={() => handleDelete(p._id)}
+                  className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">
                   Xóa
                 </button>
               </td>
