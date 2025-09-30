@@ -9,7 +9,7 @@ const materialRouter = require("./src/routes/MaterialRoutes");
 const authRouter = require("./src/routes/UserRoutes");
 const categoryRouter = require("./src/routes/CategoryRoutes")
 const uploadRouter = require("./src/routes/uploadRoutes");
-
+const cartRouter = require("./src/routes/CartRoutes")
 connectDB();
 const app = express();
 
@@ -34,6 +34,7 @@ app.use("/category", categoryRouter);
 app.use("/material", materialRouter);
 app.use("/auth", authRouter);
 app.use("/upload", uploadRouter);
+app.use("/cart", cartRouter)
 
 // Start server
 const port = process.env.PORT || 5000;

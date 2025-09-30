@@ -1,41 +1,66 @@
-import React, { createContext, useReducer, useContext } from "react";
+import React, { createContext, useContext, useReducer, useEffect } from "react";
 
 const CartContext = createContext();
 
-const reducer = (state, action) => {
+const initialState = JSON.parse(localStorage.getItem("cart")) || [];
+
+function cartReducer(state, action) {
   switch (action.type) {
-    case "ADD":
-      // Nếu sp đã có thì tăng quantity
-      const exist = state.find((i) => i.id === action.item.id);
+    case "ADD": {
+      const item = action.payload;
+      // Nếu sản phẩm đã có trong giỏ thì tăng số lượng
+      const exist = state.find((p) => p.id === item.id);
       if (exist) {
-        return state.map((i) =>
-          i.id === action.item.id
-            ? { ...i, quantity: (i.quantity || 1) + (action.item.quantity || 1) }
-            : i
+        return state.map((p) =>
+          p.id === item.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p
         );
       }
-      return [...state, { ...action.item, quantity: action.item.quantity || 1 }];
-
+      return [...state, { ...item, quantity: 1 }];
+    }
     case "REMOVE":
-      return state.filter((i) => i.id !== action.id);
-
+      return state.filter((p) => p.id !== action.id);
     case "UPDATE_QTY":
-      return state.map((i) =>
-        i.id === action.id ? { ...i, quantity: action.quantity } : i
+      return state.map((p) =>
+        p.id === action.id ? { ...p, quantity: action.quantity } : p
       );
-
     case "CLEAR":
       return [];
-
     default:
       return state;
   }
-};
+}
 
 export function CartProvider({ children }) {
-  const [cart, dispatch] = useReducer(reducer, []);
+  const [cart, dispatch] = useReducer(cartReducer, initialState);
+
+  // Lưu giỏ hàng vào localStorage để không mất khi reload
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const addItem = (product) => {
+    dispatch({
+      type: "ADD",
+      payload: {
+        id: product._id || product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image || (product.images ? `http://localhost:5000${product.images[0]}` : ""),
+        variant: product.variant || null,
+      },
+    });
+  };
+
+
+  const removeItem = (id) => dispatch({ type: "REMOVE", id });
+  const updateItem = (id, quantity) =>
+    dispatch({ type: "UPDATE_QTY", id, quantity });
+  const clearCart = () => dispatch({ type: "CLEAR" });
+
   return (
-    <CartContext.Provider value={{ cart, dispatch }}>
+    <CartContext.Provider
+      value={{ cart, addItem, removeItem, updateItem, clearCart }}
+    >
       {children}
     </CartContext.Provider>
   );

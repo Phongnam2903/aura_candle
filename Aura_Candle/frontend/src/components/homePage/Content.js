@@ -1,21 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { categories } from "../../data/categories";
-import { featuredProducts } from "../../data/featuredProducts";
 import { newsData } from "../../data/news";
-import { products } from "../../data/products";
 import "swiper/css";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-//  import toast
 import { toast } from "react-toastify";
+import { getCategories } from "../../api/category/categoriesApi";
+import { getProducts } from "../../api/products/productApi";
 
 const Content = () => {
   const navigate = useNavigate();
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const swiperRef = useRef(null);
-  const { dispatch } = useCart();
+  const { addItem } = useCart();
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const handleViewProductDetail = (id) => {
     navigate(`/product/${id}`);
@@ -24,6 +25,33 @@ const Content = () => {
   const handleViewCategories = (name) => {
     alert(`Xem danh mục sản phẩm: ${name}`);
   };
+
+  // Lấy categories từ API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Lỗi khi fetch categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    const fetchProfuct = async () => {
+      try {
+        const data = await getProducts();
+        console.log(data);
+        setProducts(data);
+      } catch (error) {
+        console.error("Lỗi khi fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfuct();
+    fetchCategories();
+  }, []);
 
   // Responsive số slide
   useEffect(() => {
@@ -63,48 +91,52 @@ const Content = () => {
         <h3 className="text-2xl font-semibold text-gray-800 mb-8">
           Danh mục sản phẩm
         </h3>
-        <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={() => swiperRef.current?.slidePrev()}
-            className="p-3 bg-gray-200 rounded-full hover:bg-gray-300"
-          >
-            <ChevronLeft size={24} />
-          </button>
+        {loading ? (
+          <p>Đang tải danh mục...</p>
+        ) : (
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => swiperRef.current?.slidePrev()}
+              className="p-3 bg-gray-200 rounded-full hover:bg-gray-300"
+            >
+              <ChevronLeft size={24} />
+            </button>
 
-          <Swiper
-            spaceBetween={20}
-            slidesPerView={itemsPerPage}
-            loop
-            onSwiper={(swiper) => (swiperRef.current = swiper)}
-          >
-            {categories.map((cat, idx) => (
-              <SwiperSlide key={idx}>
-                <div
-                  className="bg-white shadow-md rounded-xl p-6 cursor-pointer hover:shadow-xl transform transition-transform duration-500 hover:scale-105"
-                  onClick={() => handleViewCategories(cat.name)}
-                >
-                  <img
-                    src={cat.img}
-                    alt={cat.name}
-                    className="w-full h-64 object-cover mb-4 rounded-lg"
-                  />
-                  <h4 className="font-semibold">{cat.name}</h4>
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+            <Swiper
+              spaceBetween={20}
+              slidesPerView={itemsPerPage}
+              loop
+              onSwiper={(swiper) => (swiperRef.current = swiper)}
+            >
+              {categories.map((cat, idx) => (
+                <SwiperSlide key={idx}>
+                  <div
+                    className="bg-white shadow-md rounded-xl p-6 cursor-pointer hover:shadow-xl transform transition-transform duration-500 hover:scale-105"
+                    onClick={() => handleViewCategories(cat.name)}
+                  >
+                    <img
+                      src={`http://localhost:5000${cat.image}`}
+                      alt={cat.name}
+                      className="w-full h-64 object-cover mb-4 rounded-lg"
+                    />
+                    <h4 className="font-semibold">{cat.name}</h4>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
 
-          <button
-            onClick={() => swiperRef.current?.slideNext()}
-            className="p-3 bg-gray-200 rounded-full hover:bg-gray-300"
-          >
-            <ChevronRight size={24} />
-          </button>
-        </div>
+            <button
+              onClick={() => swiperRef.current?.slideNext()}
+              className="p-3 bg-gray-200 rounded-full hover:bg-gray-300"
+            >
+              <ChevronRight size={24} />
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Sản phẩm nổi bật */}
-      <section className="py-16 px-6 bg-gray-50">
+      {/* <section className="py-16 px-6 bg-gray-50">
         <h3 className="text-2xl font-semibold text-center text-gray-800 mb-8">
           Sản phẩm nổi bật
         </h3>
@@ -161,7 +193,7 @@ const Content = () => {
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
 
       {/* Sản phẩm khác */}
       <section className="py-16 px-6 bg-gray-50">
@@ -169,35 +201,26 @@ const Content = () => {
           Sản phẩm
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {featuredProducts.map((sp) => (
-            <div
-              key={sp.id}
-              onClick={() => handleViewProductDetail(sp.id)}
-              className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl cursor-pointer"
-            >
-              <img src={sp.img} alt={sp.name} className="w-full h-100 object-cover" />
-              <div className="p-4">
-                <h4 className="font-semibold text-lg">{`Nến thơm ${sp.name}`}</h4>
-                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                  {sp.description}
-                </p>
-                <p className="text-red-500 font-bold">Giá: {sp.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ</p>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    //  Thêm sản phẩm vào giỏ
-                    dispatch({
-                      type: "ADD",
-                      item: { id: sp.id, name: sp.name, price: sp.price, image: sp.img },
-                    });
-                    //  Hiển thị thông báo thành công
-                    toast.success("🛒 Đã thêm vào giỏ hàng!");
-                  }}
-                  className="mt-3 px-3 py-2 bg-pink-500 text-white text-sm rounded-lg hover:bg-pink-600 transition"
-                >
-                  Thêm vào giỏ
-                </button>
-              </div>
+          {products.map((sp) => (
+            <div key={sp._id} className="bg-white shadow rounded-lg p-4">
+              <img
+                src={`http://localhost:5000${sp.images[0]}`}
+                alt={sp.name}
+                className="w-full h-80 object-cover rounded-md"
+              />
+              <h4 className="font-bold mt-2">{sp.name}</h4>
+              <p className="text-red-600 font-bold ">{sp.price.toLocaleString()} đ</p>
+
+              <button
+                onClick={() => {
+                  addItem(sp);
+                  toast.success("🛒 Đã thêm vào giỏ hàng!");
+                }}
+                className="mt-3 px-3 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+              >
+                🛒 Thêm vào giỏ
+              </button>
+
             </div>
           ))}
         </div>
