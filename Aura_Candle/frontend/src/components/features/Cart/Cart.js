@@ -1,6 +1,6 @@
 import React from "react";
 import { useCart } from "../../../context/CartContext";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
 
 export default function CartPage() {
@@ -57,7 +57,7 @@ export default function CartPage() {
                   {item.name || "Tên sản phẩm"}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  {item.variant || "Không chọn phân loại"}
+                  {item.fragrance || "Không có mùi hương"}
                 </p>
                 <p className="text-pink-600 font-bold">
                   {(item.price || 0)

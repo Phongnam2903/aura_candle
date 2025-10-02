@@ -9,7 +9,7 @@ const blogSchema = new mongoose.Schema(
     link: { type: String },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
-  { timestamps: true } // tự động tạo createdAt và updatedAt
+  { timestamps: true } 
 );
 
 const Blog = mongoose.model("Blog", blogSchema, "blogs");

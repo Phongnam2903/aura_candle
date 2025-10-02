@@ -2,15 +2,7 @@ import React, { useState } from "react";
 
 export default function AddAddressModal({ onClose, onSave }) {
     const [form, setForm] = useState({
-        fullName: "",
-        phone: "",
-        company: "",
-        address: "",
-        country: "Vietnam",
-        province: "",
-        district: "",
-        ward: "",
-        zip: "",
+        specificAddress: "",
         isDefault: false,
     });
 
@@ -24,7 +16,7 @@ export default function AddAddressModal({ onClose, onSave }) {
 
     function handleSubmit(e) {
         e.preventDefault();
-        onSave(form);
+        onSave(form); // gửi về parent
     }
 
     return (
@@ -33,82 +25,17 @@ export default function AddAddressModal({ onClose, onSave }) {
                 <h2 className="text-xl font-bold mb-4">THÊM ĐỊA CHỈ MỚI</h2>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Nhập địa chỉ */}
                     <input
-                        name="fullName"
-                        value={form.fullName}
+                        name="specificAddress"
+                        value={form.specificAddress}
                         onChange={handleChange}
-                        placeholder="Họ tên"
-                        className="w-full border px-3 py-2 rounded"
-                        required
-                    />
-                    <input
-                        name="phone"
-                        value={form.phone}
-                        onChange={handleChange}
-                        placeholder="Số điện thoại"
-                        className="w-full border px-3 py-2 rounded"
-                        required
-                    />
-                    <input
-                        name="company"
-                        value={form.company}
-                        onChange={handleChange}
-                        placeholder="Công ty"
-                        className="w-full border px-3 py-2 rounded"
-                    />
-                    <input
-                        name="address"
-                        value={form.address}
-                        onChange={handleChange}
-                        placeholder="Địa chỉ"
+                        placeholder="Nhập địa chỉ cụ thể"
                         className="w-full border px-3 py-2 rounded"
                         required
                     />
 
-                    {/* Quốc gia */}
-                    <select
-                        name="country"
-                        value={form.country}
-                        onChange={handleChange}
-                        className="w-full border px-3 py-2 rounded"
-                    >
-                        <option value="Vietnam">Vietnam</option>
-                        <option value="Other">Other</option>
-                    </select>
-
-                    {/* Tỉnh, Quận, Phường, Mã Zip */}
-                    <div className="grid grid-cols-3 gap-2">
-                        <input
-                            name="province"
-                            value={form.province}
-                            onChange={handleChange}
-                            placeholder="Tỉnh/Thành"
-                            className="border px-3 py-2 rounded"
-                        />
-                        <input
-                            name="district"
-                            value={form.district}
-                            onChange={handleChange}
-                            placeholder="Quận/Huyện"
-                            className="border px-3 py-2 rounded"
-                        />
-                        <input
-                            name="ward"
-                            value={form.ward}
-                            onChange={handleChange}
-                            placeholder="Phường/Xã"
-                            className="border px-3 py-2 rounded"
-                        />
-                    </div>
-
-                    <input
-                        name="zip"
-                        value={form.zip}
-                        onChange={handleChange}
-                        placeholder="Mã Zip"
-                        className="w-full border px-3 py-2 rounded"
-                    />
-
+                    {/* Checkbox đặt mặc định */}
                     <label className="flex items-center gap-2">
                         <input
                             type="checkbox"
@@ -116,7 +43,7 @@ export default function AddAddressModal({ onClose, onSave }) {
                             checked={form.isDefault}
                             onChange={handleChange}
                         />
-                        Đặt là địa chỉ mặc định?
+                        Đặt làm địa chỉ mặc định
                     </label>
 
                     <div className="flex justify-end gap-3 mt-4">

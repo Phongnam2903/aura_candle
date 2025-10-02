@@ -1,13 +1,11 @@
-import React, { useState } from "react";
-import { useCart } from "../../../context/CartContext";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import orderApi from "../../../api/order/orderApi";
+import { useCart } from "../../../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 export default function CheckoutPage() {
-    const { cart, dispatch } = useCart();
-    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const shippingFee = 40000;
-    const total = subtotal + shippingFee;
-
+    const [cart, setCart] = useState(JSON.parse(localStorage.getItem("cart")) || []);
     const [info, setInfo] = useState({
         email: "",
         name: "",
@@ -20,13 +18,34 @@ export default function CheckoutPage() {
     });
     const [payment, setPayment] = useState("");
 
+    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    const shippingFee = 40000;
+    const total = subtotal + shippingFee;
+
+    const { clearCart } = useCart();
+    const navigate = useNavigate();
+    // Lấy user từ localStorage khi đã login
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user) {
+            setInfo((prev) => ({
+                ...prev,
+                email: user.email || "",
+                name: user.name || "",
+                phone: user.phone || "",
+                address: user.addresses?.[0] || "",
+            }));
+        }
+    }, []);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setInfo((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (!info.name || !info.phone || !info.address) {
             toast.error("Vui lòng nhập đầy đủ thông tin giao hàng.");
             return;
@@ -39,14 +58,42 @@ export default function CheckoutPage() {
             toast.error("Giỏ hàng trống.");
             return;
         }
-        toast.success(`Đặt hàng thành công! Phương thức: ${payment}`);
-        dispatch({ type: "CLEAR" });
+
+        try {
+            const payload = {
+                items: cart.map(i => ({
+                    productId: i._id,
+                    quantity: i.quantity
+                })),
+                shippingInfo: {
+                    address: info.address,
+                    street: info.address,     // sẽ map sang specificAddress
+                    ward: info.ward,            // ward + street
+                    district: info.district,
+                    province: info.province,
+                },
+                payment: payment,
+            };
+
+            console.log("Payload gửi lên:", payload);
+            await orderApi.checkout(payload);
+            toast.success("Đặt hàng thành công!");
+
+            // Clear cart
+            setCart([]);
+            localStorage.removeItem("cart");
+            clearCart();
+            navigate("/");
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Có lỗi xảy ra!");
+        }
     };
 
     return (
         <div className="bg-gray-50 min-h-screen">
             <div className="max-w-6xl mx-auto py-10 px-4 grid md:grid-cols-3 gap-8">
-                {/* ===== Cột 1: Thông tin nhận hàng ===== */}
+                {/* ===== Thông tin nhận hàng ===== */}
                 <form
                     onSubmit={handleSubmit}
                     className="md:col-span-2 bg-white p-6 rounded shadow space-y-6"
@@ -63,6 +110,7 @@ export default function CheckoutPage() {
                             value={info.email}
                             onChange={handleChange}
                             className="border rounded px-4 py-2 w-full"
+                            disabled
                         />
                         <input
                             type="text"
@@ -91,35 +139,35 @@ export default function CheckoutPage() {
                             className="border rounded px-4 py-2 w-full md:col-span-2"
                             required
                         />
-                        <select
+                        {/* Tỉnh/Thành */}
+                        <input
+                            type="text"
                             name="province"
+                            placeholder="Tỉnh/Thành"
                             value={info.province}
                             onChange={handleChange}
                             className="border rounded px-4 py-2 w-full"
-                        >
-                            <option value="">Tỉnh/Thành</option>
-                            <option>Hà Nội</option>
-                            <option>TP. Hồ Chí Minh</option>
-                        </select>
-                        <select
+                        />
+
+                        {/* Quận/Huyện */}
+                        <input
+                            type="text"
                             name="district"
+                            placeholder="Quận/Huyện"
                             value={info.district}
                             onChange={handleChange}
                             className="border rounded px-4 py-2 w-full"
-                        >
-                            <option value="">Quận/Huyện</option>
-                            <option>Quận Ba Đình</option>
-                            <option>Quận Hoàn Kiếm</option>
-                        </select>
-                        <select
+                        />
+
+                        {/* Phường/Xã */}
+                        <input
+                            type="text"
                             name="ward"
+                            placeholder="Phường/Xã"
                             value={info.ward}
                             onChange={handleChange}
                             className="border rounded px-4 py-2 w-full"
-                        >
-                            <option value="">Phường/Xã</option>
-                            <option>Phường Phúc Xá</option>
-                        </select>
+                        />
                         <textarea
                             name="note"
                             placeholder="Ghi chú (tùy chọn)"
@@ -129,71 +177,28 @@ export default function CheckoutPage() {
                         />
                     </div>
 
-                    {/* Vận chuyển */}
-                    <div className="mt-6">
-                        <h2 className="font-semibold text-lg mb-2">Vận chuyển</h2>
-                        <label className="flex justify-between items-center border p-3 rounded cursor-pointer">
-                            <div className="flex items-center gap-3">
-                                <input type="radio" checked readOnly />
-                                <span>Giao hàng tận nơi</span>
-                            </div>
-                            <span>{shippingFee.toLocaleString()}đ</span>
-                        </label>
-                    </div>
-
                     {/* Thanh toán */}
                     <div className="mt-6">
                         <h2 className="font-semibold text-lg mb-2">Thanh toán</h2>
-
-                        {/* COD */}
-                        <label className="flex items-center gap-3 border p-3 rounded cursor-pointer mb-2">
-                            <input
-                                type="radio"
-                                name="payment"
-                                value="COD"
-                                checked={payment === "COD"}
-                                onChange={() => setPayment("COD")}
-                            />
-                            <span>Thanh toán khi giao hàng (COD)</span>
-                        </label>
-
-                        {/* Momo */}
-                        <label className="flex items-center gap-3 border p-3 rounded cursor-pointer mb-2">
-                            <input
-                                type="radio"
-                                name="payment"
-                                value="Momo"
-                                checked={payment === "Momo"}
-                                onChange={() => setPayment("Momo")}
-                            />
-                            <span>Thanh toán qua ví Momo</span>
-                        </label>
-
-                        {/* ZaloPay */}
-                        <label className="flex items-center gap-3 border p-3 rounded cursor-pointer mb-2">
-                            <input
-                                type="radio"
-                                name="payment"
-                                value="ZaloPay"
-                                checked={payment === "ZaloPay"}
-                                onChange={() => setPayment("ZaloPay")}
-                            />
-                            <span>Thanh toán qua ZaloPay</span>
-                        </label>
-
-                        {/* Chuyển khoản */}
-                        <label className="flex items-center gap-3 border p-3 rounded cursor-pointer">
-                            <input
-                                type="radio"
-                                name="payment"
-                                value="Bank"
-                                checked={payment === "Bank"}
-                                onChange={() => setPayment("Bank")}
-                            />
-                            <span>Chuyển khoản ngân hàng</span>
-                        </label>
+                        {["COD", "Momo", "ZaloPay", "Bank"].map(method => (
+                            <label
+                                key={method}
+                                className="flex items-center gap-3 border p-3 rounded cursor-pointer mb-2"
+                            >
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value={method}
+                                    checked={payment === method}
+                                    onChange={() => setPayment(method)}
+                                />
+                                <span>{method === "COD" ? "Thanh toán khi giao hàng (COD)" :
+                                    method === "Momo" ? "Thanh toán qua ví Momo" :
+                                        method === "ZaloPay" ? "Thanh toán qua ZaloPay" :
+                                            "Chuyển khoản ngân hàng"}</span>
+                            </label>
+                        ))}
                     </div>
-
 
                     <button
                         type="submit"
@@ -203,7 +208,7 @@ export default function CheckoutPage() {
                     </button>
                 </form>
 
-                {/* ===== Cột 2: Đơn hàng ===== */}
+                {/* ===== Đơn hàng ===== */}
                 <div className="bg-white p-6 rounded shadow h-fit">
                     <h2 className="text-xl font-bold mb-4">
                         Đơn hàng ({cart.length} sản phẩm)

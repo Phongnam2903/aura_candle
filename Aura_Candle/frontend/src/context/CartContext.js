@@ -23,7 +23,7 @@ function cartReducer(state, action) {
       return state.map((p) =>
         p.id === action.id ? { ...p, quantity: action.quantity } : p
       );
-    case "CLEAR":
+    case "CLEAR_CART":
       return [];
     default:
       return state;
@@ -46,7 +46,7 @@ export function CartProvider({ children }) {
         name: product.name,
         price: product.price,
         image: product.image || (product.images ? `http://localhost:5000${product.images[0]}` : ""),
-        variant: product.variant || null,
+        fragrance: product.fragrance || null,
       },
     });
   };
@@ -55,7 +55,7 @@ export function CartProvider({ children }) {
   const removeItem = (id) => dispatch({ type: "REMOVE", id });
   const updateItem = (id, quantity) =>
     dispatch({ type: "UPDATE_QTY", id, quantity });
-  const clearCart = () => dispatch({ type: "CLEAR" });
+  const clearCart = () => dispatch({ type: "CLEAR_CART" });
 
   return (
     <CartContext.Provider

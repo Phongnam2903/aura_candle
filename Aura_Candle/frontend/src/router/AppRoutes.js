@@ -23,7 +23,7 @@ export default function AppRoutes() {
                 <Route path="/cart" element={<CartScreen />} />
                 <Route path="/checkout" element={<CheckOutScreen />} />
                 <Route path="/blog" element={<BlogScreen />} />
-                <Route path="/profile" element={<ProfileScreen />} />
+                <Route path="/profile/:id" element={<ProfileScreen />} />
 
                 {/*  Gộp seller routes vào đây */}
                 <Route path="/seller/*" element={<SellerRoutes />} />

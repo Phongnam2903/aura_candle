@@ -1,13 +1,33 @@
 // src/pages/ProfilePage.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import InfoForm from "./InfoForm";
 import OrdersList from "./OrdersList";
 import ChangePassword from "./ChangePassword";
 import AddressManager from "./AddressManager";
+import { getAddressesByUser } from "../../../api/address/addressApi";
+
 
 export default function ProfilePage() {
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     const [activeTab, setActiveTab] = useState("info");
+    const [addressCount, setAddressCount] = useState(0);
+
+    // 👇 Gọi API để lấy số lượng địa chỉ ngay khi load
+    useEffect(() => {
+        const userId = storedUser?._id;
+        if (!userId) return;
+
+        const fetchAddressCount = async () => {
+            try {
+                const data = await getAddressesByUser(userId);
+                setAddressCount(Array.isArray(data) ? data.length : 0);
+            } catch (error) {
+                console.error("Lỗi khi lấy số lượng địa chỉ:", error);
+            }
+        };
+
+        fetchAddressCount();
+    }, [storedUser]);
 
     const renderContent = () => {
         switch (activeTab) {
@@ -18,7 +38,7 @@ export default function ProfilePage() {
             case "password":
                 return <ChangePassword />;
             case "address":
-                return <AddressManager />;
+                return <AddressManager onCountChange={setAddressCount} />;
             default:
                 return null;
         }
@@ -36,7 +56,7 @@ export default function ProfilePage() {
                         { key: "info", label: "Thông tin tài khoản" },
                         { key: "orders", label: "Đơn hàng của bạn" },
                         { key: "password", label: "Đổi mật khẩu" },
-                        { key: "address", label: "Địa chỉ (0)" },
+                        { key: "address", label: `Địa chỉ (${addressCount})` },
                     ].map((item) => (
                         <li key={item.key}>
                             <button
