@@ -1,17 +1,16 @@
 const express = require("express");
 
 const { verifyToken } = require("../middleware/auth");
-const { createOrder, getMyOrders, getOrderById } = require("../controllers/OrderController/orderController");
-
+const orderController = require("../controllers/OrderController/orderController");
 const router = express.Router();
 
 // Tạo đơn hàng (checkout) - cần login
-router.post("/checkout", verifyToken, createOrder);
+router.post("/checkout", verifyToken, orderController.createOrder);
 
 // Lấy danh sách đơn hàng của user
-router.get("/my-orders", verifyToken, getMyOrders);
+router.get("/my-orders", verifyToken, orderController.getMyOrders);
 
 // Lấy chi tiết đơn hàng
-router.get("/:id", verifyToken, getOrderById);
+router.get("/:id", verifyToken, orderController.getOrderById);
 
 module.exports = router;

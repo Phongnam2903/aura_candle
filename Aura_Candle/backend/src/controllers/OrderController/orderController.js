@@ -3,24 +3,18 @@ const { Product, Order, Address } = require("../../models");
 // Checkout (tạo đơn hàng)
 const createOrder = async (req, res) => {
     try {
-        const userId = req.user.id; // Lấy từ middleware verifyToken
-        const { shippingInfo, items, payment } = req.body;
+        const userId = req.user.id; // lấy từ middleware verifyToken
+        const { addressId, items, payment } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ error: "Cart is empty" });
         }
 
-        // 1. Tạo Address mới
-        const address = new Address({
-            user: userId,
-            specificAddress: shippingInfo.address,
-            street: shippingInfo.ward, // map tùy ý
-            ward: shippingInfo.ward,
-            district: shippingInfo.district,
-            city: shippingInfo.province,
-            isDefault: true,
-        });
-        await address.save();
+        // 1. Kiểm tra addressId hợp lệ
+        const address = await Address.findOne({ _id: addressId, user: userId });
+        if (!address) {
+            return res.status(404).json({ error: "Address not found" });
+        }
 
         // 2. Lấy giá sản phẩm thực tế từ DB và trừ stock
         let totalAmount = 0;
@@ -35,6 +29,7 @@ const createOrder = async (req, res) => {
                 return res.status(400).json({ error: `${product.name} is out of stock` });
             }
 
+            // Giảm tồn kho
             product.stock -= item.quantity;
             await product.save();
 
@@ -58,10 +53,11 @@ const createOrder = async (req, res) => {
         // 4. Tạo Order
         const order = new Order({
             user: userId,
-            address: address._id,
+            address: address._id,   // dùng address đã chọn
             items: orderItems,
             totalAmount,
             paymentMethod: paymentMap[payment] || "COD",
+            status: "Pending", // default
         });
 
         await order.save();

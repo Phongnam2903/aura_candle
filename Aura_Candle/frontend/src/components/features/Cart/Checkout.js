@@ -1,53 +1,58 @@
-import React, { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import orderApi from "../../../api/order/orderApi";
-import { useCart } from "../../../context/CartContext";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useCart } from "../../../context/CartContext";
+import { getAddressesByUser } from "../../../api/address/addressApi";
+import { checkout } from "../../../api/order/orderApi";
 
-export default function CheckoutPage() {
-    const [cart, setCart] = useState(JSON.parse(localStorage.getItem("cart")) || []);
+const CheckoutPage = () => {
+    const navigate = useNavigate();
+    const { cart, setCart, clearCart } = useCart();
+
     const [info, setInfo] = useState({
         email: "",
         name: "",
         phone: "",
-        address: "",
-        province: "",
-        district: "",
-        ward: "",
-        note: "",
     });
+
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddressId, setSelectedAddressId] = useState("");
     const [payment, setPayment] = useState("");
 
-    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const shippingFee = 40000;
-    const total = subtotal + shippingFee;
-
-    const { clearCart } = useCart();
-    const navigate = useNavigate();
-    // Lấy user từ localStorage khi đã login
+    // Load user info + địa chỉ khi vào trang
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user"));
         if (user) {
-            setInfo((prev) => ({
-                ...prev,
+            setInfo({
                 email: user.email || "",
                 name: user.name || "",
                 phone: user.phone || "",
-                address: user.addresses?.[0] || "",
-            }));
+            });
+
+            getAddressesByUser(user._id)
+                .then((data) => {
+                    setAddresses(data);
+                    if (data.length > 0) {
+                        const defaultAddr = data.find((a) => a.isDefault) || data[0];
+                        setSelectedAddressId(defaultAddr._id);
+                    }
+                })
+                .catch((err) => console.error("Lỗi load địa chỉ:", err));
         }
     }, []);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setInfo((prev) => ({ ...prev, [name]: value }));
-    };
+    // Tính tổng tiền
+    const totalPrice = cart.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+    );
 
+    // Xử lý submit đặt hàng
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!info.name || !info.phone || !info.address) {
-            toast.error("Vui lòng nhập đầy đủ thông tin giao hàng.");
+        if (!selectedAddressId) {
+            toast.error("Bạn cần chọn địa chỉ giao hàng.");
             return;
         }
         if (!payment) {
@@ -61,28 +66,19 @@ export default function CheckoutPage() {
 
         try {
             const payload = {
-                items: cart.map(i => ({
-                    productId: i._id,
-                    quantity: i.quantity
+                addressId: selectedAddressId,
+                items: cart.map((i) => ({
+                    productId: i.id || i._id,
+                    quantity: i.quantity,
                 })),
-                shippingInfo: {
-                    address: info.address,
-                    street: info.address,     // sẽ map sang specificAddress
-                    ward: info.ward,            // ward + street
-                    district: info.district,
-                    province: info.province,
-                },
-                payment: payment,
+                payment,
             };
 
             console.log("Payload gửi lên:", payload);
-            await orderApi.checkout(payload);
+            await checkout(payload);
             toast.success("Đặt hàng thành công!");
 
-            // Clear cart
-            setCart([]);
-            localStorage.removeItem("cart");
-            clearCart();
+            clearCart(); // ✅ chỉ cần cái này thôi
             navigate("/");
         } catch (err) {
             console.error(err);
@@ -91,165 +87,188 @@ export default function CheckoutPage() {
     };
 
     return (
-        <div className="bg-gray-50 min-h-screen">
-            <div className="max-w-6xl mx-auto py-10 px-4 grid md:grid-cols-3 gap-8">
-                {/* ===== Thông tin nhận hàng ===== */}
-                <form
-                    onSubmit={handleSubmit}
-                    className="md:col-span-2 bg-white p-6 rounded shadow space-y-6"
-                >
-                    <h1 className="text-2xl font-bold text-emerald-700 mb-4">
-                        Thông tin nhận hàng
-                    </h1>
+        <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Cột trái: Form checkout */}
+            <div className="md:col-span-2 bg-white p-6 rounded-lg shadow">
+                <h1 className="text-2xl font-bold mb-6">Thanh toán</h1>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Email"
-                            value={info.email}
-                            onChange={handleChange}
-                            className="border rounded px-4 py-2 w-full"
-                            disabled
-                        />
-                        <input
-                            type="text"
-                            name="name"
-                            placeholder="Họ và tên"
-                            value={info.name}
-                            onChange={handleChange}
-                            className="border rounded px-4 py-2 w-full"
-                            required
-                        />
-                        <input
-                            type="tel"
-                            name="phone"
-                            placeholder="Số điện thoại"
-                            value={info.phone}
-                            onChange={handleChange}
-                            className="border rounded px-4 py-2 w-full"
-                            required
-                        />
-                        <input
-                            type="text"
-                            name="address"
-                            placeholder="Địa chỉ"
-                            value={info.address}
-                            onChange={handleChange}
-                            className="border rounded px-4 py-2 w-full md:col-span-2"
-                            required
-                        />
-                        {/* Tỉnh/Thành */}
-                        <input
-                            type="text"
-                            name="province"
-                            placeholder="Tỉnh/Thành"
-                            value={info.province}
-                            onChange={handleChange}
-                            className="border rounded px-4 py-2 w-full"
-                        />
-
-                        {/* Quận/Huyện */}
-                        <input
-                            type="text"
-                            name="district"
-                            placeholder="Quận/Huyện"
-                            value={info.district}
-                            onChange={handleChange}
-                            className="border rounded px-4 py-2 w-full"
-                        />
-
-                        {/* Phường/Xã */}
-                        <input
-                            type="text"
-                            name="ward"
-                            placeholder="Phường/Xã"
-                            value={info.ward}
-                            onChange={handleChange}
-                            className="border rounded px-4 py-2 w-full"
-                        />
-                        <textarea
-                            name="note"
-                            placeholder="Ghi chú (tùy chọn)"
-                            value={info.note}
-                            onChange={handleChange}
-                            className="border rounded px-4 py-2 w-full md:col-span-2"
-                        />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Thông tin liên hệ */}
+                    <div>
+                        <h2 className="font-semibold text-lg mb-2">Thông tin liên hệ</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input
+                                type="text"
+                                placeholder="Họ tên"
+                                value={info.name}
+                                onChange={(e) => setInfo({ ...info, name: e.target.value })}
+                                className="border rounded p-2 w-full"
+                                required
+                            />
+                            <input
+                                type="email"
+                                placeholder="Email"
+                                value={info.email}
+                                onChange={(e) => setInfo({ ...info, email: e.target.value })}
+                                className="border rounded p-2 w-full"
+                                required
+                            />
+                            <input
+                                type="text"
+                                placeholder="Số điện thoại"
+                                value={info.phone}
+                                onChange={(e) => setInfo({ ...info, phone: e.target.value })}
+                                className="border rounded p-2 w-full"
+                                required
+                            />
+                        </div>
                     </div>
 
-                    {/* Thanh toán */}
-                    <div className="mt-6">
-                        <h2 className="font-semibold text-lg mb-2">Thanh toán</h2>
-                        {["COD", "Momo", "ZaloPay", "Bank"].map(method => (
-                            <label
-                                key={method}
-                                className="flex items-center gap-3 border p-3 rounded cursor-pointer mb-2"
-                            >
+                    {/* Chọn địa chỉ */}
+                    <div>
+                        <h2 className="font-semibold text-lg mb-2">Chọn địa chỉ giao hàng</h2>
+                        {addresses.length === 0 ? (
+                            <p className="text-gray-600">
+                                Bạn chưa có địa chỉ nào, hãy thêm trong mục tài khoản.
+                            </p>
+                        ) : (
+                            <div className="space-y-3">
+                                {addresses.map((addr) => (
+                                    <label
+                                        key={addr._id}
+                                        className={`flex items-center gap-3 p-3 border rounded cursor-pointer ${selectedAddressId === addr._id
+                                            ? "border-emerald-600 bg-emerald-50"
+                                            : ""
+                                            }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="address"
+                                            value={addr._id}
+                                            checked={selectedAddressId === addr._id}
+                                            onChange={() => setSelectedAddressId(addr._id)}
+                                        />
+                                        <span>
+                                            {addr.specificAddress}{" "}
+                                            {addr.isDefault && (
+                                                <span className="ml-2 text-sm text-emerald-600">
+                                                    (Mặc định)
+                                                </span>
+                                            )}
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Phương thức thanh toán */}
+                    <div>
+                        <h2 className="font-semibold text-lg mb-2">Phương thức thanh toán</h2>
+                        <div className="space-y-2">
+                            <label className="flex items-center gap-2">
                                 <input
                                     type="radio"
                                     name="payment"
-                                    value={method}
-                                    checked={payment === method}
-                                    onChange={() => setPayment(method)}
+                                    value="COD"
+                                    checked={payment === "COD"}
+                                    onChange={(e) => setPayment(e.target.value)}
                                 />
-                                <span>{method === "COD" ? "Thanh toán khi giao hàng (COD)" :
-                                    method === "Momo" ? "Thanh toán qua ví Momo" :
-                                        method === "ZaloPay" ? "Thanh toán qua ZaloPay" :
-                                            "Chuyển khoản ngân hàng"}</span>
+                                Thanh toán khi nhận hàng (COD)
                             </label>
-                        ))}
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value="Bank"
+                                    checked={payment === "Bank"}
+                                    onChange={(e) => setPayment(e.target.value)}
+                                />
+                                Chuyển khoản ngân hàng
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value="Momo"
+                                    checked={payment === "Momo"}
+                                    onChange={(e) => setPayment(e.target.value)}
+                                />
+                                Ví Momo
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value="ZaloPay"
+                                    checked={payment === "ZaloPay"}
+                                    onChange={(e) => setPayment(e.target.value)}
+                                />
+                                ZaloPay
+                            </label>
+                        </div>
                     </div>
 
+                    {/* Nút submit */}
                     <button
                         type="submit"
-                        className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded w-full md:w-auto"
+                        className="w-full bg-emerald-600 text-white py-3 rounded hover:bg-emerald-700 transition"
                     >
-                        Đặt hàng
+                        Xác nhận đặt hàng
                     </button>
                 </form>
+            </div>
 
-                {/* ===== Đơn hàng ===== */}
-                <div className="bg-white p-6 rounded shadow h-fit">
-                    <h2 className="text-xl font-bold mb-4">
-                        Đơn hàng ({cart.length} sản phẩm)
-                    </h2>
-                    <div className="space-y-4">
-                        {cart.map((item) => (
+            {/* Cột phải: Tóm tắt giỏ hàng */}
+            <div className="bg-gray-50 p-6 rounded-lg shadow">
+                <h2 className="text-xl font-semibold mb-4">Giỏ hàng của bạn</h2>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {cart.length === 0 ? (
+                        <p className="text-gray-600">Giỏ hàng trống.</p>
+                    ) : (
+                        cart.map((item) => (
                             <div
-                                key={item.id}
-                                className="flex items-center justify-between border-b pb-2"
+                                key={item._id}
+                                className="flex items-center justify-between border-b pb-3"
                             >
+                                {/* Hình + tên sản phẩm */}
                                 <div className="flex items-center gap-3">
                                     <img
                                         src={item.img || item.image}
                                         alt={item.name}
-                                        className="w-14 h-14 object-cover border rounded"
+                                        className="w-16 h-16 object-cover rounded border"
                                     />
                                     <div>
                                         <p className="font-medium">{item.name}</p>
-                                        <p className="text-sm text-gray-500">x{item.quantity}</p>
+                                        <p className="text-sm text-gray-500">
+                                            SL: {item.quantity} × {item.price.toLocaleString()}₫
+                                        </p>
                                     </div>
                                 </div>
-                                <span className="font-semibold">
-                                    {(item.price * item.quantity).toLocaleString()}đ
-                                </span>
+
+                                {/* Tổng tiền của sản phẩm */}
+                                <p className="font-semibold text-right">
+                                    {(item.price * item.quantity).toLocaleString()}₫
+                                </p>
                             </div>
-                        ))}
-                        <div className="flex justify-between pt-2">
-                            <span>Tạm tính</span>
-                            <span>{subtotal.toLocaleString()}đ</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Phí vận chuyển</span>
-                            <span>{shippingFee.toLocaleString()}đ</span>
-                        </div>
-                        <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                            <span>Tổng cộng</span>
-                            <span className="text-red-600">{total.toLocaleString()}đ</span>
-                        </div>
+                        ))
+                    )}
+                </div>
+
+                {/* Tổng cộng */}
+                <div className="mt-4 border-t pt-4">
+                    <div className="flex justify-between">
+                        <span>Tạm tính</span>
+                        <span>{totalPrice.toLocaleString()}₫</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg mt-2">
+                        <span>Tổng cộng</span>
+                        <span>{totalPrice.toLocaleString()}₫</span>
                     </div>
                 </div>
             </div>
         </div>
     );
-}
+};
+
+export default CheckoutPage;

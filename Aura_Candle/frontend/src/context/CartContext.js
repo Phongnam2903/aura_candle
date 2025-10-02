@@ -45,12 +45,13 @@ export function CartProvider({ children }) {
         id: product._id || product.id,
         name: product.name,
         price: product.price,
-        image: product.image || (product.images ? `http://localhost:5000${product.images[0]}` : ""),
+        image:
+          product.image ||
+          (product.images ? `http://localhost:5000${product.images[0]}` : ""),
         fragrance: product.fragrance || null,
       },
     });
   };
-
 
   const removeItem = (id) => dispatch({ type: "REMOVE", id });
   const updateItem = (id, quantity) =>
