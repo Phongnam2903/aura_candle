@@ -106,7 +106,7 @@ const Header = () => {
                 <ul className="text-sm text-gray-700">
                   <li>
                     <Link
-                      to={`/profile/${user._id}`} 
+                      to={`/profile/${user._id}`}
                       className="block px-4 py-2 hover:bg-gray-100"
                     >
                       Tài khoản của tôi
@@ -122,7 +122,7 @@ const Header = () => {
                   </li>
                   <li>
                     <Link
-                      to="/profile"
+                      to={`/profile/${user._id}`}
                       className="block px-4 py-2 hover:bg-gray-100"
                     >
                       Danh sách địa chỉ

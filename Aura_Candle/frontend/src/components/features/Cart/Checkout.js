@@ -7,7 +7,7 @@ import { checkout } from "../../../api/order/orderApi";
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
-    const { cart, setCart, clearCart } = useCart();
+    const { cart, clearCart } = useCart();
 
     const [info, setInfo] = useState({
         email: "",
@@ -78,7 +78,7 @@ const CheckoutPage = () => {
             await checkout(payload);
             toast.success("Đặt hàng thành công!");
 
-            clearCart(); // ✅ chỉ cần cái này thôi
+            clearCart();
             navigate("/");
         } catch (err) {
             console.error(err);

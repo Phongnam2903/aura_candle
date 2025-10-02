@@ -39,8 +39,10 @@ export default function EditProduct() {
           category: product.category?._id || "",
           images: product.images || [],
           materials: matsValue,
-          fragrance: product.fragrance || "",           // thêm nếu 1 mùi
-          fragrances: product.fragrances || [],         // thêm nếu nhiều mùi
+          fragrance: product.fragrance || "",
+          fragrances: product.fragrances || [],
+          oldPrice: product.oldPrice || "",
+          discount: product.discount || "",
         });
       } catch (err) {
         console.error(err);
@@ -48,6 +50,16 @@ export default function EditProduct() {
       }
     })();
   }, [id]);
+
+  // Tự động tính giá khi có oldPrice + discount
+  useEffect(() => {
+    if (form?.oldPrice && form?.discount) {
+      const finalPrice = Math.round(
+        Number(form.oldPrice) * (1 - Number(form.discount) / 100)
+      );
+      setForm((prev) => ({ ...prev, price: finalPrice }));
+    }
+  }, [form?.oldPrice, form?.discount]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -101,10 +113,11 @@ export default function EditProduct() {
       const payload = {
         ...form,
         price: Number(form.price),
+        oldPrice: form.oldPrice ? Number(form.oldPrice) : undefined,
+        discount: form.discount ? Number(form.discount) : undefined,
         stock: Number(form.stock),
         weightGrams: Number(form.weightGrams),
         materials: (form.materials || []).filter(Boolean),
-        // Nếu bạn dùng nhiều mùi thì split từ string sang array
         fragrances:
           typeof form.fragrances === "string"
             ? form.fragrances.split(",").map((f) => f.trim()).filter(Boolean)
@@ -128,7 +141,6 @@ export default function EditProduct() {
     <div className="max-w-3xl mx-auto bg-white p-8 rounded shadow">
       <h1 className="text-2xl font-bold mb-6">Cập Nhật Sản Phẩm</h1>
 
-      {/* Nút Back */}
       <button
         onClick={() => navigate(-1)}
         className="mb-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
@@ -185,10 +197,33 @@ export default function EditProduct() {
 
         <input
           name="fragrances"
-          value={Array.isArray(form.fragrances) ? form.fragrances.join(", ") : form.fragrances}
+          value={
+            Array.isArray(form.fragrances)
+              ? form.fragrances.join(", ")
+              : form.fragrances
+          }
           onChange={handleChange}
           className="border p-3 rounded w-full"
           placeholder="Nhiều mùi hương (ngăn cách bởi dấu phẩy)"
+        />
+
+        {/* Giá gốc + Giảm giá */}
+        <input
+          name="oldPrice"
+          type="number"
+          value={form.oldPrice}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+          placeholder="Giá gốc (VNĐ)"
+        />
+
+        <input
+          name="discount"
+          type="number"
+          value={form.discount}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+          placeholder="Giảm giá (%)"
         />
 
         <input
@@ -196,9 +231,11 @@ export default function EditProduct() {
           type="number"
           value={form.price}
           onChange={handleChange}
-          className="border p-3 rounded w-full"
-          placeholder="Giá"
+          className="border p-3 rounded w-full bg-gray-50"
+          placeholder="Giá bán"
+          readOnly={!!(form.oldPrice && form.discount)}
         />
+
         <input
           name="stock"
           type="number"
@@ -227,9 +264,7 @@ export default function EditProduct() {
             disabled={uploading}
             className="border p-2 rounded w-full"
           />
-          {uploading && (
-            <p className="text-sm text-gray-500">Đang upload...</p>
-          )}
+          {uploading && <p className="text-sm text-gray-500">Đang upload...</p>}
           <div className="flex flex-wrap gap-2 mt-2">
             {form.images.map((img, idx) => (
               <img

@@ -15,7 +15,9 @@ export default function AddProduct() {
     sku: "",
     category: "",
     description: "",
-    price: "",
+    price: "",        // giá cuối (sẽ auto tính nếu có oldPrice + discount)
+    oldPrice: "",     // giá gốc
+    discount: "",     // % giảm
     stock: "",
     weightGrams: "",
     images: [],
@@ -29,6 +31,15 @@ export default function AddProduct() {
   const [scentInput, setScentInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    if (form.oldPrice && form.discount) {
+      const finalPrice = Math.round(
+        Number(form.oldPrice) * (1 - Number(form.discount) / 100)
+      );
+      setForm((prev) => ({ ...prev, price: finalPrice }));
+    }
+  }, [form.oldPrice, form.discount]);
 
   useEffect(() => {
     async function fetchData() {
@@ -99,8 +110,8 @@ export default function AddProduct() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.name || !form.sku || !form.price) {
-      toast.error("Vui lòng nhập tối thiểu Tên, SKU và Giá!");
+    if (!form.name || !form.sku || (!form.price && !form.oldPrice)) {
+      toast.error("Vui lòng nhập Tên, SKU và Giá!");
       return;
     }
     setLoading(true);
@@ -108,6 +119,8 @@ export default function AddProduct() {
       const payload = {
         ...form,
         price: Number(form.price),
+        oldPrice: form.oldPrice ? Number(form.oldPrice) : undefined,
+        discount: form.discount ? Number(form.discount) : undefined,
         stock: Number(form.stock),
         weightGrams: Number(form.weightGrams),
       };
@@ -119,6 +132,8 @@ export default function AddProduct() {
         category: "",
         description: "",
         price: "",
+        oldPrice: "",
+        discount: "",
         stock: "",
         weightGrams: "",
         images: [],
@@ -185,13 +200,35 @@ export default function AddProduct() {
           onChange={handleChange}
           className="border p-3 rounded w-full h-24"
         />
+        {/* Giá gốc */}
+        <input
+          name="oldPrice"
+          type="number"
+          placeholder="Giá gốc (VNĐ)"
+          value={form.oldPrice}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+        />
+
+        {/* % giảm */}
+        <input
+          name="discount"
+          type="number"
+          placeholder="Giảm giá (%)"
+          value={form.discount}
+          onChange={handleChange}
+          className="border p-3 rounded w-full"
+        />
+
+        {/* Giá cuối */}
         <input
           name="price"
           type="number"
-          placeholder="Giá (VNĐ)"
+          placeholder="Giá bán (tự động tính nếu có giảm giá)"
           value={form.price}
           onChange={handleChange}
-          className="border p-3 rounded w-full"
+          className="border p-3 rounded w-full bg-gray-50"
+          readOnly={!!(form.oldPrice && form.discount)} // nếu có oldPrice + discount thì khóa
         />
         <input
           name="stock"

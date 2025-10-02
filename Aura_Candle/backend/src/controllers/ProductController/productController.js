@@ -5,20 +5,27 @@ const { Product } = require("../../models");
 // =============================
 const addProduct = async (req, res) => {
     try {
-        const {
+        let {
             name,
             sku,
             category,
             description,
             price,
+            oldPrice,
+            discount,
             stock,
             weightGrams,
             images,
             materials,
             isKit,
-            fragrance,   // thêm
-            fragrances,  // nếu bạn dùng dạng array
+            fragrance,
+            fragrances,
         } = req.body;
+
+        // 🔥 Nếu có oldPrice + discount thì tự động tính price
+        if (oldPrice && discount && !price) {
+            price = Math.round(oldPrice * (1 - discount / 100));
+        }
 
         const newProduct = new Product({
             name,
@@ -26,13 +33,15 @@ const addProduct = async (req, res) => {
             category,
             description,
             price,
+            oldPrice,
+            discount,
             stock,
             weightGrams,
             images,
             materials,
             isKit,
-            fragrance,   // nếu dùng 1 mùi
-            fragrances,  // nếu dùng nhiều mùi
+            fragrance,
+            fragrances,
         });
 
         await newProduct.save();
@@ -103,9 +112,21 @@ const getProductById = async (req, res) => {
 // =============================
 const updateProduct = async (req, res) => {
     try {
+        let updateData = { ...req.body };
+
+        // 🔥 Nếu update có oldPrice/discount mà không truyền price => tính lại
+        if (
+            (updateData.oldPrice !== undefined && updateData.discount !== undefined) &&
+            updateData.price === undefined
+        ) {
+            updateData.price = Math.round(
+                updateData.oldPrice * (1 - updateData.discount / 100)
+            );
+        }
+
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
-            req.body,
+            updateData,
             { new: true, runValidators: true }
         )
             .populate("category", "name")

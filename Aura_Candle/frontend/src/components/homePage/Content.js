@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { newsData } from "../../data/news";
 import "swiper/css";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { getCategories } from "../../api/category/categoriesApi";
@@ -135,92 +135,56 @@ const Content = () => {
         )}
       </section>
 
-      {/* Sản phẩm nổi bật */}
-      {/* <section className="py-16 px-6 bg-gray-50">
-        <h3 className="text-2xl font-semibold text-center text-gray-800 mb-8">
-          Sản phẩm nổi bật
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {products.map((sp) => (
-            <div
-              key={sp.id}
-              onClick={() => handleViewProductDetail(sp.id)}
-              className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-xl relative cursor-pointer"
-            >
-              <div className="relative w-full h-100 overflow-hidden">
-                <span className="absolute top-2 left-2 bg-red-500 text-white text-sm px-2 py-1 rounded">
-                  {sp.discount}
-                </span>
-                <img
-                  src={sp.img}
-                  alt={sp.name}
-                  className="w-full h-full object-cover transition duration-300"
-                />
-                {sp.img2 && (
-                  <img
-                    src={sp.img2}
-                    alt={`${sp.name} khác`}
-                    className="w-full h-full object-cover absolute top-0 left-0 opacity-0 hover:opacity-100 transition duration-300"
-                  />
-                )}
-              </div>
-
-              <div className="p-4">
-                <h4 className="font-semibold text-lg mb-1">{`Nến thơm ${sp.name}`}</h4>
-                <p className="text-gray-600 text-sm mb-2 line-clamp-2">
-                  {sp.description}
-                </p>
-                <div className="flex items-center space-x-2">
-                  <p className="text-red-500 font-bold">{sp.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ</p>
-                  <p className="text-gray-400 line-through">{sp.oldPrice.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}đ</p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    //  Thêm sản phẩm vào giỏ
-                    dispatch({
-                      type: "ADD",
-                      item: { id: sp.id, name: sp.name, price: sp.price, image: sp.img },
-                    });
-                    //  Hiển thị thông báo thành công
-                    toast.success("🛒 Đã thêm vào giỏ hàng!");
-                  }}
-                  className="mt-3 px-3 py-2 bg-pink-500 text-white text-sm rounded-lg hover:bg-pink-600 transition"
-                >
-                  Thêm vào giỏ
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section> */}
-
       {/* Sản phẩm khác */}
       <section className="py-16 px-6 bg-gray-50">
-        <h3 className="text-2xl font-semibold text-center text-gray-800 mb-8">
-          Sản phẩm
+        <h3 className="text-3xl font-semibold text-center text-gray-800 mb-12">
+          ✨ Sản phẩm nổi bật
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {products.map((sp) => (
-            <div key={sp._id} className="bg-white shadow rounded-lg p-4">
-              <img
-                src={`http://localhost:5000${sp.images[0]}`}
-                alt={sp.name}
-                className="w-full h-80 object-cover rounded-md"
-              />
-              <h4 className="font-bold mt-2">{sp.name}</h4>
-              <p className="text-red-600 font-bold ">{sp.price.toLocaleString()} đ</p>
+            <div
+              key={sp._id}
+              className="bg-white shadow-md rounded-xl overflow-hidden transition hover:shadow-xl hover:-translate-y-1"
+            >
+              {/* Link sang chi tiết */}
+              <Link to={`/product/${sp._id}`}>
+                <img
+                  src={`http://localhost:5000${sp.images[0]}`}
+                  alt={sp.name}
+                  className="w-full h-72 object-cover rounded-t-xl hover:scale-105 transition-transform"
+                />
+              </Link>
 
-              <button
-                onClick={() => {
-                  addItem(sp);
-                  toast.success("🛒 Đã thêm vào giỏ hàng!");
-                }}
-                className="mt-3 px-3 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
-              >
-                🛒 Thêm vào giỏ
-              </button>
+              <div className="p-4">
+                <h4 className="font-semibold text-lg text-gray-900 truncate">
+                  {sp.name}
+                </h4>
+                <p className="text-red-600 font-bold text-lg mt-1">
+                  {sp.price.toLocaleString()} đ
+                </p>
 
+                <div className="flex items-center justify-between mt-4">
+                  {/* Button chi tiết */}
+                  <Link
+                    to={`/product/${sp._id}`}
+                    className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+                  >
+                    🔎 Xem chi tiết
+                  </Link>
+
+                  {/* Button thêm giỏ */}
+                  <button
+                    onClick={() => {
+                      addItem(sp);
+                      toast.success("🛒 Đã thêm vào giỏ hàng!");
+                    }}
+                    className="px-3 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 text-sm"
+                  >
+                    🛒 Thêm giỏ
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

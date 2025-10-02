@@ -1,20 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaFacebookF, FaTwitter, FaPinterestP } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
-
-import { products } from "../../data/products";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
-import { featuredProducts } from "../../data/featuredProducts";
+import { getProductById } from "../../api/products/productApi";
+
 const ProductDetail = () => {
     const { id } = useParams();
-    const product =
-        products.find((p) => p.id === parseInt(id)) ||
-        featuredProducts.find((p) => p.id === parseInt(id));
-    const [quantity, setQuantity] = useState(1);
     const navigate = useNavigate();
-    const { dispatch } = useCart();
+    const { addItem } = useCart();
 
+    const [product, setProduct] = useState(null);
+    const [quantity, setQuantity] = useState(1);
+
+    // gọi API lấy sản phẩm theo id
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const data = await getProductById(id);
+                setProduct(data);
+            } catch (err) {
+                console.error("Lỗi load sản phẩm:", err);
+            }
+        }
+        fetchData();
+    }, [id]);
     if (!product) {
         return <div className="p-6">Không tìm thấy sản phẩm</div>;
     }
@@ -24,27 +34,21 @@ const ProductDetail = () => {
 
     //  hàm thêm giỏ hàng
     const handleAddToCart = () => {
-        dispatch({
-            type: "ADD",
-            item: {
-                ...product,
-                quantity,
-                image: product.img,
-            },
+        addItem({
+            ...product,
+            quantity,
+            image: product.image || (product.images ? `http://localhost:5000${product.images[0]}` : ""),
         });
         toast.success("🛒 Đã thêm vào giỏ hàng!");
     };
+
+    //  hàm mua ngay
     const handleBuyNow = () => {
-        // Thêm vào giỏ trước
-        dispatch({
-            type: "ADD",
-            item: {
-                ...product,
-                quantity,
-                image: product.img,
-            },
+        addItem({
+            ...product,
+            quantity,
+            image: product.image || (product.images ? `http://localhost:5000${product.images[0]}` : ""),
         });
-        // Chuyển đến trang checkout
         navigate("/checkout");
     };
 
@@ -57,20 +61,20 @@ const ProductDetail = () => {
                     <div>
                         <div className="relative">
                             <img
-                                src={product.img}
+                                src={`http://localhost:5000${product.images[0]}`}
                                 alt={product.name}
                                 className="rounded-lg w-full object-cover"
                             />
-                            <button className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow hover:bg-white">
+                            {/* <button className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow hover:bg-white">
                                 ‹
                             </button>
                             <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow hover:bg-white">
                                 ›
-                            </button>
+                            </button> */}
                         </div>
 
                         {/* thumbnails */}
-                        <div className="flex gap-3 mt-4">
+                        {/* <div className="flex gap-3 mt-4">
                             {[1, 2, 3, 4].map((i) => (
                                 <img
                                     key={i}
@@ -79,13 +83,13 @@ const ProductDetail = () => {
                                     className="w-20 h-20 object-cover rounded-lg border hover:border-emerald-500 cursor-pointer"
                                 />
                             ))}
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* ==== Product info ==== */}
                     <div className="space-y-5">
                         <h1 className="text-2xl font-bold text-gray-800 leading-snug">
-                            {`Nến Thơm ${product.name}`}
+                            {product.name}
                         </h1>
 
                         {/* Giá */}
@@ -119,16 +123,12 @@ const ProductDetail = () => {
                         <div>
                             <h3 className="font-medium mb-2">Tiêu đề:</h3>
                             <div className="flex flex-wrap gap-3">
-                                {["Wild Bluebell", "English Pear Freesia", "Lime Basil & Mandarin", "Red Rose"].map(
-                                    (scent) => (
-                                        <button
-                                            key={scent}
-                                            className="border rounded-lg px-4 py-2 hover:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
-                                        >
-                                            {scent}
-                                        </button>
-                                    )
-                                )}
+                                <button
+                                    className="border rounded-lg px-4 py-2 hover:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                                >
+                                    {product.fragrance}
+                                </button>
+
                             </div>
                         </div>
 
