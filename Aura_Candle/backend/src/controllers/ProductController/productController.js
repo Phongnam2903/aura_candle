@@ -5,6 +5,10 @@ const mongoose = require("mongoose");
 // =============================
 const addProduct = async (req, res) => {
     try {
+        const sellerId = req.user?.id;
+        if (!sellerId) {
+            return res.status(401).json({ message: "Bạn chưa đăng nhập." });
+        }
         let {
             name,
             sku,
@@ -22,7 +26,7 @@ const addProduct = async (req, res) => {
             fragrances,
         } = req.body;
 
-        // 🔥 Nếu có oldPrice + discount thì tự động tính price
+        //  Nếu có oldPrice + discount thì tự động tính price
         if (oldPrice && discount && !price) {
             price = Math.round(oldPrice * (1 - discount / 100));
         }
@@ -42,6 +46,7 @@ const addProduct = async (req, res) => {
             isKit,
             fragrance,
             fragrances,
+            seller: sellerId,
         });
 
         await newProduct.save();
@@ -117,12 +122,22 @@ const getProductById = async (req, res) => {
 // UPDATE – Cập nhật sản phẩm
 // =============================
 const updateProduct = async (req, res) => {
+    const sellerId = req.user?.id;
+    const { id } = req.params;
+
     try {
+        const product = await Product.findById(id);
+        if (!product) return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+
+        if (product.seller.toString() !== sellerId) {
+            return res.status(403).json({ message: "Bạn không có quyền sửa sản phẩm này" });
+        }
+
         let updateData = { ...req.body };
 
-        // 🔥 Nếu update có oldPrice/discount mà không truyền price => tính lại
         if (
-            (updateData.oldPrice !== undefined && updateData.discount !== undefined) &&
+            updateData.oldPrice !== undefined &&
+            updateData.discount !== undefined &&
             updateData.price === undefined
         ) {
             updateData.price = Math.round(
@@ -130,24 +145,20 @@ const updateProduct = async (req, res) => {
             );
         }
 
-        const updatedProduct = await Product.findByIdAndUpdate(
-            req.params.id,
-            updateData,
-            { new: true, runValidators: true }
-        )
+        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
+            new: true,
+            runValidators: true,
+        })
             .populate("category", "name")
             .populate("materials", "name");
 
-        if (!updatedProduct)
-            return res.status(404).json({ message: "Product not found" });
-
         res.json({
-            message: "Product updated successfully",
+            message: "Cập nhật sản phẩm thành công",
             product: updatedProduct,
         });
     } catch (error) {
         console.error("Update product error:", error);
-        res.status(500).json({ message: "Failed to update product", error });
+        res.status(500).json({ message: "Lỗi khi cập nhật sản phẩm", error });
     }
 };
 

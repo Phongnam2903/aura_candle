@@ -3,24 +3,19 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { newsData } from "../../data/news";
 import "swiper/css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { getCategories } from "../../api/category/categoriesApi";
 import { getProducts } from "../../api/products/productApi";
 
 const Content = () => {
-  const navigate = useNavigate();
   const [itemsPerPage, setItemsPerPage] = useState(3);
   const swiperRef = useRef(null);
   const { addItem } = useCart();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const handleViewProductDetail = (id) => {
-    navigate(`/product/${id}`);
-  };
 
   const handleViewCategories = (name) => {
     alert(`Xem danh mục sản phẩm: ${name}`);

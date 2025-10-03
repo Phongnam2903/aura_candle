@@ -6,13 +6,11 @@ import ChangePassword from "./ChangePassword";
 import AddressManager from "./AddressManager";
 import { getAddressesByUser } from "../../../api/address/addressApi";
 
-
 export default function ProfilePage() {
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     const [activeTab, setActiveTab] = useState("info");
     const [addressCount, setAddressCount] = useState(0);
 
-    // 👇 Gọi API để lấy số lượng địa chỉ ngay khi load
     useEffect(() => {
         const userId = storedUser?._id;
         if (!userId) return;
@@ -45,13 +43,19 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto p-6 flex flex-col md:flex-row gap-6 items-stretch">
-            {/* ===== Bên trái: Menu ===== */}
-            <aside className="bg-white shadow rounded-xl p-6 md:w-1/3 flex flex-col">
-                <h1 className="text-xl font-bold mb-4">
-                    Xin chào, {storedUser.name || "Khách"}
-                </h1>
-                <ul className="space-y-2">
+        <div className="max-w-7xl mx-auto p-4 md:p-6 flex flex-col md:flex-row gap-6">
+            {/* ===== Menu bên trái ===== */}
+            <aside className="md:w-1/3 bg-white rounded-xl shadow p-6 flex flex-col">
+                <div className="mb-6 text-center md:text-left">
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Xin chào, {storedUser.name || "Khách"} 
+                    </h1>
+                    <p className="text-gray-500 mt-1 text-sm">
+                        Quản lý thông tin và đơn hàng của bạn
+                    </p>
+                </div>
+
+                <ul className="flex md:flex-col justify-between md:justify-start gap-2 md:gap-2">
                     {[
                         { key: "info", label: "Thông tin tài khoản" },
                         { key: "orders", label: "Đơn hàng của bạn" },
@@ -61,7 +65,10 @@ export default function ProfilePage() {
                         <li key={item.key}>
                             <button
                                 onClick={() => setActiveTab(item.key)}
-                                className={`w-full text-left px-4 py-2 rounded hover:bg-emerald-100 ${activeTab === item.key ? "bg-emerald-200 font-semibold" : ""
+                                className={`w-full px-4 py-3 rounded-lg transition-colors duration-200 text-left flex items-center gap-2
+                  ${activeTab === item.key
+                                        ? "bg-emerald-600 text-white font-semibold shadow"
+                                        : "hover:bg-emerald-100 text-gray-700"
                                     }`}
                             >
                                 {item.label}
@@ -71,8 +78,8 @@ export default function ProfilePage() {
                 </ul>
             </aside>
 
-            {/* ===== Bên phải: Nội dung ===== */}
-            <section className="bg-white shadow rounded-xl p-6 md:w-2/3 flex flex-col">
+            {/* ===== Nội dung bên phải ===== */}
+            <section className="md:w-2/3 bg-white rounded-xl shadow p-6 flex flex-col min-h-[500px]">
                 {renderContent()}
             </section>
         </div>

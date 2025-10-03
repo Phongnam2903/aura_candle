@@ -12,6 +12,7 @@ const uploadRouter = require("./src/routes/uploadRoutes");
 const cartRouter = require("./src/routes/CartRoutes");
 const orderRouter = require("./src/routes/OrderRoutes");
 const addressRouter = require("./src/routes/AddressRoutes");
+const orderSellerRouter = require("./src/routes/OrderSellerRoutes");
 
 connectDB();
 const app = express();
@@ -39,6 +40,7 @@ app.use("/auth", authRouter);
 app.use("/upload", uploadRouter);
 app.use("/cart", cartRouter)
 app.use("/order", orderRouter);
+app.use("/orderSeller", orderSellerRouter);
 app.use("/addresses", addressRouter)
 
 // Start server

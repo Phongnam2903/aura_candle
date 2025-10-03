@@ -216,14 +216,12 @@ const ProductDetail = () => {
                 <div className="bg-white mt-10 p-6 rounded-xl shadow">
                     <h2 className="text-lg font-semibold mb-3">Mô tả sản phẩm</h2>
                     <p className="text-gray-700 leading-relaxed">
-                        Tinh dầu thơm phòng Chillme giúp khử mùi, mang lại hương thơm dễ
-                        chịu và thư giãn. Sử dụng que khuếch tán tiện lợi, an toàn cho sức
-                        khỏe...
+                        {product.description}
                     </p>
                 </div>
 
                 {/* Related products */}
-                <div className="mt-12">
+                {/* <div className="mt-12">
                     <h2 className="text-xl font-bold mb-4">Sản phẩm liên quan</h2>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                         {[...Array(5)].map((_, i) => (
@@ -243,10 +241,10 @@ const ProductDetail = () => {
                             </div>
                         ))}
                     </div>
-                </div>
+                </div> */}
 
                 {/* Recently viewed */}
-                <div className="mt-12">
+                {/* <div className="mt-12">
                     <h2 className="text-xl font-bold mb-4">Sản phẩm đã xem</h2>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
                         {[...Array(4)].map((_, i) => (
@@ -266,7 +264,7 @@ const ProductDetail = () => {
                             </div>
                         ))}
                     </div>
-                </div>
+                </div> */}
             </div>
         </div>
     );
