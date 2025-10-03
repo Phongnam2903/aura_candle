@@ -1,16 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { profileUser, ChangeInformation } from "../../../api/user/userApi";
 
 export default function InfoForm() {
-    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     const [form, setForm] = useState({ name: "", email: "", phone: "" });
+    const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
-        setForm({
-            name: storedUser.name || "",
-            email: storedUser.email || "",
-            phone: storedUser.phone || "",
-        });
+        const fetchProfile = async () => {
+            try {
+                // Lấy object user từ localStorage
+                const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+                if (!storedUser._id) {
+                    toast.error("Không tìm thấy thông tin user");
+                    setLoading(false);
+                    return;
+                }
+
+                setUserId(storedUser._id);
+
+                const data = await profileUser(storedUser._id);
+                setForm({
+                    name: data.name || "",
+                    email: data.email || "",
+                    phone: data.phone || "",
+                });
+                console.log("dữ liệu: ", data);
+            } catch (err) {
+                toast.error("Lỗi khi tải thông tin người dùng");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfile();
     }, []);
 
     function handleChange(e) {
@@ -20,9 +44,22 @@ export default function InfoForm() {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        localStorage.setItem("user", JSON.stringify({ ...storedUser, ...form }));
-        toast.success("Cập nhật hồ sơ thành công!");
+        if (!userId) {
+            toast.error("Không tìm thấy thông tin user");
+            return;
+        }
+
+        try {
+            const res = await ChangeInformation(form, userId); // truyền id
+            toast.success(res.message || "Cập nhật hồ sơ thành công!");
+        } catch (err) {
+            const msg =
+                err.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại";
+            toast.error(msg);
+        }
     }
+
+    if (loading) return <p className="text-gray-500">Đang tải thông tin...</p>;
 
     return (
         <form className="space-y-5" onSubmit={handleSubmit}>
