@@ -120,5 +120,49 @@ const googleLogin = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const userId = req.user?.id;
 
-module.exports = { register, login, googleLogin };
+    try {
+        if (!userId) {
+            return res.status(401).json({ message: "Bạn chưa đăng nhập." });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "Không tìm thấy người dùng." });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Mật khẩu hiện tại không đúng." });
+        }
+
+        // Kiểm tra xác nhận mật khẩu
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: "Mật khẩu xác nhận không khớp." });
+        }
+
+        // Kiểm tra độ mạnh của mật khẩu
+        const strongPasswordRegex =
+            /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+        if (!strongPasswordRegex.test(newPassword)) {
+            return res.status(400).json({
+                message:
+                    "Mật khẩu mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.",
+            });
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedNewPassword;
+        await user.save();
+
+        res.json({ message: "Đổi mật khẩu thành công." });
+    } catch (error) {
+        console.error("Lỗi khi đổi mật khẩu:", error);
+        res.status(500).json({ message: "Lỗi server khi đổi mật khẩu." });
+    }
+};
+module.exports = { register, login, googleLogin, changePassword };
