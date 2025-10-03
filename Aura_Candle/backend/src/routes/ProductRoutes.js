@@ -6,6 +6,7 @@ const { verifyToken, authorize } = require("../middleware/auth");
 router.post("/", verifyToken, authorize("seller"), ProductController.addProduct);
 
 router.get("/", ProductController.getProducts);
+router.get("/search", ProductController.searchProducrByName);
 router.get("/:id", ProductController.getProductById);
 
 // UPDATE

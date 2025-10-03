@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   FaSearch,
   FaUser,
@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { searchProducts } from "../../api/products/productApi";
 
 const Header = () => {
   const { cart } = useCart();
@@ -18,11 +19,26 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+
+  const searchRef = useRef();
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+
+    // Đóng popup khi click ra ngoài
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSearch(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // --- Hàm đăng xuất ---
@@ -31,8 +47,32 @@ const Header = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("role");
     setUser(null);
-    navigate("/"); // hoặc navigate("/") nếu muốn về trang chủ
+    navigate("/");
   };
+
+  // --- Hàm search (với debounce 500ms) ---
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchTerm.trim() === "") {
+        setSearchResults([]);
+        return;
+      }
+      const fetchResults = async () => {
+        setLoadingSearch(true);
+        try {
+          const results = await searchProducts(searchTerm);
+          setSearchResults(results);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setLoadingSearch(false);
+        }
+      };
+      fetchResults();
+    }, 500); // debounce 500ms
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
 
   return (
     <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center relative">
@@ -47,7 +87,9 @@ const Header = () => {
       </div>
 
       {/* Logo */}
-      <h1 className="text-2xl font-bold text-pink-500 text-gray-800">Aura Candle</h1>
+      <h1 className="text-2xl font-bold text-pink-500 text-gray-800">
+        Aura Candle
+      </h1>
 
       {/* Navigation */}
       <nav
@@ -94,9 +136,7 @@ const Header = () => {
             <div className="flex items-center gap-2 cursor-pointer">
               <FaUser className="text-lg text-gray-700" />
 
-              {/* Dropdown chi tiết */}
-              <div className="absolute right-0 top-full mt-3 w-56 bg-white border border-gray-200 rounded-lg shadow-lg 
-                      opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="absolute right-0 top-full mt-3 w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="px-4 py-2 border-b font-semibold text-gray-700 text-center">
                   THÔNG TIN TÀI KHOẢN
                 </div>
@@ -152,33 +192,76 @@ const Header = () => {
           )}
         </div>
 
-
         {/* Search */}
         <div
+          ref={searchRef}
           className="relative group cursor-pointer flex flex-col items-center"
-          onClick={() => {
-            setShowSearch(!showSearch);
-          }}
         >
-          <FaSearch className="text-lg hover:text-pink-500" />
+          <FaSearch
+            className="text-lg hover:text-pink-500"
+            onClick={() => setShowSearch(!showSearch)}
+          />
           <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
             Tìm kiếm
           </span>
+
           {showSearch && (
-            <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl p-6 w-80 z-50 animate-in slide-in-from-top-2 duration-200">
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800">Tìm kiếm sản phẩm</h3>
-                <input
-                  type="text"
-                  placeholder="Nhập từ khóa..."
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                  autoFocus
-                />
-                <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                  <FaSearch />
-                  Tìm kiếm
-                </button>
-              </div>
+            <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl p-4 w-80 z-50">
+              <input
+                type="text"
+                placeholder="Nhập từ khóa..."
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                  }
+                }}
+              />
+
+              {loadingSearch && (
+                <div className="mt-2 text-gray-500 text-sm">Đang tìm kiếm...</div>
+              )}
+              {!loadingSearch && searchTerm && (
+                <div className="mt-2 max-h-80 overflow-y-auto border-t border-gray-200 shadow-lg rounded-b-lg bg-white">
+                  {searchResults.length > 0 ? (
+                    searchResults.map((product) => (
+                      <Link
+                        key={product._id}
+                        to={`/product/${product._id}`}
+                        className="flex items-center gap-3 px-4 py-2 hover:bg-pink-50 transition-colors border-b last:border-b-0"
+                        onClick={() => setShowSearch(false)}
+                      >
+                        {/* Ảnh sản phẩm */}
+                        <img
+                          src={`http://localhost:5000${product.images[0]}`}
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+
+                        {/* Tên sản phẩm + giá */}
+                        <div className="flex-1 flex flex-col">
+                          <span className="text-gray-800 font-medium">{product.name}</span>
+                          {product.price && (
+                            <span className="text-pink-600 font-semibold text-sm">
+                              {product.price.toLocaleString("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                              })}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="px-4 py-4 text-gray-500 text-sm text-center">
+                      Không tìm thấy sản phẩm
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,5 +1,5 @@
 const { Product } = require("../../models");
-
+const mongoose = require("mongoose");
 // =============================
 // CREATE – Thêm sản phẩm
 // =============================
@@ -92,8 +92,14 @@ const getProducts = async (req, res) => {
 // READ – Lấy chi tiết 1 sản phẩm
 // =============================
 const getProductById = async (req, res) => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: "ID không hợp lệ" });
+    }
+
     try {
-        const product = await Product.findById(req.params.id)
+        const product = await Product.findById(id)
             .populate("category", "name")
             .populate("materials", "name");
         if (!product) {
@@ -161,10 +167,31 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+const searchProducrByName = async (req, res) => {
+    const { query } = req.query;
+
+    if (!query) {
+        return res.status(400).json({ message: "Vui lòng nhập từ khóa tìm kiếm" });
+    }
+
+    try {
+        const products = await Product.find({
+            name: { $regex: query, $options: "i" }, // "i" = không phân biệt hoa thường
+            isActive: true, // chỉ lấy sản phẩm còn hoạt động
+        }).populate("category").populate("materials"); // nếu muốn hiển thị thông tin category/materials
+
+        res.json(products);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Lỗi server" });
+    }
+};
+
 module.exports = {
     addProduct,
     getProducts,
     getProductById,
     updateProduct,
     deleteProduct,
+    searchProducrByName,
 };

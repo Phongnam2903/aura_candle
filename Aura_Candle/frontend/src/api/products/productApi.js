@@ -24,3 +24,8 @@ export async function getProductById(id) {
     const res = await api.get(`${BASE_URL}/${id}`);
     return res.data;
 }
+
+export async function searchProducts(keyword) {
+    const res = await api.get(`${BASE_URL}/search?query=${encodeURIComponent(keyword)}`);
+    return res.data; 
+}
