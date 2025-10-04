@@ -32,12 +32,13 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",                       // khi chạy frontend local
-      "https://aura-candle-frontend.vercel.app",     // domain frontend trên Vercel
+      "http://localhost:3000",       // chạy local dev
+      "https://aura-candle.vercel.app" // domain deploy thật trên Vercel
     ],
     credentials: true,
   })
 );
+
 
 // API routes
 app.use("/product", productRouter);
