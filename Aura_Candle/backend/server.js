@@ -29,14 +29,17 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //  CORS (chỉ cần cho phép domain frontend, không cần credentials)
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",        // khi chạy local dev
-      "https://aura-candle.vercel.app" // domain deploy thật trên Vercel
-    ]
-  })
-);
+// app.use(
+//   cors({
+//     origin: [
+//       "http://localhost:3000",        // khi chạy local dev
+//       "https://aura-candle.vercel.app" // domain deploy thật trên Vercel
+//     ]
+//   })
+// );
+
+app.use(cors({ origin: "*" }));
+
 
 // API routes
 app.use("/product", productRouter);
