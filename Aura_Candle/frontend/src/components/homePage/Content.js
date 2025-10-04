@@ -110,7 +110,7 @@ const Content = () => {
                     onClick={() => handleViewCategories(cat.name)}
                   >
                     <img
-                      src={`http://localhost:5000${cat.image}`}
+                      src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${cat.image}`}
                       alt={cat.name}
                       className="w-full h-64 object-cover mb-4 rounded-lg"
                     />
