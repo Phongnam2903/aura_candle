@@ -95,6 +95,15 @@ export default function EditProduct() {
       const res = await axios.post(`${API_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // 🧩 Thêm log để kiểm tra dữ liệu backend trả về
+      console.log("🔍 Kết quả upload:", res.data);
+
+      // 🧩 Kiểm tra cụ thể từng link
+      if (res.data.files) {
+        res.data.files.forEach((url, i) => console.log(`Ảnh ${i + 1}:`, url));
+      }
+      
       setForm((prev) => ({
         ...prev,
         images: [...prev.images, ...res.data.files],
