@@ -69,6 +69,7 @@ export default function AddProduct() {
   async function handleFileChange(e) {
     const files = e.target.files;
     if (!files || !files.length) return;
+
     const formData = new FormData();
     for (let f of files) formData.append("files", f);
 
@@ -77,19 +78,28 @@ export default function AddProduct() {
       const res = await axios.post(`${API_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // 🧩 Thêm log để kiểm tra dữ liệu backend trả về
+      console.log("🔍 Kết quả upload:", res.data);
+
+      // 🧩 Kiểm tra cụ thể từng link
+      if (res.data.files) {
+        res.data.files.forEach((url, i) => console.log(`Ảnh ${i + 1}:`, url));
+      }
+
       setForm((prev) => ({
         ...prev,
         images: [...prev.images, ...res.data.files],
       }));
-      console.log(res.data.files);
       toast.success("Upload ảnh thành công!");
     } catch (err) {
-      console.error(err);
+      console.error("❌ Lỗi upload ảnh:", err.response?.data || err.message);
       toast.error("Upload ảnh thất bại");
     } finally {
       setUploading(false);
     }
   }
+
 
   // thêm mùi hương
   function addScent() {
