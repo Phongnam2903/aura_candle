@@ -49,14 +49,16 @@ export default function CartPage() {
             <div className="flex items-center gap-4">
               <img
                 src={
-                  item.image ||
-                  (Array.isArray(item.images) && item.images.length > 0
-                    ? item.images[0]
-                    : "https://via.placeholder.com/80")
+                  item.image
+                    ? item.image.startsWith("https")
+                      ? item.image
+                      : `http://localhost:5000${item.image}`
+                    : "https://via.placeholder.com/80"
                 }
                 alt={item.name || "Sản phẩm"}
                 className="w-20 h-20 object-cover rounded"
               />
+
 
               <div>
                 <h2 className="font-semibold text-gray-800">

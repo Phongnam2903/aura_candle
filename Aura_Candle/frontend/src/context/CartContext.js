@@ -8,7 +8,6 @@ function cartReducer(state, action) {
   switch (action.type) {
     case "ADD": {
       const item = action.payload;
-      // Nếu sản phẩm đã có trong giỏ thì tăng số lượng
       const exist = state.find((p) => p.id === item.id);
       if (exist) {
         return state.map((p) =>
@@ -30,10 +29,22 @@ function cartReducer(state, action) {
   }
 }
 
+// ✅ Hàm xử lý ảnh chuẩn
+const getImageUrl = (image, images = []) => {
+  if (image && image.startsWith("https")) return image;
+  if (Array.isArray(images) && images.length > 0) {
+    const first = images[0];
+    return first.startsWith("https")
+      ? first
+      : `http://localhost:5000${first}`;
+  }
+  return "https://via.placeholder.com/80";
+};
+
 export function CartProvider({ children }) {
   const [cart, dispatch] = useReducer(cartReducer, initialState);
 
-  // Lưu giỏ hàng vào localStorage để không mất khi reload
+  // Lưu giỏ hàng vào localStorage
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
@@ -45,9 +56,7 @@ export function CartProvider({ children }) {
         id: product._id || product.id,
         name: product.name,
         price: product.price,
-        image:
-          product.image ||
-          (product.images ? `http://localhost:5000${product.images[0]}` : ""),
+        image: getImageUrl(product.image, product.images),
         fragrance: product.fragrance || null,
       },
     });

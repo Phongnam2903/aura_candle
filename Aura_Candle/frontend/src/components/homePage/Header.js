@@ -236,7 +236,7 @@ const Header = () => {
                       >
                         {/* Ảnh sản phẩm */}
                         <img
-                          src={`http://localhost:5000${product.images[0]}`}
+                          src={product.images[0]}
                           alt={product.name}
                           className="w-12 h-12 object-cover rounded"
                         />

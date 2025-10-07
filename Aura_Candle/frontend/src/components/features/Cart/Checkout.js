@@ -234,10 +234,17 @@ const CheckoutPage = () => {
                                 {/* Hình + tên sản phẩm */}
                                 <div className="flex items-center gap-3">
                                     <img
-                                        src={item.img || item.image}
-                                        alt={item.name}
+                                        src={
+                                            item.img && item.img.startsWith("https")
+                                                ? item.img
+                                                : item.image && item.image.startsWith("https")
+                                                    ? item.image
+                                                    : "https://via.placeholder.com/80"
+                                        }
+                                        alt={item.name || "Sản phẩm"}
                                         className="w-16 h-16 object-cover rounded border"
                                     />
+
                                     <div>
                                         <p className="font-medium">{item.name}</p>
                                         <p className="text-sm text-gray-500">
