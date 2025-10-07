@@ -36,9 +36,15 @@ export default function CategoryList() {
         setUploading(true);
         try {
             const res = await uploadImage(file);
-            const uploadedPath = res.files[0]; // backend trả về mảng
+            const uploadedPath = res.files[0]; // backend trả về mảng gồm URL ảnh
+
+            // Gán vào form + hiển thị preview
             setForm((prev) => ({ ...prev, image: uploadedPath }));
-            setPreview(`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${uploadedPath}`);
+            setPreview(
+                uploadedPath.startsWith("http")
+                    ? uploadedPath
+                    : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${uploadedPath}`
+            );
         } catch (err) {
             console.error("Lỗi upload ảnh", err);
             alert("Upload ảnh thất bại");
@@ -87,7 +93,13 @@ export default function CategoryList() {
     // Chỉnh sửa
     const handleEdit = (cat) => {
         setForm({ name: cat.name, description: cat.description, image: cat.image });
-        setPreview(cat.image ? `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${cat.image}` : null);
+        setPreview(
+            cat.image
+                ? cat.image.startsWith("http")
+                    ? cat.image
+                    : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${cat.image}`
+                : null
+        );
         setEditingId(cat._id);
     };
 
@@ -124,7 +136,7 @@ export default function CategoryList() {
                     disabled={uploading}
                 />
                 {preview && (
-                    <img src={preview} alt="Preview" className="h-20 mt-2 border rounded" />
+                    <img src={preview} alt="Preview" className="h-20 mt-2 border rounded object-cover" />
                 )}
 
                 <button
@@ -153,9 +165,13 @@ export default function CategoryList() {
                             <td className="border px-3 py-2">
                                 {cat.image ? (
                                     <img
-                                        src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${cat.image}`}
+                                        src={
+                                            cat.image.startsWith("http")
+                                                ? cat.image
+                                                : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${cat.image}`
+                                        }
                                         alt={cat.name}
-                                        className="h-12"
+                                        className="h-12 w-12 object-cover rounded"
                                     />
                                 ) : (
                                     "Không có"
