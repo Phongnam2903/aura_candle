@@ -36,7 +36,6 @@ const Content = () => {
     const fetchProfuct = async () => {
       try {
         const data = await getProducts();
-        console.log(data);
         setProducts(data);
       } catch (error) {
         console.error("Lỗi khi fetch products:", error);
@@ -110,10 +109,15 @@ const Content = () => {
                     onClick={() => handleViewCategories(cat.name)}
                   >
                     <img
-                      src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${cat.image}`}
+                      src={
+                        cat.image.startsWith("https")
+                          ? cat.image
+                          : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${cat.image}`
+                      }
                       alt={cat.name}
                       className="w-full h-64 object-cover mb-4 rounded-lg"
                     />
+
                     <h4 className="font-semibold">{cat.name}</h4>
                   </div>
                 </SwiperSlide>
@@ -145,10 +149,15 @@ const Content = () => {
               {/* Link sang chi tiết */}
               <Link to={`/product/${sp._id}`}>
                 <img
-                  src={`http://localhost:5000${sp.images[0]}`}
+                  src={
+                    sp.images[0].startsWith("https")
+                      ? sp.images[0]
+                      : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${sp.images[0]}`
+                  }
                   alt={sp.name}
                   className="w-full h-72 object-cover rounded-t-xl hover:scale-105 transition-transform"
                 />
+
               </Link>
 
               <div className="p-4">
