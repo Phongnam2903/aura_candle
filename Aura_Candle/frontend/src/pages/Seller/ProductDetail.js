@@ -55,7 +55,7 @@ export default function ProductDetail() {
                 <div>
                     {product.images?.length ? (
                         <img
-                            src={`http://localhost:5000${product.images[0]}`}
+                            src={product.images[0]} // URL Cloudinary trực tiếp
                             alt={product.name}
                             className="w-full rounded"
                         />
