@@ -1,3 +1,4 @@
+const cloudinary = require("../../config/cloudinary");
 const { Product } = require("../../models");
 const mongoose = require("mongoose");
 // =============================
@@ -9,6 +10,7 @@ const addProduct = async (req, res) => {
         if (!sellerId) {
             return res.status(401).json({ message: "Bạn chưa đăng nhập." });
         }
+
         let {
             name,
             sku,
@@ -19,14 +21,30 @@ const addProduct = async (req, res) => {
             discount,
             stock,
             weightGrams,
-            images,
             materials,
             isKit,
             fragrance,
             fragrances,
         } = req.body;
 
-        //  Nếu có oldPrice + discount thì tự động tính price
+        let images = [];
+
+        // ✅ Upload ảnh lên Cloudinary nếu có file gửi kèm
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const result = await cloudinary.uploader.upload(file.path, {
+                    folder: "products",
+                });
+                images.push(result.secure_url);
+            }
+        }
+
+        // ✅ Nếu người dùng gửi sẵn URL (đã upload từ trước)
+        if (req.body.images && Array.isArray(req.body.images)) {
+            images = [...images, ...req.body.images];
+        }
+
+        // ✅ Tính giá nếu có oldPrice + discount
         if (oldPrice && discount && !price) {
             price = Math.round(oldPrice * (1 - discount / 100));
         }
@@ -41,7 +59,7 @@ const addProduct = async (req, res) => {
             discount,
             stock,
             weightGrams,
-            images,
+            images, //  link Cloudinary
             materials,
             isKit,
             fragrance,
@@ -51,12 +69,12 @@ const addProduct = async (req, res) => {
 
         await newProduct.save();
         res.status(201).json({
-            message: "Product created successfully",
+            message: "Thêm sản phẩm thành công",
             product: newProduct,
         });
     } catch (error) {
         console.error("Add product error:", error);
-        res.status(500).json({ message: "Failed to create product", error });
+        res.status(500).json({ message: "Lỗi khi thêm sản phẩm", error });
     }
 };
 
@@ -127,14 +145,36 @@ const updateProduct = async (req, res) => {
 
     try {
         const product = await Product.findById(id);
-        if (!product) return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+        if (!product)
+            return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
 
         if (product.seller.toString() !== sellerId) {
-            return res.status(403).json({ message: "Bạn không có quyền sửa sản phẩm này" });
+            return res
+                .status(403)
+                .json({ message: "Bạn không có quyền sửa sản phẩm này" });
         }
 
         let updateData = { ...req.body };
+        let uploadedImages = [];
 
+        // ✅ Nếu có file upload mới → upload lên Cloudinary
+        if (req.files && req.files.length > 0) {
+            for (const file of req.files) {
+                const result = await cloudinary.uploader.upload(file.path, {
+                    folder: "products",
+                });
+                uploadedImages.push(result.secure_url);
+            }
+        }
+
+        // ✅ Giữ lại ảnh cũ nếu có
+        if (req.body.oldImages && Array.isArray(req.body.oldImages)) {
+            uploadedImages = [...req.body.oldImages, ...uploadedImages];
+        }
+
+        updateData.images = uploadedImages;
+
+        // ✅ Nếu có oldPrice + discount → tự tính price
         if (
             updateData.oldPrice !== undefined &&
             updateData.discount !== undefined &&
