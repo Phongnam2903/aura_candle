@@ -123,6 +123,7 @@ export default function EditProduct() {
     try {
       const payload = {
         ...form,
+        oldImages: form.images,
         price: Number(form.price),
         oldPrice: form.oldPrice ? Number(form.oldPrice) : undefined,
         discount: form.discount ? Number(form.discount) : undefined,

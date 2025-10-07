@@ -1,6 +1,8 @@
 const cloudinary = require("../../config/cloudinary");
 const { Product } = require("../../models");
 const mongoose = require("mongoose");
+const fs = require("fs");
+
 // =============================
 // CREATE – Thêm sản phẩm
 // =============================
@@ -139,42 +141,55 @@ const getProductById = async (req, res) => {
 // =============================
 // UPDATE – Cập nhật sản phẩm
 // =============================
+
 const updateProduct = async (req, res) => {
-    const sellerId = req.user?.id;
+    const sellerId = req.user?.id; // Lấy ID người bán từ token
     const { id } = req.params;
 
     try {
+        // Kiểm tra sản phẩm tồn tại
         const product = await Product.findById(id);
-        if (!product)
+        if (!product) {
             return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+        }
 
+        // Kiểm tra quyền sở hữu sản phẩm
         if (product.seller.toString() !== sellerId) {
             return res
                 .status(403)
                 .json({ message: "Bạn không có quyền sửa sản phẩm này" });
         }
 
+        // Chuẩn bị dữ liệu update
         let updateData = { ...req.body };
         let uploadedImages = [];
 
-        // ✅ Nếu có file upload mới → upload lên Cloudinary
+        // Upload ảnh mới lên Cloudinary nếu có
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 const result = await cloudinary.uploader.upload(file.path, {
                     folder: "products",
                 });
                 uploadedImages.push(result.secure_url);
+
+                // Xóa file tạm sau khi upload
+                fs.unlinkSync(file.path);
             }
         }
 
-        // ✅ Giữ lại ảnh cũ nếu có
-        if (req.body.oldImages && Array.isArray(req.body.oldImages)) {
-            uploadedImages = [...req.body.oldImages, ...uploadedImages];
+        // Giữ lại ảnh cũ (nếu có gửi từ frontend)
+        if (req.body.oldImages) {
+            // Nếu oldImages là chuỗi JSON (trường hợp gửi bằng FormData)
+            const oldImages = Array.isArray(req.body.oldImages)
+                ? req.body.oldImages
+                : JSON.parse(req.body.oldImages);
+
+            uploadedImages = [...oldImages, ...uploadedImages];
         }
 
         updateData.images = uploadedImages;
 
-        // ✅ Nếu có oldPrice + discount → tự tính price
+        // Tính toán giá mới nếu cần
         if (
             updateData.oldPrice !== undefined &&
             updateData.discount !== undefined &&
@@ -185,6 +200,7 @@ const updateProduct = async (req, res) => {
             );
         }
 
+        // Cập nhật sản phẩm trong DB
         const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
             new: true,
             runValidators: true,
@@ -197,10 +213,15 @@ const updateProduct = async (req, res) => {
             product: updatedProduct,
         });
     } catch (error) {
-        console.error("Update product error:", error);
-        res.status(500).json({ message: "Lỗi khi cập nhật sản phẩm", error });
+        console.error("❌ Update product error:", error);
+        res.status(500).json({
+            message: "Lỗi khi cập nhật sản phẩm",
+            error: error.message,
+        });
     }
 };
+
+module.exports = { updateProduct };
 
 // =============================
 // DELETE – Xóa sản phẩm
