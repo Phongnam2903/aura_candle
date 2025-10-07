@@ -47,7 +47,14 @@ const ProductDetail = () => {
         addItem({
             ...product,
             quantity,
-            image: product.image || (product.images ? `http://localhost:5000${product.images[0]}` : ""),
+            image:
+                product.image ||
+                (product.images
+                    ? product.images[0].startsWith("https")
+                        ? product.images[0]
+                        : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${product.images[0]}`
+                    : ""),
+
         });
         navigate("/checkout");
     };
@@ -61,10 +68,15 @@ const ProductDetail = () => {
                     <div>
                         <div className="relative">
                             <img
-                                src={`http://localhost:5000${product.images[0]}`}
+                                src={
+                                    product.images?.[0]?.startsWith("https")
+                                        ? product.images[0]
+                                        : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${product.images?.[0] || ""}`
+                                }
                                 alt={product.name}
                                 className="rounded-lg w-full object-cover"
                             />
+
                             {/* <button className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow hover:bg-white">
                                 ‹
                             </button>

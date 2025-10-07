@@ -48,10 +48,16 @@ export default function CartPage() {
             {/* --- Ảnh + thông tin sản phẩm --- */}
             <div className="flex items-center gap-4">
               <img
-                src={item.image || "https://via.placeholder.com/80"}
+                src={
+                  item.image ||
+                  (Array.isArray(item.images) && item.images.length > 0
+                    ? item.images[0]
+                    : "https://via.placeholder.com/80")
+                }
                 alt={item.name || "Sản phẩm"}
                 className="w-20 h-20 object-cover rounded"
               />
+
               <div>
                 <h2 className="font-semibold text-gray-800">
                   {item.name || "Tên sản phẩm"}
