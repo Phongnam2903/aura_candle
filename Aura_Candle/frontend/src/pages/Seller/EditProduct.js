@@ -278,15 +278,21 @@ export default function EditProduct() {
           />
           {uploading && <p className="text-sm text-gray-500">Đang upload...</p>}
           <div className="flex flex-wrap gap-2 mt-2">
-            {form.images.map((img, idx) => (
-              <img
-                key={idx}
-                src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
-                alt="preview"
-                className="w-24 h-24 object-cover rounded"
-              />
-            ))}
+            {form.images.map((img, idx) => {
+              const imageUrl = img.startsWith("https")
+                ? img // ảnh Cloudinary
+                : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`; // ảnh local
+              return (
+                <img
+                  key={idx}
+                  src={imageUrl}
+                  alt="preview"
+                  className="w-24 h-24 object-cover rounded"
+                />
+              );
+            })}
           </div>
+
         </div>
 
         {/* Nguyên liệu */}
