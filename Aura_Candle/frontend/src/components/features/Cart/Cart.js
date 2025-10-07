@@ -2,6 +2,7 @@ import React from "react";
 import { useCart } from "../../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 export default function CartPage() {
   const { cart, removeItem, updateItem } = useCart();
@@ -17,7 +18,7 @@ export default function CartPage() {
     const token = localStorage.getItem("token"); // hoặc lấy từ AuthContext
     if (!token) {
       // Nếu chưa đăng nhập
-      alert("⚠️ Vui lòng đăng nhập trước khi thanh toán!");
+      toast.warn("⚠️ Vui lòng đăng nhập trước khi mua hàng!");
       navigate("/login"); // chuyển sang trang login
     } else {
       navigate("/checkout"); // cho sang checkout

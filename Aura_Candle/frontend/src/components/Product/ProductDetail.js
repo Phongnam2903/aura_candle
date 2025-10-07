@@ -42,8 +42,16 @@ const ProductDetail = () => {
         toast.success("🛒 Đã thêm vào giỏ hàng!");
     };
 
-    //  hàm mua ngay
+    // 🛒 hàm mua ngay
     const handleBuyNow = () => {
+        const token = localStorage.getItem("token"); // kiểm tra đăng nhập
+        if (!token) {
+            toast.warn("⚠️ Vui lòng đăng nhập trước khi mua hàng!");
+            navigate("/login");
+            return;
+        }
+
+        // Nếu đã đăng nhập thì thêm sản phẩm vào giỏ và sang trang thanh toán
         addItem({
             ...product,
             quantity,
@@ -54,8 +62,8 @@ const ProductDetail = () => {
                         ? product.images[0]
                         : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${product.images[0]}`
                     : ""),
-
         });
+
         navigate("/checkout");
     };
 
