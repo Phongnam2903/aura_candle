@@ -9,6 +9,7 @@ import {
   FaCreditCard,
   FaUndo,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -106,10 +107,10 @@ const Footer = () => {
       <div className="text-center py-6 border-t">
         <h5 className="font-semibold mb-3">Kết nối với chúng tôi</h5>
         <div className="flex justify-center space-x-6 text-xl">
-          <a href="#"><FaFacebookF /></a>
-          <a href="#"><FaInstagram /></a>
-          <a href="#"><FaYoutube /></a>
-          <a href="#"><FaTiktok /></a>
+          <Link to="#"><FaFacebookF /></Link>
+          <Link to="#"><FaInstagram /></Link>
+          <Link to="#"><FaYoutube /></Link>
+          <Link to="#"><FaTiktok /></Link>
         </div>
         <p className="mt-4 text-sm text-gray-500">
           © 2025 Cửa hàng Nến Thơm. All rights reserved.

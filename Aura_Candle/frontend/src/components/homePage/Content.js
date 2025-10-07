@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { newsData } from "../../data/news";
 import "swiper/css";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
