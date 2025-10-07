@@ -79,7 +79,7 @@ export default function AddProduct() {
       });
       setForm((prev) => ({
         ...prev,
-        images: [...prev.images, ...res.data.urls],
+        images: [...prev.images, ...res.data.files],
       }));
       toast.success("Upload ảnh thành công!");
     } catch (err) {
