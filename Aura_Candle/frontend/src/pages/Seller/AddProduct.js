@@ -9,7 +9,7 @@ import { createProducts } from "../../api/products/productApi";
 
 export default function AddProduct() {
   const navigate = useNavigate();
-
+  const API_URL = process.env.REACT_APP_API_URL;
   const [form, setForm] = useState({
     name: "",
     sku: "",
@@ -74,7 +74,7 @@ export default function AddProduct() {
 
     setUploading(true);
     try {
-      const res = await axios.post("http://localhost:5000/upload", formData, {
+      const res = await axios.post(`${API_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setForm((prev) => ({

@@ -16,6 +16,8 @@ export default function EditProduct() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const API_URL = process.env.REACT_APP_API_URL;
+
   // Load dữ liệu
   useEffect(() => {
     (async () => {
@@ -90,7 +92,7 @@ export default function EditProduct() {
 
     setUploading(true);
     try {
-      const res = await axios.post("http://localhost:5000/upload", formData, {
+      const res = await axios.post(`${API_URL}/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setForm((prev) => ({
