@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaFacebookF, FaTwitter, FaPinterestP } from "react-icons/fa";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { getProductById } from "../../api/products/productApi";
@@ -201,24 +201,24 @@ const ProductDetail = () => {
                         <div className="flex items-center gap-3 pt-3">
                             <span className="text-gray-500">Chia sẻ:</span>
                             <div className="flex gap-2 text-white">
-                                <a
+                                <Link
                                     href="#"
                                     className="bg-blue-600 p-2 rounded-full hover:bg-blue-700"
                                 >
                                     <FaFacebookF size={14} />
-                                </a>
-                                <a
+                                </Link>
+                                <Link
                                     href="#"
                                     className="bg-sky-400 p-2 rounded-full hover:bg-sky-500"
                                 >
                                     <FaTwitter size={14} />
-                                </a>
-                                <a
+                                </Link>
+                                <Link
                                     href="#"
                                     className="bg-red-600 p-2 rounded-full hover:bg-red-700"
                                 >
                                     <FaPinterestP size={14} />
-                                </a>
+                                </Link>
                             </div>
                         </div>
                     </div>
