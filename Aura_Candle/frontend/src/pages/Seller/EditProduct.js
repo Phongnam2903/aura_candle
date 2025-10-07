@@ -97,13 +97,13 @@ export default function EditProduct() {
       });
 
       // 🧩 Thêm log để kiểm tra dữ liệu backend trả về
-      console.log("🔍 Kết quả upload:", res.data);
+      console.log("🔍 Kết quả upload from edit Products:", res.data);
 
       // 🧩 Kiểm tra cụ thể từng link
       if (res.data.files) {
         res.data.files.forEach((url, i) => console.log(`Ảnh ${i + 1}:`, url));
       }
-      
+
       setForm((prev) => ({
         ...prev,
         images: [...prev.images, ...res.data.files],
