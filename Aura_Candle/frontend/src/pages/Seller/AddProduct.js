@@ -81,6 +81,7 @@ export default function AddProduct() {
         ...prev,
         images: [...prev.images, ...res.data.files],
       }));
+      console.log(res.data.files);
       toast.success("Upload ảnh thành công!");
     } catch (err) {
       console.error(err);
@@ -267,7 +268,7 @@ export default function AddProduct() {
             {form.images.map((img, idx) => (
               <img
                 key={idx}
-                 src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
+                src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
                 alt="preview"
                 className="w-24 h-24 object-cover rounded"
               />
