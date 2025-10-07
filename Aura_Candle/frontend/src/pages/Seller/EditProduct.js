@@ -271,7 +271,7 @@ export default function EditProduct() {
             {form.images.map((img, idx) => (
               <img
                 key={idx}
-                src={`http://localhost:5000${img}`}
+                src={`${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
                 alt="preview"
                 className="w-24 h-24 object-cover rounded"
               />
