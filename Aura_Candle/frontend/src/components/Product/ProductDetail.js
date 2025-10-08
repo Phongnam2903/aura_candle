@@ -52,7 +52,7 @@ const ProductDetail = () => {
     const handleBuyNow = () => {
         const token = localStorage.getItem("token"); // kiểm tra đăng nhập
         if (!token) {
-            toast.warn("⚠️ Vui lòng đăng nhập trước khi mua hàng!");
+            toast.warn("Vui lòng đăng nhập trước khi mua hàng!");
             navigate("/login");
             return;
         }
