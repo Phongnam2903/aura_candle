@@ -18,6 +18,8 @@ router.post(
 router.get("/", ProductController.getProducts);
 router.get("/search", ProductController.searchProducrByName);
 router.get("/:id", ProductController.getProductById);
+router.get("/category/:slug", ProductController.getProductBySlug);
+
 
 router.put(
     "/:id",

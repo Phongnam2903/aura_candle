@@ -1,5 +1,5 @@
 const cloudinary = require("../../config/cloudinary");
-const { Product } = require("../../models");
+const { Product, Category } = require("../../models");
 const mongoose = require("mongoose");
 const fs = require("fs");
 
@@ -259,11 +259,34 @@ const searchProducrByName = async (req, res) => {
     }
 };
 
+const getProductBySlug = async (req, res) => {
+    try {
+        const { slug } = req.params;
+
+        // Tìm category theo slug
+        const category = await Category.findOne({ slug });
+        if (!category) {
+            return res.status(404).json({ message: "Không tìm thấy danh mục" });
+        }
+
+        // Lấy sản phẩm thuộc category này
+        const products = await Product.find({ category: category._id })
+            .populate("category", "name slug")
+            .sort({ createdAt: -1 });
+
+        res.json(products);
+    } catch (err) {
+        console.error("❌ Lỗi khi lấy sản phẩm theo danh mục:", err);
+        res.status(500).json({ message: "Lỗi máy chủ", error: err.message });
+    }
+};
+
 module.exports = {
     addProduct,
     getProducts,
     getProductById,
     updateProduct,
+    getProductBySlug,
     deleteProduct,
     searchProducrByName,
 };
