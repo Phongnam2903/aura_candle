@@ -1,290 +1,272 @@
-import React, { useEffect, useState, useRef } from "react";
-import {
-  FaSearch,
-  FaUser,
-  FaShoppingCart,
-  FaMapMarkerAlt,
-  FaBars,
-  FaSignOutAlt,
-} from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../../context/CartContext";
-import { searchProducts } from "../../api/products/productApi";
+import { useEffect, useState, useRef } from "react"
+import { FaSearch, FaUser, FaShoppingCart, FaBars, FaSignOutAlt, FaTimes, FaBell } from "react-icons/fa"
+import { Link, useNavigate } from "react-router-dom"
+import { useCart } from "../../context/CartContext"
+import { searchProducts } from "../../api/products/productApi"
 
 const Header = () => {
-  const { cart } = useCart();
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const totalItems = cart.reduce((sum, i) => sum + (i.quantity || 1), 0);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
+  const { cart } = useCart()
+  const navigate = useNavigate()
+  const [user, setUser] = useState(null)
+  const totalItems = cart.reduce((sum, i) => sum + (i.quantity || 1), 0)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("")
+  const [searchResults, setSearchResults] = useState([])
+  const [loadingSearch, setLoadingSearch] = useState(false)
 
-  const searchRef = useRef();
+  const searchRef = useRef()
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const storedUser = localStorage.getItem("user")
+    if (storedUser) setUser(JSON.parse(storedUser))
 
-    // Đóng popup khi click ra ngoài
     const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setShowSearch(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+      if (searchRef.current && !searchRef.current.contains(e.target)) setShowSearch(false)
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
-  // --- Hàm đăng xuất ---
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    setUser(null);
-    navigate("/");
-  };
+    localStorage.clear()
+    setUser(null)
+    navigate("/")
+  }
 
-  // --- Hàm search (với debounce 500ms) ---
+  // 🔍 debounce search
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (searchTerm.trim() === "") {
-        setSearchResults([]);
-        return;
-      }
-      const fetchResults = async () => {
-        setLoadingSearch(true);
+    const delay = setTimeout(() => {
+      if (!searchTerm.trim()) return setSearchResults([])
+      const fetchData = async () => {
+        setLoadingSearch(true)
         try {
-          const results = await searchProducts(searchTerm);
-          setSearchResults(results);
-        } catch (err) {
-          console.error(err);
+          const data = await searchProducts(searchTerm)
+          setSearchResults(data)
+        } catch (e) {
+          console.error(e)
         } finally {
-          setLoadingSearch(false);
+          setLoadingSearch(false)
         }
-      };
-      fetchResults();
-    }, 500); // debounce 500ms
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+      }
+      fetchData()
+    }, 400)
+    return () => clearTimeout(delay)
+  }, [searchTerm])
 
   return (
-    <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center relative">
-      {/* Left: Hamburger menu (mobile) */}
-      <div className="flex items-center gap-4">
-        <button
-          className="md:hidden text-2xl"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          <FaBars />
-        </button>
-      </div>
+    <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-lg border-b border-[#E7E2DC] shadow-sm transition-all duration-300">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-4 flex justify-between items-center">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2">
+          <h1 className="text-2xl lg:text-3xl font-serif font-bold text-[#2C2420] tracking-tight">Aura Candle</h1>
+        </Link>
 
-      {/* Logo */}
-      <h1 className="text-2xl font-bold text-pink-500 text-gray-800">
-        Aura Candle
-      </h1>
-
-      {/* Navigation */}
-      <nav
-        className={`${isMenuOpen
-          ? "absolute top-full left-0 w-full bg-white shadow-md p-4 md:hidden z-50"
-          : "hidden md:flex"
-          }`}
-      >
-        <ul className="flex flex-col gap-4 md:flex-row md:gap-6 text-gray-700 font-medium">
-          <li>
+        {/* Navigation */}
+        <nav className="hidden lg:flex items-center gap-8 text-[15px] font-medium text-[#2C2420]">
+          {[
+            { to: "/", label: "Trang chủ" },
+            { to: "/product/category/nen-thom", label: "Nến thơm" },
+            { to: "/#", label: "Set quà tặng" },
+            { to: "/#", label: "Phụ kiện" },
+            { to: "/#", label: "Giới thiệu" },
+            { to: "/blog", label: "Blog" },
+          ].map((item, i) => (
             <Link
-              to="/"
-              className="text-pink-600 hover:text-pink-500 transition"
+              key={i}
+              to={item.to}
+              className="relative hover:text-[#A0785D] transition-colors after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#A0785D] hover:after:w-full after:transition-all after:duration-300"
             >
-              Trang chủ
+              {item.label}
             </Link>
-          </li>
-          <li>
-            <Link to="/product/category/nen-thom" className="hover:text-pink-500">
-              Nến Thơm
-            </Link>
-          </li>
-          <li className="cursor-pointer hover:text-pink-500">Set Quà Tặng</li>
-          <li className="cursor-pointer hover:text-pink-500">Phụ Kiện</li>
-          <li className="cursor-pointer hover:text-pink-500">Giới thiệu</li>
-          <li>
-            <Link to="/blog" className="cursor-pointer hover:text-pink-500">
-              Blog
-            </Link>
-          </li>
-        </ul>
-      </nav>
+          ))}
+        </nav>
 
-      {/* Right icons */}
-      <div className="flex items-center gap-4 text-gray-600 relative">
-        {/* Location */}
-        <div className="hidden md:flex items-center gap-2 cursor-pointer">
-          <FaMapMarkerAlt />
-          <span className="text-sm leading-tight">
-            Giao hoặc đến lấy tại <br />
-            <strong>Võ Như Hưng, Ph...</strong>
-          </span>
-        </div>
-
-        {/* User + Dropdown */}
-        <div className="relative group">
-          {user ? (
-            <div className="flex items-center gap-2 cursor-pointer">
-              <FaUser className="text-lg text-gray-700" />
-
-              <div className="absolute right-0 top-full mt-3 w-56 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="px-4 py-2 border-b font-semibold text-gray-700 text-center">
-                  THÔNG TIN TÀI KHOẢN
-                </div>
-                <div className="px-4 py-2 text-center text-sm text-gray-800 font-medium">
-                  {user.name}
-                </div>
-                <ul className="text-sm text-gray-700">
-                  <li>
-                    <Link
-                      to={`/profile/${user._id}`}
-                      className="block px-4 py-2 hover:bg-gray-100"
-                    >
-                      Tài khoản của tôi
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/#"
-                      className="block px-4 py-2 hover:bg-gray-100"
-                    >
-                      Thông tin hạng thành viên
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to={`/profile/${user._id}`}
-                      className="block px-4 py-2 hover:bg-gray-100"
-                    >
-                      Danh sách địa chỉ
-                    </Link>
-                  </li>
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center gap-2"
-                    >
-                      <FaSignOutAlt /> Đăng xuất
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          ) : (
-            <Link
-              to="/login"
-              className="relative flex flex-col items-center group"
+        {/* Actions */}
+        <div className="flex items-center gap-4 text-[#2C2420]">
+          {/* Search */}
+          <div ref={searchRef} className="relative">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="p-2 hover:text-[#A0785D] transition"
             >
-              <FaUser className="text-lg hover:text-pink-500" />
-              <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
-                Tài khoản
-              </span>
-            </Link>
-          )}
-        </div>
+              <FaSearch className="text-[18px]" />
+            </button>
 
-        {/* Search */}
-        <div
-          ref={searchRef}
-          className="relative group cursor-pointer flex flex-col items-center"
-        >
-          <FaSearch
-            className="text-lg hover:text-pink-500"
-            onClick={() => setShowSearch(!showSearch)}
-          />
-          <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
-            Tìm kiếm
-          </span>
+            {showSearch && (
+              <div className="absolute top-full right-0 mt-3 w-[350px] bg-white rounded-2xl shadow-2xl border border-[#E5E0DA] p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="relative">
+                  <FaSearch className="absolute left-3 top-3.5 text-[#A0785D]/60" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Tìm kiếm sản phẩm..."
+                    className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-[#E5E0DA] bg-[#FAF9F7] text-sm focus:ring-2 focus:ring-[#A0785D] outline-none"
+                  />
+                </div>
 
-          {showSearch && (
-            <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 shadow-xl rounded-xl p-4 w-80 z-50">
-              <input
-                type="text"
-                placeholder="Nhập từ khóa..."
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                  }
-                }}
-              />
-
-              {loadingSearch && (
-                <div className="mt-2 text-gray-500 text-sm">Đang tìm kiếm...</div>
-              )}
-              {!loadingSearch && searchTerm && (
-                <div className="mt-2 max-h-80 overflow-y-auto border-t border-gray-200 shadow-lg rounded-b-lg bg-white">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((product) => (
+                <div className="mt-3 max-h-[350px] overflow-y-auto">
+                  {loadingSearch ? (
+                    <p className="text-sm text-[#6B6560] py-3 text-center">Đang tìm kiếm...</p>
+                  ) : searchTerm && searchResults.length > 0 ? (
+                    searchResults.map((p) => (
                       <Link
-                        key={product._id}
-                        to={`/product/${product._id}`}
-                        className="flex items-center gap-3 px-4 py-2 hover:bg-pink-50 transition-colors border-b last:border-b-0"
+                        to={`/product/${p._id}`}
+                        key={p._id}
                         onClick={() => setShowSearch(false)}
+                        className="flex items-center gap-3 py-2 px-2 hover:bg-[#F7F5F3] rounded-lg transition"
                       >
-                        {/* Ảnh sản phẩm */}
                         <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="w-12 h-12 object-cover rounded"
+                          src={p.images[0] || "/placeholder.svg"}
+                          alt={p.name}
+                          className="w-12 h-12 rounded-md object-cover"
                         />
-
-                        {/* Tên sản phẩm + giá */}
-                        <div className="flex-1 flex flex-col">
-                          <span className="text-gray-800 font-medium">{product.name}</span>
-                          {product.price && (
-                            <span className="text-pink-600 font-semibold text-sm">
-                              {product.price.toLocaleString("vi-VN", {
-                                style: "currency",
-                                currency: "VND",
-                              })}
-                            </span>
-                          )}
+                        <div className="flex flex-col text-left">
+                          <span className="text-[14px] font-medium text-[#2C2420] line-clamp-1">{p.name}</span>
+                          <span className="text-[13px] text-[#A0785D] font-semibold">
+                            {p.price?.toLocaleString("vi-VN")} đ
+                          </span>
                         </div>
                       </Link>
                     ))
                   ) : (
-                    <div className="px-4 py-4 text-gray-500 text-sm text-center">
-                      Không tìm thấy sản phẩm
-                    </div>
+                    searchTerm && (
+                      <p className="text-sm text-[#6B6560] py-3 text-center">Không tìm thấy sản phẩm</p>
+                    )
                   )}
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
 
-        {/* Cart */}
-        <div className="relative group cursor-pointer flex flex-col items-center">
-          <Link to="/cart">
-            <FaShoppingCart className="text-lg hover:text-pink-500" />
+          {/* User Menu */}
+          <div className="relative group">
+            {user ? (
+              <>
+                <button className="p-2 hover:text-[#A0785D] transition">
+                  <FaUser className="text-[18px]" />
+                </button>
+                <div className="absolute right-0 top-full mt-3 w-64 bg-white border border-[#E7E2DC] rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <div className="px-5 py-3 border-b border-[#F1ECE5] font-semibold text-[#2C2420] text-sm">
+                    {user.name}
+                  </div>
+                  <ul className="py-2 text-[14px]">
+                    <li>
+                      <Link
+                        to={`/profile/${user._id}`}
+                        className="block px-5 py-2 hover:bg-[#F9F6F2] transition"
+                      >
+                        Tài khoản của tôi
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/#" className="block px-5 py-2 hover:bg-[#F9F6F2] transition">
+                        Hạng thành viên
+                      </Link>
+                    </li>
+                    <li>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-5 py-2 flex items-center gap-2 hover:bg-[#F9F6F2] transition text-[#A0785D]"
+                      >
+                        <FaSignOutAlt className="text-[13px]" /> Đăng xuất
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <Link to="/login" className="p-2 hover:text-[#A0785D] transition">
+                <FaUser className="text-[18px]" />
+              </Link>
+            )}
+          </div>
+
+          {/* Notification */}
+          <div className="relative group">
+            <button
+              className="p-2 hover:text-[#A0785D] transition relative"
+            >
+              <FaBell className="text-[18px]" />
+              {/* 🔴 Dấu chấm đỏ nếu có thông báo mới */}
+              <span className="absolute -top-1 -right-1 w-[9px] h-[9px] bg-red-500 rounded-full animate-pulse"></span>
+            </button>
+
+            {/* Dropdown thông báo */}
+            <div className="absolute right-0 top-full mt-3 w-80 bg-white border border-[#E7E2DC] rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div className="px-4 py-3 border-b border-[#F1ECE5] font-semibold text-[#2C2420] text-sm">
+                Thông báo
+              </div>
+              <ul className="max-h-64 overflow-y-auto text-sm">
+                <li className="px-4 py-3 hover:bg-[#F9F6F2] cursor-pointer transition">
+                  🎉 Ưu đãi giảm 20% cho đơn hàng đầu tiên!
+                </li>
+                <li className="px-4 py-3 hover:bg-[#F9F6F2] cursor-pointer transition">
+                  🕯️ Sản phẩm mới: Nến hương hoa nhài
+                </li>
+                <li className="px-4 py-3 hover:bg-[#F9F6F2] cursor-pointer transition">
+                  📦 Đơn hàng #1234 của bạn đã được giao thành công
+                </li>
+              </ul>
+              <div className="border-t border-[#F1ECE5] px-4 py-2 text-center">
+                <button
+                  onClick={() => navigate("/notifications")}
+                  className="text-[#A0785D] text-sm font-medium hover:underline transition"
+                >
+                  Xem tất cả thông báo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Cart */}
+          <Link to="/cart" className="relative p-2 hover:text-[#A0785D] transition">
+            <FaShoppingCart className="text-[18px]" />
+            {totalItems > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#A0785D] text-white text-[10px] font-semibold px-[6px] py-[2px] rounded-full">
+                {totalItems}
+              </span>
+            )}
           </Link>
-          <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[9px] px-[5px] py-[1px] rounded-full">
-            {totalItems}
-          </span>
-          <span className="absolute top-full mt-2 bg-gray-800 text-white text-[11px] rounded px-2 py-[2px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition">
-            Giỏ hàng
-          </span>
+
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="lg:hidden p-2 hover:text-[#A0785D] transition"
+          >
+            {isMenuOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
+          </button>
         </div>
       </div>
-    </header>
-  );
-};
 
-export default Header;
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="lg:hidden bg-white border-t border-[#E7E2DC] shadow-md">
+          <nav className="px-6 py-4 space-y-3 text-[#2C2420] font-medium">
+            {[
+              { to: "/", label: "Trang chủ" },
+              { to: "/product/category/nen-thom", label: "Nến thơm" },
+              { to: "/#", label: "Set quà tặng" },
+              { to: "/#", label: "Phụ kiện" },
+              { to: "/#", label: "Giới thiệu" },
+              { to: "/blog", label: "Blog" },
+            ].map((item, i) => (
+              <Link
+                key={i}
+                to={item.to}
+                className="block py-2 hover:text-[#A0785D] transition"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      )}
+    </header>
+  )
+}
+
+export default Header
