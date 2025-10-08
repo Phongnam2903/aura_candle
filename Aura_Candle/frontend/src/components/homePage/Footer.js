@@ -59,9 +59,9 @@ const Footer = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-8 py-12 px-6 md:px-20">
         {/* Về Chillime */}
         <div>
-          <h5 className="font-semibold mb-4">Về Chillime</h5>
+          <h5 className="font-semibold mb-4">Về Chúng tôi</h5>
           <p className="text-sm leading-relaxed">
-            Chillime ra đời với mong muốn mang đến các dòng sản phẩm nến thơm,
+            Aura Candle ra đời với mong muốn mang đến các dòng sản phẩm nến thơm,
             tinh dầu chất lượng giúp bạn thư giãn, cân bằng trong cuộc sống.
           </p>
           <p className="mt-2 text-sm">Hotline: 0377.555.000</p>
