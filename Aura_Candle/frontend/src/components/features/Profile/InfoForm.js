@@ -10,7 +10,6 @@ export default function InfoForm() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                // Lấy object user từ localStorage
                 const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
                 if (!storedUser._id) {
                     toast.error("Không tìm thấy thông tin user");
@@ -19,14 +18,12 @@ export default function InfoForm() {
                 }
 
                 setUserId(storedUser._id);
-
                 const data = await profileUser(storedUser._id);
                 setForm({
                     name: data.name || "",
                     email: data.email || "",
                     phone: data.phone || "",
                 });
-                console.log("dữ liệu: ", data);
             } catch (err) {
                 toast.error("Lỗi khi tải thông tin người dùng");
             } finally {
@@ -50,8 +47,21 @@ export default function InfoForm() {
         }
 
         try {
-            const res = await ChangeInformation(form, userId); // truyền id
+            const res = await ChangeInformation(form, userId);
             toast.success(res.message || "Cập nhật hồ sơ thành công!");
+
+            const updatedUser = {
+                ...JSON.parse(localStorage.getItem("user") || "{}"),
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+            };
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+
+            // 🔄 Reload lại trang sau 1 giây để hiển thị tên mới
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } catch (err) {
             const msg =
                 err.response?.data?.message || "Có lỗi xảy ra, vui lòng thử lại";
@@ -59,53 +69,77 @@ export default function InfoForm() {
         }
     }
 
-    if (loading) return <p className="text-gray-500">Đang tải thông tin...</p>;
+
+    if (loading)
+        return <p className="text-gray-500 text-center py-8">Đang tải thông tin...</p>;
 
     return (
-        <form className="space-y-5" onSubmit={handleSubmit}>
-            <h2 className="text-xl font-bold mb-4">Thông Tin Tài Khoản</h2>
+        <form
+            onSubmit={handleSubmit}
+            className="space-y-6 bg-white/70 backdrop-blur-md border border-emerald-100 rounded-2xl shadow-sm p-8 transition-all duration-300 hover:shadow-md"
+        >
+            <div className="text-center mb-6">
+                <h2 className="text-2xl font-semibold text-emerald-700 mb-1">
+                    Hồ sơ của bạn 🌿
+                </h2>
+                <p className="text-sm text-emerald-500">
+                    Cập nhật thông tin để chúng tôi phục vụ bạn tốt hơn
+                </p>
+            </div>
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Họ và tên</label>
+            {/* Họ tên */}
+            <div className="group">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Họ và tên
+                </label>
                 <input
                     type="text"
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all duration-200 hover:bg-emerald-50"
                     required
                 />
             </div>
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
+            {/* Email */}
+            <div className="group">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Email
+                </label>
                 <input
                     type="email"
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all duration-200 hover:bg-emerald-50"
                     required
                 />
             </div>
 
-            <div>
-                <label className="block text-sm font-medium mb-1">Số điện thoại</label>
+            {/* Số điện thoại */}
+            <div className="group">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                    Số điện thoại
+                </label>
                 <input
                     type="text"
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
-                    className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all duration-200 hover:bg-emerald-50"
                 />
             </div>
 
-            <button
-                type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-lg transition"
-            >
-                Lưu thay đổi
-            </button>
+            {/* Nút lưu */}
+            <div className="pt-2">
+                <button
+                    type="submit"
+                    className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 shadow-md transition-all duration-300 transform hover:scale-[1.02]"
+                >
+                    💾 Lưu thay đổi
+                </button>
+            </div>
         </form>
     );
 }

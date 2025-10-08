@@ -43,19 +43,19 @@ export default function ProfilePage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-4 md:p-6 flex flex-col md:flex-row gap-6">
-            {/* ===== Menu bên trái ===== */}
-            <aside className="md:w-1/3 bg-white rounded-xl shadow p-6 flex flex-col">
+        <div className="max-w-7xl mx-auto p-4 md:p-8 flex flex-col md:flex-row gap-8 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 rounded-2xl shadow-sm">
+            {/* ===== Sidebar ===== */}
+            <aside className="md:w-1/3 bg-white/90 backdrop-blur-lg rounded-2xl shadow-md border border-emerald-100 p-6 flex flex-col transition-all duration-300 hover:shadow-lg">
                 <div className="mb-6 text-center md:text-left">
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        Xin chào, {storedUser.name || "Khách"} 
+                    <h1 className="text-2xl font-semibold text-emerald-700">
+                        Xin chào, {storedUser.name || "Khách 🌿"}
                     </h1>
-                    <p className="text-gray-500 mt-1 text-sm">
+                    <p className="text-emerald-500 mt-1 text-sm">
                         Quản lý thông tin và đơn hàng của bạn
                     </p>
                 </div>
 
-                <ul className="flex md:flex-col justify-between md:justify-start gap-2 md:gap-2">
+                <ul className="flex md:flex-col justify-between md:justify-start gap-2">
                     {[
                         { key: "info", label: "Thông tin tài khoản" },
                         { key: "orders", label: "Đơn hàng của bạn" },
@@ -65,10 +65,10 @@ export default function ProfilePage() {
                         <li key={item.key}>
                             <button
                                 onClick={() => setActiveTab(item.key)}
-                                className={`w-full px-4 py-3 rounded-lg transition-colors duration-200 text-left flex items-center gap-2
+                                className={`w-full px-5 py-3 rounded-xl transition-all duration-300 text-left flex items-center gap-2 text-[15px] font-medium
                   ${activeTab === item.key
-                                        ? "bg-emerald-600 text-white font-semibold shadow"
-                                        : "hover:bg-emerald-100 text-gray-700"
+                                        ? "bg-emerald-600 text-white shadow-md scale-[1.02]"
+                                        : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                                     }`}
                             >
                                 {item.label}
@@ -78,8 +78,8 @@ export default function ProfilePage() {
                 </ul>
             </aside>
 
-            {/* ===== Nội dung bên phải ===== */}
-            <section className="md:w-2/3 bg-white rounded-xl shadow p-6 flex flex-col min-h-[500px]">
+            {/* ===== Main Content ===== */}
+            <section className="md:w-2/3 bg-white/95 rounded-2xl border border-emerald-100 shadow-md p-6 transition-all duration-300 hover:shadow-lg">
                 {renderContent()}
             </section>
         </div>
