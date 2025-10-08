@@ -107,7 +107,11 @@ const Header = () => {
               Trang chủ
             </Link>
           </li>
-          <li className="cursor-pointer hover:text-pink-500">Nến Thơm</li>
+          <li>
+            <Link to="/product/category/nen-thom" className="hover:text-pink-500">
+              Nến Thơm
+            </Link>
+          </li>
           <li className="cursor-pointer hover:text-pink-500">Set Quà Tặng</li>
           <li className="cursor-pointer hover:text-pink-500">Phụ Kiện</li>
           <li className="cursor-pointer hover:text-pink-500">Giới thiệu</li>

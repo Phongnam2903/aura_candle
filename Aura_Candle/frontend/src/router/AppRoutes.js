@@ -10,6 +10,7 @@ import CheckOutScreen from "../pages/Cart/CheckoutScreen";
 import BlogScreen from "../pages/Blog/BlogScreen";
 import SellerRoutes from "./SellerRoutes";
 import ProfileScreen from "../pages/Profile/ProfileScreen";
+import ProductByCategory from "../pages/Product/ProductByCategory";
 
 export default function AppRoutes() {
     return (
@@ -17,6 +18,7 @@ export default function AppRoutes() {
             <Routes>
                 <Route path="/" element={<HomeScreen />} />
                 <Route path="/product/:id" element={<ProductDetailScreen />} />
+                <Route path="/product/category/:slug" element={<ProductByCategory />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<RegisterScreen />} />
                 <Route path="/forgotpassword" element={<ForgotPasswordScreen />} />

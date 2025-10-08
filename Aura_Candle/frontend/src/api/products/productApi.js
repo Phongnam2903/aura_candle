@@ -7,6 +7,11 @@ export async function getProducts() {
     return res.data.products;
 }
 
+export async function getProductsByCategory(slug) {
+    const res = await api.get(`${BASE_URL}/category/${slug}`);
+    return res.data;
+}
+
 export async function createProducts(data) {
     const res = await api.post(`${BASE_URL}/`, data);
     return res.data;
