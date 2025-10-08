@@ -13,6 +13,12 @@ const ProductDetail = () => {
     const [product, setProduct] = useState(null);
     const [quantity, setQuantity] = useState(1);
 
+    const [comments, setComments] = useState([
+        { id: 1, name: "Nguyễn Văn A", text: "Sản phẩm rất tốt!", date: "2025-10-07" },
+        { id: 2, name: "Trần Thị B", text: "Mùi hương dễ chịu, sẽ ủng hộ thêm.", date: "2025-10-08" },
+    ]);
+    const [newComment, setNewComment] = useState("");
+
     // gọi API lấy sản phẩm theo id
     useEffect(() => {
         async function fetchData() {
@@ -42,7 +48,7 @@ const ProductDetail = () => {
         toast.success("🛒 Đã thêm vào giỏ hàng!");
     };
 
-    // 🛒 hàm mua ngay
+    //  hàm mua ngay
     const handleBuyNow = () => {
         const token = localStorage.getItem("token"); // kiểm tra đăng nhập
         if (!token) {
@@ -65,6 +71,31 @@ const ProductDetail = () => {
         });
 
         navigate("/checkout");
+    };
+
+    const handleSubmitComment = (e) => {
+        e.preventDefault();
+        const token = localStorage.getItem("token");
+        if (!token) {
+            toast.warn("⚠️ Vui lòng đăng nhập để bình luận!");
+            navigate("/login");
+            return;
+        }
+
+        if (!newComment.trim()) {
+            toast.error("Vui lòng nhập nội dung bình luận!");
+            return;
+        }
+
+        const newCmt = {
+            id: comments.length + 1,
+            name: "Bạn",
+            text: newComment.trim(),
+            date: new Date().toISOString().split("T")[0],
+        };
+        setComments([newCmt, ...comments]);
+        setNewComment("");
+        toast.success("Bình luận đã được gửi!");
     };
 
     return (
@@ -133,7 +164,7 @@ const ProductDetail = () => {
                             {/* Chỉ render discount nếu có */}
                             {product.discount && (
                                 <span className="text-white bg-red-500 text-sm font-semibold px-2 py-1 rounded">
-                                    {product.discount}
+                                    {product.discount} %
                                 </span>
                             )}
                         </div>
@@ -240,6 +271,46 @@ const ProductDetail = () => {
                     </p>
                 </div>
 
+                <div className="bg-white mt-10 p-6 rounded-xl shadow">
+                    <h2 className="text-lg font-semibold mb-4">Bình luận sản phẩm</h2>
+
+                    {/* Form bình luận */}
+                    <form onSubmit={handleSubmitComment} className="mb-6">
+                        <textarea
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="Nhập bình luận của bạn..."
+                            className="w-full border rounded-lg p-3 outline-none focus:ring-2 focus:ring-emerald-500"
+                            rows="3"
+                        ></textarea>
+                        <button
+                            type="submit"
+                            className="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-semibold"
+                        >
+                            Gửi bình luận
+                        </button>
+                    </form>
+
+                    {/* Danh sách bình luận */}
+                    <div className="space-y-4">
+                        {comments.length > 0 ? (
+                            comments.map((cmt) => (
+                                <div
+                                    key={cmt.id}
+                                    className="border-b border-gray-200 pb-3"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-semibold text-gray-800">{cmt.name}</h4>
+                                        <span className="text-sm text-gray-500">{cmt.date}</span>
+                                    </div>
+                                    <p className="text-gray-700 mt-1">{cmt.text}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-gray-500">Chưa có bình luận nào.</p>
+                        )}
+                    </div>
+                </div>
                 {/* Related products */}
                 {/* <div className="mt-12">
                     <h2 className="text-xl font-bold mb-4">Sản phẩm liên quan</h2>
