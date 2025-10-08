@@ -19,7 +19,6 @@ const CheckoutPage = () => {
     const [selectedAddressId, setSelectedAddressId] = useState("");
     const [payment, setPayment] = useState("");
 
-    // Load user info + địa chỉ khi vào trang
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user"));
         if (user) {
@@ -41,13 +40,11 @@ const CheckoutPage = () => {
         }
     }, []);
 
-    // Tính tổng tiền
     const totalPrice = cart.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
     );
 
-    // Xử lý submit đặt hàng
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -74,10 +71,8 @@ const CheckoutPage = () => {
                 payment,
             };
 
-            console.log("Payload gửi lên:", payload);
             await checkout(payload);
             toast.success("Đặt hàng thành công!");
-
             clearCart();
             navigate("/");
         } catch (err) {
@@ -87,22 +82,22 @@ const CheckoutPage = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-gray-50 min-h-screen">
             {/* Cột trái: Form checkout */}
-            <div className="md:col-span-2 bg-white p-6 rounded-lg shadow">
-                <h1 className="text-2xl font-bold mb-6">Thanh toán</h1>
+            <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-lg border border-emerald-100">
+                <h1 className="text-2xl font-bold mb-6 text-emerald-700">Thanh toán</h1>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Thông tin liên hệ */}
                     <div>
-                        <h2 className="font-semibold text-lg mb-2">Thông tin liên hệ</h2>
+                        <h2 className="font-semibold text-lg mb-2 text-emerald-600">Thông tin liên hệ</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <input
                                 type="text"
                                 placeholder="Họ tên"
                                 value={info.name}
                                 onChange={(e) => setInfo({ ...info, name: e.target.value })}
-                                className="border rounded p-2 w-full"
+                                className="border border-emerald-300 focus:border-emerald-500 focus:ring-emerald-300 rounded-lg p-2 w-full outline-none"
                                 required
                             />
                             <input
@@ -110,7 +105,7 @@ const CheckoutPage = () => {
                                 placeholder="Email"
                                 value={info.email}
                                 onChange={(e) => setInfo({ ...info, email: e.target.value })}
-                                className="border rounded p-2 w-full"
+                                className="border border-emerald-300 focus:border-emerald-500 focus:ring-emerald-300 rounded-lg p-2 w-full outline-none"
                                 required
                             />
                             <input
@@ -118,7 +113,7 @@ const CheckoutPage = () => {
                                 placeholder="Số điện thoại"
                                 value={info.phone}
                                 onChange={(e) => setInfo({ ...info, phone: e.target.value })}
-                                className="border rounded p-2 w-full"
+                                className="border border-emerald-300 focus:border-emerald-500 focus:ring-emerald-300 rounded-lg p-2 w-full outline-none"
                                 required
                             />
                         </div>
@@ -126,7 +121,7 @@ const CheckoutPage = () => {
 
                     {/* Chọn địa chỉ */}
                     <div>
-                        <h2 className="font-semibold text-lg mb-2">Chọn địa chỉ giao hàng</h2>
+                        <h2 className="font-semibold text-lg mb-2 text-emerald-600">Chọn địa chỉ giao hàng</h2>
                         {addresses.length === 0 ? (
                             <p className="text-gray-600">
                                 Bạn chưa có địa chỉ nào, hãy thêm trong mục tài khoản.
@@ -136,9 +131,9 @@ const CheckoutPage = () => {
                                 {addresses.map((addr) => (
                                     <label
                                         key={addr._id}
-                                        className={`flex items-center gap-3 p-3 border rounded cursor-pointer ${selectedAddressId === addr._id
-                                            ? "border-emerald-600 bg-emerald-50"
-                                            : ""
+                                        className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all duration-200 ${selectedAddressId === addr._id
+                                            ? "border-emerald-600 bg-emerald-50 shadow-sm"
+                                            : "border-gray-300 hover:border-emerald-400"
                                             }`}
                                     >
                                         <input
@@ -147,11 +142,12 @@ const CheckoutPage = () => {
                                             value={addr._id}
                                             checked={selectedAddressId === addr._id}
                                             onChange={() => setSelectedAddressId(addr._id)}
+                                            className="text-emerald-600 focus:ring-emerald-500"
                                         />
                                         <span>
                                             {addr.specificAddress}{" "}
                                             {addr.isDefault && (
-                                                <span className="ml-2 text-sm text-emerald-600">
+                                                <span className="ml-2 text-sm text-emerald-600 font-medium">
                                                     (Mặc định)
                                                 </span>
                                             )}
@@ -164,55 +160,36 @@ const CheckoutPage = () => {
 
                     {/* Phương thức thanh toán */}
                     <div>
-                        <h2 className="font-semibold text-lg mb-2">Phương thức thanh toán</h2>
-                        <div className="space-y-2">
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="COD"
-                                    checked={payment === "COD"}
-                                    onChange={(e) => setPayment(e.target.value)}
-                                />
-                                Thanh toán khi nhận hàng (COD)
-                            </label>
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="Bank"
-                                    checked={payment === "Bank"}
-                                    onChange={(e) => setPayment(e.target.value)}
-                                />
-                                Chuyển khoản ngân hàng
-                            </label>
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="Momo"
-                                    checked={payment === "Momo"}
-                                    onChange={(e) => setPayment(e.target.value)}
-                                />
-                                Ví Momo
-                            </label>
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="ZaloPay"
-                                    checked={payment === "ZaloPay"}
-                                    onChange={(e) => setPayment(e.target.value)}
-                                />
-                                ZaloPay
-                            </label>
+                        <h2 className="font-semibold text-lg mb-2 text-emerald-600">Phương thức thanh toán</h2>
+                        <div className="space-y-3">
+                            {["COD", "Bank", "Momo", "ZaloPay"].map((method) => (
+                                <label key={method} className="flex items-center gap-2">
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value={method}
+                                        checked={payment === method}
+                                        onChange={(e) => setPayment(e.target.value)}
+                                        className="text-emerald-600 focus:ring-emerald-500"
+                                    />
+                                    <span>
+                                        {method === "COD"
+                                            ? "Thanh toán khi nhận hàng (COD)"
+                                            : method === "Bank"
+                                                ? "Chuyển khoản ngân hàng"
+                                                : method === "Momo"
+                                                    ? "Ví Momo"
+                                                    : "ZaloPay"}
+                                    </span>
+                                </label>
+                            ))}
                         </div>
                     </div>
 
                     {/* Nút submit */}
                     <button
                         type="submit"
-                        className="w-full bg-emerald-600 text-white py-3 rounded hover:bg-emerald-700 transition"
+                        className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 shadow-md transition-all"
                     >
                         Xác nhận đặt hàng
                     </button>
@@ -220,8 +197,8 @@ const CheckoutPage = () => {
             </div>
 
             {/* Cột phải: Tóm tắt giỏ hàng */}
-            <div className="bg-gray-50 p-6 rounded-lg shadow">
-                <h2 className="text-xl font-semibold mb-4">Giỏ hàng của bạn</h2>
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-emerald-100">
+                <h2 className="text-xl font-semibold mb-4 text-emerald-700">Giỏ hàng của bạn</h2>
                 <div className="space-y-4 max-h-96 overflow-y-auto">
                     {cart.length === 0 ? (
                         <p className="text-gray-600">Giỏ hàng trống.</p>
@@ -231,7 +208,6 @@ const CheckoutPage = () => {
                                 key={item._id}
                                 className="flex items-center justify-between border-b pb-3"
                             >
-                                {/* Hình + tên sản phẩm */}
                                 <div className="flex items-center gap-3">
                                     <img
                                         src={
@@ -242,19 +218,16 @@ const CheckoutPage = () => {
                                                     : "https://via.placeholder.com/80"
                                         }
                                         alt={item.name || "Sản phẩm"}
-                                        className="w-16 h-16 object-cover rounded border"
+                                        className="w-16 h-16 object-cover rounded-lg border border-emerald-200"
                                     />
-
                                     <div>
-                                        <p className="font-medium">{item.name}</p>
+                                        <p className="font-medium text-emerald-700">{item.name}</p>
                                         <p className="text-sm text-gray-500">
                                             SL: {item.quantity} × {item.price.toLocaleString()}₫
                                         </p>
                                     </div>
                                 </div>
-
-                                {/* Tổng tiền của sản phẩm */}
-                                <p className="font-semibold text-right">
+                                <p className="font-semibold text-emerald-700">
                                     {(item.price * item.quantity).toLocaleString()}₫
                                 </p>
                             </div>
@@ -262,13 +235,12 @@ const CheckoutPage = () => {
                     )}
                 </div>
 
-                {/* Tổng cộng */}
                 <div className="mt-4 border-t pt-4">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between text-gray-700">
                         <span>Tạm tính</span>
                         <span>{totalPrice.toLocaleString()}₫</span>
                     </div>
-                    <div className="flex justify-between font-bold text-lg mt-2">
+                    <div className="flex justify-between font-bold text-lg mt-2 text-emerald-700">
                         <span>Tổng cộng</span>
                         <span>{totalPrice.toLocaleString()}₫</span>
                     </div>
