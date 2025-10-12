@@ -33,18 +33,22 @@ const getCategoryById = async (req, res) => {
 // =============================
 // [POST] Tạo danh mục (có upload ảnh)
 // =============================
+// [POST] Tạo danh mục
 const createCategory = async (req, res) => {
     try {
-        const { name, description } = req.body;
-        let imageUrl = "";
+        const { name, description, image } = req.body;
+        let imageUrl = image || ""; // nếu frontend gửi URL thì dùng luôn
 
-        // ✅ Upload ảnh lên Cloudinary nếu có file
+        // Nếu có upload file mới thì ghi đè
         if (req.file) {
             const result = await cloudinary.uploader.upload(req.file.path, {
                 folder: "categories",
             });
             imageUrl = result.secure_url;
         }
+
+        console.log("📥 Nhận dữ liệu từ frontend:", { name, description, image, file: req.file });
+        console.log("✅ Ảnh sẽ lưu vào DB:", imageUrl);
 
         const category = new Category({
             name,
@@ -53,12 +57,14 @@ const createCategory = async (req, res) => {
         });
 
         await category.save();
+        console.log("💾 Category saved:", category);
+
         res.status(201).json({
             message: "Tạo danh mục thành công",
             category,
         });
     } catch (err) {
-        console.error("Create category error:", err);
+        console.error("❌ Create category error:", err);
         res.status(500).json({ message: "Lỗi tạo danh mục" });
     }
 };

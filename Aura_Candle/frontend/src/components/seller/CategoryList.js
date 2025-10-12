@@ -14,13 +14,15 @@ export default function CategoryList() {
     const [editingId, setEditingId] = useState(null);
     const [uploading, setUploading] = useState(false);
 
-    // Lấy danh sách danh mục
+    // 🔍 Lấy danh sách danh mục
     const fetchCategories = async () => {
+        console.log("📦 Fetching categories...");
         try {
             const data = await getCategories();
+            console.log("✅ Categories fetched:", data);
             setCategories(data);
         } catch (err) {
-            console.error("Lỗi lấy danh mục", err);
+            console.error("❌ Lỗi lấy danh mục:", err);
         }
     };
 
@@ -28,34 +30,44 @@ export default function CategoryList() {
         fetchCategories();
     }, []);
 
-    // Upload ảnh
+    // 🖼️ Upload ảnh
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
-        if (!file) return;
+        if (!file) {
+            console.warn("⚠️ Không có file được chọn.");
+            return;
+        }
 
+        console.log("📤 Uploading file:", file.name);
         setUploading(true);
+
         try {
             const res = await uploadImage(file);
-            const uploadedPath = res.files[0]; // backend trả về mảng gồm URL ảnh
+            console.log("✅ Upload response:", res);
 
-            // Gán vào form + hiển thị preview
+            const uploadedPath = res.files?.[0] || res.path || "";
+            console.log("🧩 Uploaded file path:", uploadedPath);
+
             setForm((prev) => ({ ...prev, image: uploadedPath }));
+
             setPreview(
-                uploadedPath.startsWith("http")
+                uploadedPath.startsWith("https")
                     ? uploadedPath
                     : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${uploadedPath}`
             );
         } catch (err) {
-            console.error("Lỗi upload ảnh", err);
-            alert("Upload ảnh thất bại");
+            console.error("❌ Lỗi upload ảnh:", err);
+            alert("Upload ảnh thất bại. Kiểm tra console để xem chi tiết.");
         } finally {
             setUploading(false);
         }
     };
 
-    // Thêm hoặc cập nhật danh mục
+    // 💾 Thêm hoặc cập nhật danh mục
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log("🚀 Submitting form:", form);
+
         try {
             const payload = {
                 name: form.name,
@@ -64,9 +76,13 @@ export default function CategoryList() {
             };
 
             if (editingId) {
+                console.log("✏️ Updating category ID:", editingId);
                 await updateCategory(editingId, payload);
+                console.log("✅ Cập nhật danh mục thành công!");
             } else {
+                console.log("➕ Creating new category...");
                 await createCategory(payload);
+                console.log("✅ Thêm danh mục mới thành công!");
             }
 
             setForm({ name: "", description: "", image: "" });
@@ -74,24 +90,27 @@ export default function CategoryList() {
             setEditingId(null);
             fetchCategories();
         } catch (err) {
-            console.error("Lỗi lưu danh mục", err);
+            console.error("❌ Lỗi lưu danh mục:", err);
         }
     };
 
-    // Xóa danh mục
+    // ❌ Xóa danh mục
     const handleDelete = async (id) => {
         if (window.confirm("Bạn có chắc muốn xóa danh mục này?")) {
+            console.log("🗑️ Deleting category ID:", id);
             try {
                 await deleteCategory(id);
+                console.log("✅ Xóa danh mục thành công!");
                 fetchCategories();
             } catch (err) {
-                console.error("Lỗi xóa danh mục", err);
+                console.error("❌ Lỗi xóa danh mục:", err);
             }
         }
     };
 
-    // Chỉnh sửa
+    // ✏️ Chỉnh sửa
     const handleEdit = (cat) => {
+        console.log("✏️ Sửa danh mục:", cat);
         setForm({ name: cat.name, description: cat.description, image: cat.image });
         setPreview(
             cat.image

@@ -42,9 +42,9 @@ const Footer = () => {
       {/* Footer chính */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-10 py-16 px-6 md:px-20 text-sm">
         <div>
-          <h5 className="font-semibold text-lg mb-4">Về Aura Candle</h5>
+          <h5 className="font-semibold text-lg mb-4">Về Aura Candles</h5>
           <p className="text-muted-foreground leading-relaxed">
-            Aura Candle mang đến những sản phẩm nến thơm và tinh dầu thiên nhiên giúp bạn thư giãn, tái tạo năng lượng và làm đẹp không gian sống.
+            <span className="font-semibold text-[#2C2420]">Aura Candles</span> mang đến những sản phẩm nến thơm và tinh dầu thiên nhiên giúp bạn thư giãn, tái tạo năng lượng và làm đẹp không gian sống.
           </p>
           <p className="mt-4 text-sm text-foreground font-medium">
             📞 Hotline: 0377.555.000

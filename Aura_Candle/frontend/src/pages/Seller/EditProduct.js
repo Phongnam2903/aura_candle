@@ -207,7 +207,7 @@ export default function EditProduct() {
           placeholder="Mùi hương (nếu chỉ 1)"
         />
 
-        <input
+        {/* <input
           name="fragrances"
           value={
             Array.isArray(form.fragrances)
@@ -217,7 +217,7 @@ export default function EditProduct() {
           onChange={handleChange}
           className="border p-3 rounded w-full"
           placeholder="Nhiều mùi hương (ngăn cách bởi dấu phẩy)"
-        />
+        /> */}
 
         {/* Giá gốc + Giảm giá */}
         <input
@@ -277,22 +277,38 @@ export default function EditProduct() {
             className="border p-2 rounded w-full"
           />
           {uploading && <p className="text-sm text-gray-500">Đang upload...</p>}
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-3 mt-3">
             {form.images.map((img, idx) => {
               const imageUrl = img.startsWith("https")
-                ? img // ảnh Cloudinary
-                : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`; // ảnh local
+                ? img
+                : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`;
+
               return (
-                <img
-                  key={idx}
-                  src={imageUrl}
-                  alt="preview"
-                  className="w-24 h-24 object-cover rounded"
-                />
+                <div key={idx} className="relative group">
+                  <img
+                    src={imageUrl}
+                    alt="preview"
+                    className="w-24 h-24 object-cover rounded-lg shadow-md"
+                  />
+
+                  {/* Nút xóa ảnh */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        images: prev.images.filter((_, i) => i !== idx),
+                      }))
+                    }
+                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    title="Xóa ảnh này"
+                  >
+                    ✕
+                  </button>
+                </div>
               );
             })}
           </div>
-
         </div>
 
         {/* Nguyên liệu */}

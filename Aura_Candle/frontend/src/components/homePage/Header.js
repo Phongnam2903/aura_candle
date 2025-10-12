@@ -59,17 +59,21 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-lg border-b border-[#E7E2DC] shadow-sm transition-all duration-300">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-4 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <h1 className="text-2xl lg:text-3xl font-serif font-bold text-[#2C2420] tracking-tight">Aura Candle</h1>
+        <Link to="/" className="flex items-center gap-3">
+          <img
+            src="/assets/image.png"
+            alt="Aura Candle Logo"
+            className="w-[14rem] h-[7rem] object-contain rounded-2xl shadow-sm"
+            style={{ imageRendering: "high-quality" }}
+          />
         </Link>
+
 
         {/* Navigation */}
         <nav className="hidden lg:flex items-center gap-8 text-[15px] font-medium text-[#2C2420]">
           {[
             { to: "/", label: "Trang chủ" },
             { to: "/product/category/nen-thom", label: "Nến thơm" },
-            { to: "/#", label: "Set quà tặng" },
-            { to: "/#", label: "Phụ kiện" },
             { to: "/#", label: "Giới thiệu" },
             { to: "/blog", label: "Blog" },
           ].map((item, i) => (
