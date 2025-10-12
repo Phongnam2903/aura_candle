@@ -1,5 +1,5 @@
 const Category = require("../../models/Category");
-const cloudinary = require("../../config/cloudinary"); 
+const cloudinary = require("../../config/cloudinary");
 
 // =============================
 // [GET] Lấy tất cả danh mục
@@ -74,15 +74,16 @@ const createCategory = async (req, res) => {
 // =============================
 const updateCategory = async (req, res) => {
     try {
-        const { name, description } = req.body;
-        let updateData = { name, description };
+        const { name, description, image } = req.body;
+        const updateData = { name, description };
 
-        // Upload ảnh mới nếu có file
-        if (req.file) {
-            const result = await cloudinary.uploader.upload(req.file.path, {
-                folder: "categories",
-            });
-            updateData.image = result.secure_url;
+        // 🖼️ Nếu multer (CloudinaryStorage) đã upload ảnh mới
+        if (req.file && req.file.path) {
+            updateData.image = req.file.path; // Multer đã có sẵn link Cloudinary
+        }
+        // 🧩 Nếu không có file mới nhưng có sẵn URL trong body → giữ nguyên ảnh cũ
+        else if (image) {
+            updateData.image = image;
         }
 
         const category = await Category.findByIdAndUpdate(
@@ -92,16 +93,16 @@ const updateCategory = async (req, res) => {
         );
 
         if (!category) {
-            return res.status(404).json({ message: "Không tìm thấy danh mục" });
+            return res.status(404).json({ message: "❌ Không tìm thấy danh mục" });
         }
 
-        res.json({
-            message: "Cập nhật danh mục thành công",
+        res.status(200).json({
+            message: "✅ Cập nhật danh mục thành công",
             category,
         });
     } catch (err) {
-        console.error("Update category error:", err);
-        res.status(500).json({ message: "Lỗi cập nhật danh mục" });
+        console.error("🔥 Update category error:", err);
+        res.status(500).json({ message: "Lỗi server khi cập nhật danh mục" });
     }
 };
 
