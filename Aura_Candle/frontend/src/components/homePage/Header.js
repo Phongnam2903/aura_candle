@@ -74,7 +74,7 @@ const Header = () => {
           {[
             { to: "/", label: "Trang chủ" },
             { to: "/product/category/nen-thom", label: "Nến thơm" },
-            { to: "/#", label: "Giới thiệu" },
+            { to: "/about", label: "Giới thiệu" },
             { to: "/blog", label: "Blog" },
           ].map((item, i) => (
             <Link

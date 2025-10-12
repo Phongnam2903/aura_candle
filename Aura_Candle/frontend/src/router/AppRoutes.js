@@ -11,6 +11,7 @@ import BlogScreen from "../pages/Blog/BlogScreen";
 import SellerRoutes from "./SellerRoutes";
 import ProfileScreen from "../pages/Profile/ProfileScreen";
 import ProductByCategory from "../pages/Product/ProductByCategory";
+import AboutScreen from "../pages/About/About";
 
 export default function AppRoutes() {
     return (
@@ -26,6 +27,7 @@ export default function AppRoutes() {
                 <Route path="/checkout" element={<CheckOutScreen />} />
                 <Route path="/blog" element={<BlogScreen />} />
                 <Route path="/profile/:id" element={<ProfileScreen />} />
+                <Route path="/about" element={<AboutScreen />} />
 
                 {/*  Gộp seller routes vào đây */}
                 <Route path="/seller/*" element={<SellerRoutes />} />
