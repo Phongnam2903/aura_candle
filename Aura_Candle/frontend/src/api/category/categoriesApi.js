@@ -8,17 +8,13 @@ export async function getCategories() {
 
 // Tạo category mới
 export async function createCategory(payload) {
-    const res = await api.post("/category", payload, {
-        headers: { "Content-Type": "application/json" },
-    });
+    const res = await api.post("/category", payload);
     return res.data;
 }
 
 // Cập nhật category
 export async function updateCategory(id, payload) {
-    const res = await api.put(`/category/${id}`, payload, {
-        headers: { "Content-Type": "application/json" },
-    });
+    const res = await api.put(`/category/${id}`, payload);
     return res.data;
 }
 
@@ -31,7 +27,7 @@ export async function deleteCategory(id) {
 // Upload ảnh
 export async function uploadImage(file) {
     const formData = new FormData();
-    formData.append("image", file); // ✅ phải trùng với upload.single("image")
+    formData.append("files", file);
 
     const res = await api.post("/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },

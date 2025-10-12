@@ -1,5 +1,5 @@
 const Category = require("../../models/Category");
-const cloudinary = require("../../config/cloudinary"); // ✅ Import Cloudinary config
+const cloudinary = require("../../config/cloudinary"); 
 
 // =============================
 // [GET] Lấy tất cả danh mục
