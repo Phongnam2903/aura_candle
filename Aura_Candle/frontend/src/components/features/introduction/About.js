@@ -15,7 +15,7 @@ export default function About() {
                     className="relative z-10"
                 >
                     <h1 className="text-5xl md:text-7xl font-extrabold text-[#c47a63] tracking-wide">
-                        Aura Candls
+                        Aura Candles
                     </h1>
                     <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mt-4 leading-relaxed">
                         Nơi mỗi ngọn nến là một câu chuyện — ánh sáng và hương thơm
@@ -37,7 +37,7 @@ export default function About() {
                         Về chúng tôi
                     </h2>
                     <p className="text-gray-700 leading-relaxed text-lg">
-                        Aura Candls ra đời với sứ mệnh mang đến không gian an yên,
+                        Aura Candles ra đời với sứ mệnh mang đến không gian an yên,
                         nơi mỗi ngọn nến không chỉ tỏa sáng mà còn truyền đi năng lượng tích cực.
                         Chúng tôi tin rằng mùi hương là cầu nối giữa cảm xúc và ký ức —
                         mỗi sản phẩm đều chứa đựng <strong>“thông điệp ẩn”</strong> dành riêng cho bạn.
@@ -62,7 +62,7 @@ export default function About() {
             {/* 🌿 Values Section */}
             <section className="bg-gradient-to-r from-[#fff7f4] to-[#fffaf7] py-20">
                 <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
-                    Giá trị của Aura
+                    Giá trị của Aura Candles
                 </h2>
                 <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-10 px-6">
                     {[
