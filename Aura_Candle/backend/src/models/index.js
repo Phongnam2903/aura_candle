@@ -12,6 +12,8 @@ const Review = require("./Review");
 const Shop = require("./Shops");
 const User = require("./Users");
 const Voucher = require("./Voucher");
+const Notification = require("./Notification");
+
 module.exports = {
     Address,
     Banner,
@@ -27,4 +29,5 @@ module.exports = {
     Shop,
     User,
     Voucher,
+    Notification,
 };

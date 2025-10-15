@@ -1,4 +1,4 @@
-const { Product, Order, Address } = require("../../models");
+const { Product, Order, Address, Notification } = require("../../models");
 
 // Checkout (tạo đơn hàng)
 const createOrder = async (req, res) => {
@@ -50,24 +50,52 @@ const createOrder = async (req, res) => {
             ZaloPay: "E-Wallet"
         };
 
-        // 4. Tạo Order
+        // 4. Tạo mã đơn hàng (orderCode)
+        const random = Math.floor(1000 + Math.random() * 9000);
+        const orderCode = `ORD-${Date.now()}-${random}`;
+
+        // 5. Tạo Order
         const order = new Order({
             user: userId,
-            address: address._id,   // dùng address đã chọn
+            address: address._id,
             items: orderItems,
             totalAmount,
             paymentMethod: paymentMap[payment] || "COD",
-            status: "Pending", // default
+            status: "Pending",
+            orderCode, // thêm vào model nếu chưa có
         });
 
         await order.save();
 
-        return res.status(201).json({ message: "Order created successfully", order });
+        // 6. Tạo Notification
+        try {
+            await Notification.create({
+                user: userId,
+                title: "Đặt hàng thành công!",
+                message: `Bạn đã đặt đơn hàng ${orderCode} với tổng số tiền ${totalAmount.toLocaleString()}₫.`,
+                type: "Order",
+                relatedOrder: order._id,
+            });
+            console.log("✅ Notification created successfully");
+        } catch (error) {
+            console.error("❌ Notification create failed:", error);
+        }
+
+
+        // 7. Trả phản hồi cho frontend
+        return res.status(201).json({
+            ok: true,
+            message: "Đặt hàng thành công!",
+            orderCode,
+            totalAmount,
+            order,
+        });
     } catch (err) {
         console.error("Create order error:", err);
         res.status(500).json({ error: "Server error" });
     }
 };
+
 
 // Lấy danh sách đơn hàng của user
 const getMyOrders = async (req, res) => {

@@ -3,6 +3,7 @@ import { FaSearch, FaUser, FaShoppingCart, FaBars, FaSignOutAlt, FaTimes, FaBell
 import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "../../context/CartContext"
 import { searchProducts } from "../../api/products/productApi"
+import { getNotifications } from "../../api/notification/notificationApi"
 
 const Header = () => {
   const { cart } = useCart()
@@ -16,6 +17,7 @@ const Header = () => {
   const [searchResults, setSearchResults] = useState([])
   const [loadingSearch, setLoadingSearch] = useState(false)
 
+  const [notifications, setNotifications] = useState([]);
   const searchRef = useRef()
 
   useEffect(() => {
@@ -35,7 +37,6 @@ const Header = () => {
     navigate("/")
   }
 
-  // 🔍 debounce search
   useEffect(() => {
     const delay = setTimeout(() => {
       if (!searchTerm.trim()) return setSearchResults([])
@@ -55,6 +56,18 @@ const Header = () => {
     return () => clearTimeout(delay)
   }, [searchTerm])
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getNotifications();
+        console.log("Notifications:", data);
+        setNotifications(data);
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+      }
+    };
+    fetchData();
+  }, []);
   return (
     <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-lg border-b border-[#E7E2DC] shadow-sm transition-all duration-300">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-4 flex justify-between items-center">
@@ -190,29 +203,28 @@ const Header = () => {
 
           {/* Notification */}
           <div className="relative group">
-            <button
-              className="p-2 hover:text-[#A0785D] transition relative"
-            >
+            <button className="p-2 hover:text-[#A0785D] transition relative">
               <FaBell className="text-[18px]" />
-              {/* 🔴 Dấu chấm đỏ nếu có thông báo mới */}
-              <span className="absolute -top-1 -right-1 w-[9px] h-[9px] bg-red-500 rounded-full animate-pulse"></span>
+              {notifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-[9px] h-[9px] bg-red-500 rounded-full animate-pulse"></span>
+              )}
             </button>
 
-            {/* Dropdown thông báo */}
             <div className="absolute right-0 top-full mt-3 w-80 bg-white border border-[#E7E2DC] rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
               <div className="px-4 py-3 border-b border-[#F1ECE5] font-semibold text-[#2C2420] text-sm">
                 Thông báo
               </div>
               <ul className="max-h-64 overflow-y-auto text-sm">
-                <li className="px-4 py-3 hover:bg-[#F9F6F2] cursor-pointer transition">
-                  🎉 Ưu đãi giảm 20% cho đơn hàng đầu tiên!
-                </li>
-                <li className="px-4 py-3 hover:bg-[#F9F6F2] cursor-pointer transition">
-                  🕯️ Sản phẩm mới: Nến hương hoa nhài
-                </li>
-                <li className="px-4 py-3 hover:bg-[#F9F6F2] cursor-pointer transition">
-                  📦 Đơn hàng #1234 của bạn đã được giao thành công
-                </li>
+                {notifications.length > 0 ? (
+                  notifications.map((n) => (
+                    <li key={n._id} className="px-4 py-3 hover:bg-[#F9F6F2] cursor-pointer transition">
+                      <strong>{n.title}</strong>
+                      <div className="text-gray-500 text-xs">{n.message}</div>
+                    </li>
+                  ))
+                ) : (
+                  <li className="px-4 py-3 text-gray-400 text-sm">Không có thông báo</li>
+                )}
               </ul>
               <div className="border-t border-[#F1ECE5] px-4 py-2 text-center">
                 <button
