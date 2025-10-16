@@ -236,8 +236,9 @@ const Header = () => {
                       <li
                         key={n._id}
                         onClick={async () => {
-                          if (!n.isRead) {
-                            try {
+                          try {
+                            // Nếu chưa đọc thì đánh dấu đã đọc
+                            if (!n.isRead) {
                               await markNotificationAsRead(n._id);
                               setNotifications((prev) =>
                                 prev.map((item) =>
@@ -245,9 +246,12 @@ const Header = () => {
                                 )
                               );
                               setUnreadCount((prev) => Math.max(prev - 1, 0));
-                            } catch (err) {
-                              console.error("Error marking notification:", err);
                             }
+
+                            // Chuyển sang trang chi tiết
+                            navigate(`/notification/${n._id}`);
+                          } catch (err) {
+                            console.error("Error marking notification:", err);
                           }
                         }}
                         className={`px-4 py-3 cursor-pointer transition ${n.isRead ? "bg-white" : "bg-[#F9F6F2]"
@@ -256,6 +260,7 @@ const Header = () => {
                         <strong>{n.title}</strong>
                         <div className="text-gray-500 text-xs">{n.message}</div>
                       </li>
+
                     ))
                   ) : (
                     <li className="px-4 py-3 text-gray-400 text-sm">

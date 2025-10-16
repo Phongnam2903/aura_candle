@@ -20,6 +20,38 @@ const getNotifications = async (req, res) => {
     }
 };
 
+const getNotificationDetail = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        const notification = await Notification.findOne({ _id: id, user: userId })
+            .populate({
+                path: "relatedOrder",
+                populate: {
+                    path: "items.product", // populate từng sản phẩm trong đơn hàng
+                    select: "name price image",
+                },
+            });
+
+        if (!notification) {
+            return res.status(404).json({ ok: false, message: "Không tìm thấy thông báo" });
+        }
+
+        // Đánh dấu là đã đọc nếu chưa
+        if (!notification.isRead) {
+            notification.isRead = true;
+            await notification.save();
+        }
+
+        res.json({ ok: true, data: notification });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ ok: false, message: "Lỗi máy chủ" });
+    }
+};
+
+
 const markAsRead = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -57,6 +89,7 @@ const markAsReadSingle = async (req, res) => {
 
 module.exports = {
     getNotifications,
+    getNotificationDetail,
     markAsRead,
     markAsReadSingle,
 };

@@ -12,6 +12,7 @@ import SellerRoutes from "./SellerRoutes";
 import ProfileScreen from "../pages/Profile/ProfileScreen";
 import ProductByCategory from "../pages/Product/ProductByCategory";
 import AboutScreen from "../pages/About/About";
+import NotificationDetailScreen from "../pages/Notification/NotificationDetail";
 
 export default function AppRoutes() {
     return (
@@ -28,6 +29,8 @@ export default function AppRoutes() {
                 <Route path="/blog" element={<BlogScreen />} />
                 <Route path="/profile/:id" element={<ProfileScreen />} />
                 <Route path="/about" element={<AboutScreen />} />
+
+                <Route path="/notification/:id" element={<NotificationDetailScreen />} />
 
                 {/*  Gộp seller routes vào đây */}
                 <Route path="/seller/*" element={<SellerRoutes />} />
