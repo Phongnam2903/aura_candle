@@ -11,8 +11,20 @@ const notificationSchema = new mongoose.Schema(
             enum: ["Order", "Payment", "System", "Promotion"],
             default: "System",
         },
-        relatedOrder: { type: mongoose.Schema.Types.ObjectId, ref: "Order" }, // nếu có
-        isRead: { type: Boolean, default: false }, // đã đọc hay chưa
+        relatedOrder: { type: mongoose.Schema.Types.ObjectId, ref: "Order" }, // Nếu có
+        isRead: { type: Boolean, default: false },
+
+        // ❤️ Thả tim
+        likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+        // 💬 Bình luận
+        comments: [
+            {
+                user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+                text: String,
+                createdAt: { type: Date, default: Date.now },
+            },
+        ],
     },
     { timestamps: true }
 );

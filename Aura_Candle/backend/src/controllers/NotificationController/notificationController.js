@@ -29,16 +29,15 @@ const getNotificationDetail = async (req, res) => {
             .populate({
                 path: "relatedOrder",
                 populate: {
-                    path: "items.product", // populate từng sản phẩm trong đơn hàng
+                    path: "items.product",
                     select: "name price images",
                 },
-            });
+            })
+            .populate("comments.user", "username avatar_url");
 
-        if (!notification) {
+        if (!notification)
             return res.status(404).json({ ok: false, message: "Không tìm thấy thông báo" });
-        }
 
-        // Đánh dấu là đã đọc nếu chưa
         if (!notification.isRead) {
             notification.isRead = true;
             await notification.save();

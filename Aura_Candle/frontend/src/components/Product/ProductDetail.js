@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { getProductById } from "../../api/products/productApi";
+import { commentApi } from "../../api/notification/commentApi";
+import { toggleLikeNotification } from "../../api/notification/likeApit";
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -15,22 +17,29 @@ export default function ProductDetail() {
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [newComment, setNewComment] = useState("");
-    const [comments, setComments] = useState([
-        { id: 1, name: "Nguyễn Văn A", text: "Mùi hương dễ chịu, thơm lâu 🌿", date: "2025-10-07", stars: 5 },
-        { id: 2, name: "Trần Thị B", text: "Đóng gói đẹp, sẽ ủng hộ thêm 💚", date: "2025-10-08", stars: 4 },
-    ]);
+
+    const [comments, setComments] = useState([]);
+    const [likesCount, setLikesCount] = useState(0);
+    const [liked, setLiked] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const data = await getProductById(id);
-                setProduct(data);
+                const productData = await getProductById(id);
+                setProduct(productData);
+
+                const commentsData = await commentApi(id);
+                setComments(commentsData);
+
+                setLikesCount(productData.likesCount || 0);
+                setLiked(productData.isLikedByUser || false);
             } catch (err) {
-                console.error("Lỗi load sản phẩm:", err);
+                console.error("Lỗi load dữ liệu:", err);
             }
         }
         fetchData();
     }, [id]);
+
 
     if (!product) return <div className="p-6 text-center">Đang tải sản phẩm...</div>;
 
@@ -58,23 +67,24 @@ export default function ProductDetail() {
         navigate("/checkout");
     };
 
-    const handleSubmitComment = (e) => {
+    const handleSubmitComment = async (e) => {
         e.preventDefault();
         if (!newComment.trim()) return toast.error("Vui lòng nhập nội dung!");
         if (rating === 0) return toast.error("Vui lòng chọn số sao!");
 
-        const newCmt = {
-            id: comments.length + 1,
-            name: "Bạn",
-            text: newComment,
-            date: new Date().toISOString().split("T")[0],
-            stars: rating,
-        };
-        setComments([newCmt, ...comments]);
-        setNewComment("");
-        setRating(0);
-        toast.success("✅ Đã gửi đánh giá của bạn!");
+        try {
+            const res = await commentApi(id, newComment, rating);
+            setComments([res.comment, ...comments]);
+            setNewComment("");
+            setRating(0);
+            toast.success("✅ Đã gửi đánh giá của bạn!");
+        } catch (err) {
+            console.error("Lỗi gửi comment:", err);
+            toast.error("❌ Không thể gửi đánh giá!");
+        }
     };
+
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-100 py-10">
@@ -99,6 +109,27 @@ export default function ProductDetail() {
                         <h1 className="text-3xl font-semibold text-gray-800 leading-snug">
                             {product.name}
                         </h1>
+
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const res = await toggleLikeNotification(id);
+                                        setLiked(res.liked);
+                                        setLikesCount(res.likesCount);
+                                    } catch (err) {
+                                        console.error("Lỗi thả tim:", err);
+                                    }
+                                }}
+                                className={`flex items-center gap-1 px-3 py-2 rounded-xl border transition ${liked
+                                    ? "bg-red-100 text-red-600 border-red-200"
+                                    : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
+                                    }`}
+                            >
+                                ❤️ {likesCount}
+                            </button>
+                        </div>
+
 
                         <div className="flex items-center gap-3">
                             <span className="text-emerald-600 text-3xl font-bold">
