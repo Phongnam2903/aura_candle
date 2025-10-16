@@ -31,7 +31,32 @@ const markAsRead = async (req, res) => {
     }
 }
 
+// Đánh dấu 1 thông báo là đã đọc
+const markAsReadSingle = async (req, res) => {
+    try {
+        const { id } = req.params; // Lấy id thông báo
+        const userId = req.user.id; // Lấy id user từ token
+
+        const notification = await Notification.findOneAndUpdate(
+            { _id: id, user: userId },
+            { isRead: true },
+            { new: true }
+        );
+
+        if (!notification) {
+            return res.status(404).json({ ok: false, message: "Không tìm thấy thông báo" });
+        }
+
+        res.json({ ok: true, notification });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ ok: false, error: "Server error" });
+    }
+};
+
+
 module.exports = {
     getNotifications,
     markAsRead,
+    markAsReadSingle,
 };

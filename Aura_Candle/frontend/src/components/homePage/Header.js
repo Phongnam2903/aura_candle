@@ -3,7 +3,7 @@ import { FaSearch, FaUser, FaShoppingCart, FaBars, FaSignOutAlt, FaTimes, FaBell
 import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "../../context/CartContext"
 import { searchProducts } from "../../api/products/productApi"
-import { getNotifications, markAllRead } from "../../api/notification/notificationApi"
+import { getNotifications, markAllRead, markNotificationAsRead } from "../../api/notification/notificationApi"
 
 const Header = () => {
   const { cart } = useCart()
@@ -22,6 +22,7 @@ const Header = () => {
 
   const searchRef = useRef()
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   useEffect(() => {
     const storedUser = localStorage.getItem("user")
     if (storedUser) setUser(JSON.parse(storedUser))
@@ -72,14 +73,9 @@ const Header = () => {
   }, []);
 
   // Khi người dùng click chuông => đánh dấu đã đọc
-  const handleOpenDropdown = async () => {
-    if (unreadCount > 0) {
-      await markAllRead();
-      setUnreadCount(0);
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, isRead: true }))
-      );
-    }
+
+  const handleOpenDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
   };
 
   return (
@@ -216,13 +212,12 @@ const Header = () => {
           </div>
 
           {/* Notification */}
-          <div className="relative group">
+          <div className="relative">
             <button
               className="p-2 hover:text-[#A0785D] transition relative"
               onClick={handleOpenDropdown}
             >
               <FaBell className="text-[18px]" />
-              {/* Số thông báo chưa đọc */}
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold px-[5px] py-[1px] rounded-full min-w-[16px] text-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
@@ -230,38 +225,60 @@ const Header = () => {
               )}
             </button>
 
-            {/* Dropdown */}
-            <div className="absolute right-0 top-full mt-3 w-80 bg-white border border-[#E7E2DC] rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-              <div className="px-4 py-3 border-b border-[#F1ECE5] font-semibold text-[#2C2420] text-sm">
-                Thông báo
-              </div>
-              <ul className="max-h-64 overflow-y-auto text-sm">
-                {notifications.length > 0 ? (
-                  notifications.map((n) => (
-                    <li
-                      key={n._id}
-                      className={`px-4 py-3 cursor-pointer transition ${n.isRead ? "bg-white" : "bg-[#F9F6F2]"
-                        } hover:bg-[#F1ECE5]`}
-                    >
-                      <strong>{n.title}</strong>
-                      <div className="text-gray-500 text-xs">{n.message}</div>
+            {isDropdownOpen && (
+              <div className="absolute right-0 top-full mt-3 w-80 bg-white border border-[#E7E2DC] rounded-2xl shadow-2xl rounded-xl z-50 animate-fadeIn">
+                <div className="px-4 py-3 border-b border-[#F1ECE5] font-semibold text-[#2C2420] text-sm">
+                  Thông báo
+                </div>
+                <ul className="max-h-64 overflow-y-auto text-sm">
+                  {notifications.length > 0 ? (
+                    notifications.map((n) => (
+                      <li
+                        key={n._id}
+                        onClick={async () => {
+                          if (!n.isRead) {
+                            try {
+                              await markNotificationAsRead(n._id);
+                              setNotifications((prev) =>
+                                prev.map((item) =>
+                                  item._id === n._id ? { ...item, isRead: true } : item
+                                )
+                              );
+                              setUnreadCount((prev) => Math.max(prev - 1, 0));
+                            } catch (err) {
+                              console.error("Error marking notification:", err);
+                            }
+                          }
+                        }}
+                        className={`px-4 py-3 cursor-pointer transition ${n.isRead ? "bg-white" : "bg-[#F9F6F2]"
+                          } hover:bg-[#F1ECE5]`}
+                      >
+                        <strong>{n.title}</strong>
+                        <div className="text-gray-500 text-xs">{n.message}</div>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-4 py-3 text-gray-400 text-sm">
+                      Không có thông báo
                     </li>
-                  ))
-                ) : (
-                  <li className="px-4 py-3 text-gray-400 text-sm">
-                    Không có thông báo
-                  </li>
-                )}
-              </ul>
-              <div className="border-t border-[#F1ECE5] px-4 py-2 text-center">
-                <button
-                  onClick={() => navigate("/notifications")}
-                  className="text-[#A0785D] text-sm font-medium hover:underline transition"
-                >
-                  Xem tất cả thông báo
-                </button>
+                  )}
+                </ul>
+                <div className="border-t border-[#F1ECE5] px-4 py-2 text-center">
+                  <button
+                    onClick={async () => {
+                      await markAllRead();
+                      setUnreadCount(0);
+                      setNotifications((prev) =>
+                        prev.map((n) => ({ ...n, isRead: true }))
+                      );
+                    }}
+                    className="text-[#A0785D] text-sm font-medium hover:underline transition"
+                  >
+                    Xem tất cả thông báo
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Cart */}
