@@ -68,6 +68,14 @@ export default function ProductDetail() {
 
     const handleSubmitComment = async (e) => {
         e.preventDefault();
+        // Kiểm tra đăng nhập
+        const token = localStorage.getItem("token");
+        if (!token) {
+            toast.warn("⚠️ Bạn cần đăng nhập để bình luận!");
+            navigate("/login");
+            return;
+        }
+
         if (!newComment.trim()) return toast.error("Vui lòng nhập nội dung!");
         if (rating === 0) return toast.error("Vui lòng chọn số sao!");
 
