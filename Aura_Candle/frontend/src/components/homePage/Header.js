@@ -3,7 +3,7 @@ import { FaSearch, FaUser, FaShoppingCart, FaBars, FaSignOutAlt, FaTimes, FaBell
 import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "../../context/CartContext"
 import { searchProducts } from "../../api/products/productApi"
-import { getNotifications } from "../../api/notification/notificationApi"
+import { getNotifications, markAllRead } from "../../api/notification/notificationApi"
 
 const Header = () => {
   const { cart } = useCart()
@@ -18,6 +18,8 @@ const Header = () => {
   const [loadingSearch, setLoadingSearch] = useState(false)
 
   const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const searchRef = useRef()
 
   useEffect(() => {
@@ -60,14 +62,26 @@ const Header = () => {
     const fetchData = async () => {
       try {
         const data = await getNotifications();
-        console.log("Notifications:", data);
         setNotifications(data);
+        setUnreadCount(data.filter((n) => !n.isRead).length);
       } catch (err) {
         console.error("Error fetching notifications:", err);
       }
     };
     fetchData();
   }, []);
+
+  // Khi người dùng click chuông => đánh dấu đã đọc
+  const handleOpenDropdown = async () => {
+    if (unreadCount > 0) {
+      await markAllRead();
+      setUnreadCount(0);
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, isRead: true }))
+      );
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-lg border-b border-[#E7E2DC] shadow-sm transition-all duration-300">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-4 flex justify-between items-center">
@@ -203,13 +217,20 @@ const Header = () => {
 
           {/* Notification */}
           <div className="relative group">
-            <button className="p-2 hover:text-[#A0785D] transition relative">
+            <button
+              className="p-2 hover:text-[#A0785D] transition relative"
+              onClick={handleOpenDropdown}
+            >
               <FaBell className="text-[18px]" />
-              {notifications.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-[9px] h-[9px] bg-red-500 rounded-full animate-pulse"></span>
+              {/* Số thông báo chưa đọc */}
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold px-[5px] py-[1px] rounded-full min-w-[16px] text-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
               )}
             </button>
 
+            {/* Dropdown */}
             <div className="absolute right-0 top-full mt-3 w-80 bg-white border border-[#E7E2DC] rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
               <div className="px-4 py-3 border-b border-[#F1ECE5] font-semibold text-[#2C2420] text-sm">
                 Thông báo
@@ -217,13 +238,19 @@ const Header = () => {
               <ul className="max-h-64 overflow-y-auto text-sm">
                 {notifications.length > 0 ? (
                   notifications.map((n) => (
-                    <li key={n._id} className="px-4 py-3 hover:bg-[#F9F6F2] cursor-pointer transition">
+                    <li
+                      key={n._id}
+                      className={`px-4 py-3 cursor-pointer transition ${n.isRead ? "bg-white" : "bg-[#F9F6F2]"
+                        } hover:bg-[#F1ECE5]`}
+                    >
                       <strong>{n.title}</strong>
                       <div className="text-gray-500 text-xs">{n.message}</div>
                     </li>
                   ))
                 ) : (
-                  <li className="px-4 py-3 text-gray-400 text-sm">Không có thông báo</li>
+                  <li className="px-4 py-3 text-gray-400 text-sm">
+                    Không có thông báo
+                  </li>
                 )}
               </ul>
               <div className="border-t border-[#F1ECE5] px-4 py-2 text-center">

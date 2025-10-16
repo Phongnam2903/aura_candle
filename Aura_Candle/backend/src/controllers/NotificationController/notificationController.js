@@ -19,6 +19,19 @@ const getNotifications = async (req, res) => {
         res.status(500).json({ ok: false, error: "Server error" });
     }
 };
+
+const markAsRead = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        await Notification.updateMany({ user: userId, isRead: false }, { isRead: true });
+        res.json({ ok: true, message: "Đã đánh dấu tất cả là đã đọc" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error" });
+    }
+}
+
 module.exports = {
-    getNotifications
+    getNotifications,
+    markAsRead,
 };
