@@ -14,14 +14,15 @@ const notificationSchema = new mongoose.Schema(
         relatedOrder: { type: mongoose.Schema.Types.ObjectId, ref: "Order" }, // Nếu có
         isRead: { type: Boolean, default: false },
 
-        // ❤️ Thả tim
+        //  Thả tim
         likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-        // 💬 Bình luận
+        //  Bình luận
         comments: [
             {
                 user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
                 text: String,
+                rating: { type: Number, min: 1, max: 5 },
                 createdAt: { type: Date, default: Date.now },
             },
         ],

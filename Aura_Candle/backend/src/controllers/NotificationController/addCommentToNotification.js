@@ -4,27 +4,38 @@ const { Notification } = require("../../models");
 const addCommentToNotification = async (req, res) => {
     try {
         const { id } = req.params;
-        const { text } = req.body;
         const userId = req.user.id;
+        const { text, rating } = req.body;
 
-        if (!text || !text.trim())
-            return res.status(400).json({ ok: false, message: "Bình luận không được để trống" });
+        if (!text || text.trim() === "") {
+            return res.status(400).json({ ok: false, message: "Nội dung bình luận không được để trống" });
+        }
+
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ ok: false, message: "Số sao phải từ 1 đến 5" });
+        }
 
         const notification = await Notification.findById(id);
-        if (!notification)
+        if (!notification) {
             return res.status(404).json({ ok: false, message: "Không tìm thấy thông báo" });
+        }
 
+        // Thêm bình luận mới
         const newComment = {
             user: userId,
-            text: text.trim(),
+            text,
+            rating, // Lưu cả số sao
+            createdAt: new Date(),
         };
 
-        notification.comments.push(newComment);
+        notification.comments.unshift(newComment); // Thêm đầu danh sách
         await notification.save();
 
-        await notification.populate("comments.user", "username avatar_url");
-
-        res.json({ ok: true, data: notification.comments });
+        res.status(201).json({
+            ok: true,
+            message: "Đã thêm bình luận thành công",
+            comment: newComment,
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ ok: false, message: "Lỗi máy chủ" });
