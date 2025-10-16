@@ -58,19 +58,24 @@ export default function NotificationDetail() {
                             {notification.relatedOrder.items.map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-4">
                                     <img
-                                        src={item.product.image.startsWith("https") || "/placeholder.svg"}
+                                        src={
+                                            item.product.images && item.product.images.length > 0
+                                                ? item.product.images[0]
+                                                : "/placeholder.svg"
+                                        }
                                         alt={item.product.name}
                                         className="w-12 h-12 rounded-md object-cover"
                                     />
                                     <div>
                                         <p className="text-sm font-medium text-[#2C2420]">{item.product.name}</p>
                                         <p className="text-sm text-[#A0785D]">
-                                            {item.product.price.toLocaleString("vi-VN")} đ x {item.quantity}
+                                            {item.product.price.toLocaleString("vi-VN")} đ × {item.quantity}
                                         </p>
                                     </div>
                                 </div>
                             ))}
                         </div>
+
                     </div>
                 )}
             </div>
