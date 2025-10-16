@@ -97,7 +97,7 @@ export default function ProductDetail() {
                         value={`${product.price?.toLocaleString() || 0} ₫`}
                         highlight
                     />
-                    <InfoRow label="Mùi hương" value={product.fragrance || "Không có"} />
+                    <InfoRow label="Mùi hương" value={product.fragrances || "Không có"} />
                     <InfoRow label="Tồn kho" value={product.stock} />
                     <InfoRow label="Khối lượng" value={`${product.weightGrams} g`} />
                     <InfoRow

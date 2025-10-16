@@ -139,7 +139,7 @@ export default function Products() {
                   </td>
                   <td className="p-3 font-medium text-gray-800">{p.name}</td>
                   <td className="p-3">{p.category?.name || "-"}</td>
-                  <td className="p-3">{p.fragrance || "Không có"}</td>
+                  <td className="p-3">{p.fragrances || "Không có"}</td>
                   <td className="p-3 font-semibold text-pink-600">
                     {Number(p.price).toLocaleString()}₫
                   </td>

@@ -20,6 +20,8 @@ export default function EditProduct() {
 
   const API_URL = process.env.REACT_APP_API_URL;
 
+
+
   useEffect(() => {
     (async () => {
       try {
@@ -42,10 +44,11 @@ export default function EditProduct() {
           category: product.category?._id || "",
           images: product.images || [],
           materials: matsValue,
-          fragrance: product.fragrance || "",
+          fragrances: product.fragrances?.join(",") || "",
           oldPrice: product.oldPrice || "",
           discount: product.discount || "",
         });
+
       } catch {
         toast.error("Không lấy được dữ liệu");
       }
@@ -108,25 +111,52 @@ export default function EditProduct() {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+
     try {
+      // Chắc chắn fragrances là array
+      const fragrancesArray = form.fragrances
+        .split(",")
+        .map(f => f.trim())
+        .filter(Boolean);
+
+      // Chắc chắn materials là array
+      const materialsArray = (form.materials || []).filter(Boolean);
+
+      // Payload chuẩn để gửi lên backend
       const payload = {
         ...form,
+        fragrances: fragrancesArray,
+        materials: form.materials,
+        oldImages: form.images,
         price: Number(form.price),
-        oldPrice: form.oldPrice ? Number(form.oldPrice) : undefined,
-        discount: form.discount ? Number(form.discount) : undefined,
+        oldPrice: Number(form.oldPrice),
+        discount: Number(form.discount),
         stock: Number(form.stock),
         weightGrams: Number(form.weightGrams),
-        materials: (form.materials || []).filter(Boolean),
       };
+
+
+      // ==== DEBUG ====
+      console.log("===== DEBUG handleSubmit =====");
+      console.log("Form state:", form);
+      console.log("Fragrances array:", fragrancesArray);
+      console.log("Materials array:", materialsArray);
+      console.log("Payload to send:", payload);
+      console.log("===============================");
+
       await updateProduct(id, payload);
+
       toast.success("Cập nhật sản phẩm thành công!");
       navigate(`/seller/products/${id}`);
     } catch (err) {
+      console.error("🔥 Lỗi handleSubmit:", err.response?.data || err);
       toast.error(err.response?.data?.message || "Lỗi cập nhật");
     } finally {
       setLoading(false);
     }
   }
+
+
 
   if (!form) return <p className="p-6">Đang tải...</p>;
 
@@ -165,7 +195,7 @@ export default function EditProduct() {
             options={categories.map((c) => ({ value: c._id, label: c.name }))}
           />
           <TextArea name="description" value={form.description} onChange={handleChange} label="Mô tả" />
-          <Input name="fragrance" value={form.fragrance} onChange={handleChange} label="Mùi hương" />
+          <Input name="fragrances" value={form.fragrances} onChange={handleChange} label="Mùi hương" />
 
           <div className="grid grid-cols-2 gap-4">
             <Input name="oldPrice" type="number" value={form.oldPrice} onChange={handleChange} label="Giá gốc (VNĐ)" />
@@ -255,8 +285,8 @@ export default function EditProduct() {
                 <label
                   key={mat._id}
                   className={`px-3 py-1 rounded-full border cursor-pointer transition ${form.materials.includes(mat._id)
-                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                      : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                    ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                    : "border-gray-300 text-gray-600 hover:bg-gray-50"
                     }`}
                 >
                   <input

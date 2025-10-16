@@ -25,28 +25,40 @@ const addProduct = async (req, res) => {
             weightGrams,
             materials,
             isKit,
-            fragrance,
-            fragrances,
+            fragrances, // frontend gửi mảng mùi hương
         } = req.body;
 
-        let images = [];
+        // Nếu category không hợp lệ
+        if (category && !mongoose.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({ message: "Category không hợp lệ" });
+        }
 
-        // ✅ Upload ảnh lên Cloudinary nếu có file gửi kèm
+        // Nếu không có materials, mặc định là mảng rỗng
+        if (!Array.isArray(materials)) materials = [];
+
+        // Chắc chắn fragrances là mảng
+        if (!Array.isArray(fragrances)) fragrances = [];
+
+        // Upload ảnh lên Cloudinary nếu có file gửi kèm
+        let images = [];
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 const result = await cloudinary.uploader.upload(file.path, {
                     folder: "products",
                 });
                 images.push(result.secure_url);
+
+                // Xóa file tạm sau khi upload
+                fs.unlinkSync(file.path);
             }
         }
 
-        // ✅ Nếu người dùng gửi sẵn URL (đã upload từ trước)
+        // Nếu người dùng gửi sẵn URL (đã upload từ frontend)
         if (req.body.images && Array.isArray(req.body.images)) {
             images = [...images, ...req.body.images];
         }
 
-        // ✅ Tính giá nếu có oldPrice + discount
+        // Tính giá nếu có oldPrice + discount
         if (oldPrice && discount && !price) {
             price = Math.round(oldPrice * (1 - discount / 100));
         }
@@ -61,22 +73,22 @@ const addProduct = async (req, res) => {
             discount,
             stock,
             weightGrams,
-            images, //  link Cloudinary
-            materials,
+            images,
+            materials, // giờ luôn là mảng rỗng nếu frontend không gửi
             isKit,
-            fragrance,
             fragrances,
             seller: sellerId,
         });
 
         await newProduct.save();
+
         res.status(201).json({
             message: "Thêm sản phẩm thành công",
             product: newProduct,
         });
     } catch (error) {
         console.error("Add product error:", error);
-        res.status(500).json({ message: "Lỗi khi thêm sản phẩm", error });
+        res.status(500).json({ message: "Lỗi khi thêm sản phẩm", error: error.message });
     }
 };
 
@@ -143,64 +155,61 @@ const getProductById = async (req, res) => {
 // =============================
 
 const updateProduct = async (req, res) => {
-    const sellerId = req.user?.id; // Lấy ID người bán từ token
+    const sellerId = req.user?.id;
     const { id } = req.params;
 
     try {
-        // Kiểm tra sản phẩm tồn tại
         const product = await Product.findById(id);
-        if (!product) {
-            return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+        if (!product) return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
+        if (product.seller.toString() !== sellerId)
+            return res.status(403).json({ message: "Bạn không có quyền sửa sản phẩm này" });
+
+        // Lấy dữ liệu từ req.body
+        let { materials, fragrances, oldImages, ...rest } = req.body;
+
+        // Chắc chắn fragrances là array
+        if (fragrances) {
+            if (typeof fragrances === "string") {
+                try {
+                    fragrances = JSON.parse(fragrances); // nếu client gửi JSON string
+                } catch {
+                    fragrances = fragrances.split(",").map(f => f.trim()).filter(Boolean);
+                }
+            } else if (!Array.isArray(fragrances)) {
+                fragrances = [fragrances];
+            }
+        } else {
+            fragrances = [];
         }
 
-        // Kiểm tra quyền sở hữu sản phẩm
-        if (product.seller.toString() !== sellerId) {
-            return res
-                .status(403)
-                .json({ message: "Bạn không có quyền sửa sản phẩm này" });
-        }
+        if (oldImages && typeof oldImages === "string") oldImages = JSON.parse(oldImages);
 
-        // Chuẩn bị dữ liệu update
-        let updateData = { ...req.body };
+        // Upload ảnh mới
         let uploadedImages = [];
-
-        // Upload ảnh mới lên Cloudinary nếu có
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
-                const result = await cloudinary.uploader.upload(file.path, {
-                    folder: "products",
-                });
+                const result = await cloudinary.uploader.upload(file.path, { folder: "products" });
                 uploadedImages.push(result.secure_url);
-
-                // Xóa file tạm sau khi upload
                 fs.unlinkSync(file.path);
             }
         }
 
-        // Giữ lại ảnh cũ (nếu có gửi từ frontend)
-        if (req.body.oldImages) {
-            // Nếu oldImages là chuỗi JSON (trường hợp gửi bằng FormData)
-            const oldImages = Array.isArray(req.body.oldImages)
-                ? req.body.oldImages
-                : JSON.parse(req.body.oldImages);
+        // Kết hợp ảnh cũ + mới
+        const images = [...(oldImages || []), ...uploadedImages];
 
-            uploadedImages = [...oldImages, ...uploadedImages];
+        // Chắc chắn các field kiểu number
+        ["price", "oldPrice", "discount", "stock", "weightGrams"].forEach((field) => {
+            if (rest[field] !== undefined) rest[field] = Number(rest[field]);
+        });
+
+        // Tính giá nếu cần
+        if (rest.oldPrice !== undefined && rest.discount !== undefined && rest.price === undefined) {
+            rest.price = Math.round(rest.oldPrice * (1 - rest.discount / 100));
         }
 
-        updateData.images = uploadedImages;
+        // Tạo object update cuối cùng
+        const updateData = { ...rest, materials, fragrances, images };
 
-        // Tính toán giá mới nếu cần
-        if (
-            updateData.oldPrice !== undefined &&
-            updateData.discount !== undefined &&
-            updateData.price === undefined
-        ) {
-            updateData.price = Math.round(
-                updateData.oldPrice * (1 - updateData.discount / 100)
-            );
-        }
-
-        // Cập nhật sản phẩm trong DB
         const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
             new: true,
             runValidators: true,
@@ -208,16 +217,10 @@ const updateProduct = async (req, res) => {
             .populate("category", "name")
             .populate("materials", "name");
 
-        res.json({
-            message: "Cập nhật sản phẩm thành công",
-            product: updatedProduct,
-        });
+        res.json({ message: "Cập nhật sản phẩm thành công", product: updatedProduct });
     } catch (error) {
         console.error("❌ Update product error:", error);
-        res.status(500).json({
-            message: "Lỗi khi cập nhật sản phẩm",
-            error: error.message,
-        });
+        res.status(500).json({ message: "Lỗi khi cập nhật sản phẩm", error: error.message });
     }
 };
 

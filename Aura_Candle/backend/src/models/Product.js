@@ -12,10 +12,10 @@ const ProductSchema = new mongoose.Schema({
     weightGrams: Number,
     isActive: { type: Boolean, default: true },
     images: [String],
-    materials: [{ type: mongoose.Schema.Types.ObjectId, ref: "Material" }],
+    materials: [{ type: mongoose.Schema.Types.ObjectId, ref: "Material", default: [] }],
     isKit: { type: Boolean, default: false },
-    fragrance: { type: String },
-    seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, 
+    fragrances: { type: [String], default: [] },
+    seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     createdAt: { type: Date, default: Date.now }
 });
 
