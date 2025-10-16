@@ -4,8 +4,8 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import { getProductById } from "../../api/products/productApi";
-import { commentApi } from "../../api/notification/commentApi";
 import { toggleLikeNotification } from "../../api/notification/likeApit";
+import { commentForProductApi, getCommentForProductApi } from "../../api/comment/commentApi";
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -29,12 +29,9 @@ export default function ProductDetail() {
                 console.log("productData:", productData);
                 setProduct(productData);
 
-                const commentsData = await commentApi(id);
+                const commentsData = await getCommentForProductApi(id);
                 console.log("commentsData:", commentsData);
-                setComments(commentsData);
-
-                setLikesCount(productData.likesCount || 0);
-                setLiked(productData.isLikedByUser || false);
+                setComments(commentsData.comments || []);
             } catch (err) {
                 console.error("Lỗi load dữ liệu:", err);
             }
@@ -75,7 +72,7 @@ export default function ProductDetail() {
         if (rating === 0) return toast.error("Vui lòng chọn số sao!");
 
         try {
-            const res = await commentApi(id, newComment, rating);
+            const res = await commentForProductApi(id, newComment, rating);
             setComments([res.comment, ...comments]);
             setNewComment("");
             setRating(0);

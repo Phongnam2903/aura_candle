@@ -16,6 +16,7 @@ const addressRouter = require("./src/routes/AddressRoutes");
 const orderSellerRouter = require("./src/routes/OrderSellerRoutes");
 const chatRouter = require("./src/routes/ChatRoutes");
 const notificationRouter = require("./src/routes/NotificationRoutes.js");
+const commentRouter = require("./src/routes/CommentRoutes.js");
 
 
 // Kết nối database
@@ -45,7 +46,8 @@ app.use("/order", orderRouter);
 app.use("/orderSeller", orderSellerRouter);
 app.use("/addresses", addressRouter);
 app.use("/chat", chatRouter);
-app.use("/notification", notificationRouter)
+app.use("/notification", notificationRouter);
+app.use("/comments", commentRouter);
 
 // Start server
 const port = process.env.PORT || 5000;
