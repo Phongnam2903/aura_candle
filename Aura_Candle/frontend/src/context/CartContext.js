@@ -10,11 +10,14 @@ function cartReducer(state, action) {
       const item = action.payload;
       const exist = state.find((p) => p.id === item.id);
       if (exist) {
+        // cộng dồn quantity từ item.quantity
         return state.map((p) =>
-          p.id === item.id ? { ...p, quantity: (p.quantity || 1) + 1 } : p
+          p.id === item.id
+            ? { ...p, quantity: (p.quantity || 0) + (item.quantity || 1) }
+            : p
         );
       }
-      return [...state, { ...item, quantity: 1 }];
+      return [...state, { ...item, quantity: item.quantity || 1 }];
     }
     case "REMOVE":
       return state.filter((p) => p.id !== action.id);

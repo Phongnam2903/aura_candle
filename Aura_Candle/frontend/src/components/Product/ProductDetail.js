@@ -60,7 +60,7 @@ export default function ProductDetail() {
             navigate("/login");
             return;
         }
-        addItem({ ...product, quantity });
+        addItem({ ...product, quantity, image: product.images?.[0] });
         navigate("/checkout");
     };
 
