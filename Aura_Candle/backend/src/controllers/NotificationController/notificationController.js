@@ -30,7 +30,7 @@ const getNotificationDetail = async (req, res) => {
                 path: "relatedOrder",
                 populate: {
                     path: "items.product", // populate từng sản phẩm trong đơn hàng
-                    select: "name price image",
+                    select: "name price images",
                 },
             });
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance"; // bạn đã có axiosInstance
 import { FaArrowLeft } from "react-icons/fa";
 
@@ -58,7 +58,7 @@ export default function NotificationDetail() {
                             {notification.relatedOrder.items.map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-4">
                                     <img
-                                        src={item.product.image || "/placeholder.svg"}
+                                        src={item.product.image.startsWith("https") || "/placeholder.svg"}
                                         alt={item.product.name}
                                         className="w-12 h-12 rounded-md object-cover"
                                     />
