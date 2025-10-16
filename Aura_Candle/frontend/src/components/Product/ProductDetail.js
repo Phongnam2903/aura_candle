@@ -178,7 +178,15 @@ export default function ProductDetail() {
                         <div className="flex items-center gap-3 pt-3">
                             <span className="text-gray-500">Chia sẻ:</span>
                             <div className="flex gap-2 text-white">
-                                <Link to="https://www.facebook.com/" className="bg-blue-600 p-2 rounded-full hover:bg-blue-700"><FaFacebookF size={14} /></Link>
+                                <a
+                                    href="https://www.facebook.com/profile.php?id=61580658016979"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="bg-blue-600 p-2 rounded-full hover:bg-blue-700"
+                                >
+                                    <FaFacebookF size={14} />
+                                </a>
+
                                 <Link to="#" className="bg-sky-400 p-2 rounded-full hover:bg-sky-500"><FaTwitter size={14} /></Link>
                                 <Link to="#" className="bg-red-600 p-2 rounded-full hover:bg-red-700"><FaPinterestP size={14} /></Link>
                             </div>

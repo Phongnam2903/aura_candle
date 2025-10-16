@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight, ShoppingBag, Eye, Sparkles } from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import "swiper/css"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "../../context/CartContext"
 import { toast } from "react-toastify"
 import { getCategories } from "../../api/category/categoriesApi"
@@ -46,9 +46,11 @@ const Content = () => {
     },
   ]
 
-  const handleViewCategories = (name) => {
-    alert(`Xem danh mục sản phẩm: ${name}`)
-  }
+  const navigate = useNavigate(); // dùng navigate, không phải navigator
+
+  const handleViewCategories = (slug) => {
+    navigate(`/product/category/${slug}`);
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -144,7 +146,7 @@ const Content = () => {
                   {categories.map((cat, idx) => (
                     <SwiperSlide key={idx}>
                       <div
-                        onClick={() => handleViewCategories(cat.name)}
+                        onClick={() => handleViewCategories(cat.slug)}
                         className="group bg-gradient-to-b from-white/90 to-muted/50 rounded-3xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl hover:shadow-accent/30 transform transition-all duration-500 hover:scale-[1.05]"
                       >
                         {/* Ảnh danh mục */}

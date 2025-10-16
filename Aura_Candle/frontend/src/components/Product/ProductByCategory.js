@@ -64,10 +64,6 @@ export default function ProductByCategory() {
 
     return (
         <div className="max-w-7xl mx-auto px-6 py-10">
-            <h1 className="text-3xl font-serif font-bold text-center mb-10 text-[#2C2420] capitalize tracking-wide">
-                Danh mục: Nến Thơm
-            </h1>
-
             {/* Bộ lọc */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                 {/* Ô tìm kiếm */}
