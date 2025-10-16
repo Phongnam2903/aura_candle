@@ -7,6 +7,6 @@ export async function commentForProductApi(productId, content, rating) {
 }
 
 export async function getCommentForProductApi(productId) {
-    const res = await api.post(`${BASE_URL}/${productId}/comments`);
+    const res = await api.get(`${BASE_URL}/${productId}/comments`);
     return res.data;
 }

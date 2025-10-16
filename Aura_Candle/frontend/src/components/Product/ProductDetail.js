@@ -26,11 +26,9 @@ export default function ProductDetail() {
         async function fetchData() {
             try {
                 const productData = await getProductById(id);
-                console.log("productData:", productData);
                 setProduct(productData);
 
                 const commentsData = await getCommentForProductApi(id);
-                console.log("commentsData:", commentsData);
                 setComments(commentsData.comments || []);
             } catch (err) {
                 console.error("Lỗi load dữ liệu:", err);
@@ -241,24 +239,35 @@ export default function ProductDetail() {
 
                     <div className="space-y-5">
                         {comments.map((cmt) => (
-                            <div key={cmt.id} className="border-b border-gray-200 pb-3">
+                            <div key={cmt._id} className="border-b border-gray-200 pb-3">
                                 <div className="flex items-center justify-between">
-                                    <h4 className="font-semibold text-gray-800">{cmt.name}</h4>
-                                    <span className="text-sm text-gray-500">{cmt.date}</span>
+                                    <h4 className="font-semibold text-gray-800">
+                                        {cmt.user?.name || "Người dùng ẩn danh"}
+                                    </h4>
+                                    <span className="text-sm text-gray-500">
+                                        {new Date(cmt.createdAt).toLocaleDateString("vi-VN")}
+                                    </span>
                                 </div>
+
                                 <div className="flex items-center mt-1">
                                     {[...Array(5)].map((_, i) => (
                                         <FaStar
                                             key={i}
                                             size={16}
-                                            className={i < cmt.stars ? "text-yellow-400" : "text-gray-300"}
+                                            className={
+                                                i < cmt.rating
+                                                    ? "text-yellow-400" // ⭐ Màu vàng cho sao được chọn
+                                                    : "text-gray-300" // ⚪ Màu xám cho sao chưa chọn
+                                            }
                                         />
                                     ))}
                                 </div>
-                                <p className="text-gray-700 mt-2">{cmt.text}</p>
+
+                                <p className="text-gray-700 mt-2">{cmt.content}</p>
                             </div>
                         ))}
                     </div>
+
                 </div>
             </div>
         </div>
