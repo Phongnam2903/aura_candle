@@ -13,7 +13,8 @@ const addProduct = async (req, res) => {
             return res.status(401).json({ message: "Bạn chưa đăng nhập." });
         }
 
-        let {
+        // Lấy dữ liệu từ request
+        const {
             name,
             sku,
             category,
@@ -23,72 +24,110 @@ const addProduct = async (req, res) => {
             discount,
             stock,
             weightGrams,
-            materials,
-            isKit,
-            fragrances, // frontend gửi mảng mùi hương
+            materials = [],
+            isKit = false,
+            fragrances = [],
+            images = []
         } = req.body;
 
-        // Nếu category không hợp lệ
+        console.log("=== NHẬN DỮ LIỆU TỪ FRONTEND ===");
+        console.log("Images:", images);
+        console.log("Fragrances:", fragrances);
+        console.log("Category:", category);
+        console.log("Name:", name);
+        console.log("SKU:", sku);
+        console.log("=================================");
+
+        // Validate category
         if (category && !mongoose.Types.ObjectId.isValid(category)) {
             return res.status(400).json({ message: "Category không hợp lệ" });
         }
 
-        // Nếu không có materials, mặc định là mảng rỗng
-        if (!Array.isArray(materials)) materials = [];
+        // Xử lý fragrances - đảm bảo là array
+        let processedFragrances = [];
+        if (fragrances && fragrances.length > 0) {
+            if (typeof fragrances === "string") {
+                processedFragrances = fragrances.split(",").map(f => f.trim()).filter(Boolean);
+            } else if (Array.isArray(fragrances)) {
+                processedFragrances = fragrances.filter(f => f && f.trim());
+            }
+        }
 
-        // Chắc chắn fragrances là mảng
-        if (!Array.isArray(fragrances)) fragrances = [];
+        // Xử lý materials - đảm bảo là array
+        let processedMaterials = [];
+        if (materials && materials.length > 0) {
+            processedMaterials = Array.isArray(materials) ? materials : [];
+        }
 
-        // Upload ảnh lên Cloudinary nếu có file gửi kèm
-        let images = [];
+        // Xử lý images - đảm bảo là array
+        let processedImages = [];
+        if (images && images.length > 0) {
+            processedImages = Array.isArray(images) ? images : [];
+        }
+
+        // Upload ảnh mới nếu có file gửi kèm
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 const result = await cloudinary.uploader.upload(file.path, {
                     folder: "products",
                 });
-                images.push(result.secure_url);
-
-                // Xóa file tạm sau khi upload
+                processedImages.push(result.secure_url);
                 fs.unlinkSync(file.path);
             }
         }
 
-        // Nếu người dùng gửi sẵn URL (đã upload từ frontend)
-        if (req.body.images && Array.isArray(req.body.images)) {
-            images = [...images, ...req.body.images];
-        }
-
         // Tính giá nếu có oldPrice + discount
+        let finalPrice = price;
         if (oldPrice && discount && !price) {
-            price = Math.round(oldPrice * (1 - discount / 100));
+            finalPrice = Math.round(oldPrice * (1 - discount / 100));
         }
 
+        // Tạo sản phẩm mới
         const newProduct = new Product({
             name,
             sku,
             category,
             description,
-            price,
-            oldPrice,
-            discount,
-            stock,
-            weightGrams,
-            images,
-            materials, // giờ luôn là mảng rỗng nếu frontend không gửi
-            isKit,
-            fragrances,
+            price: finalPrice,
+            oldPrice: oldPrice || null,
+            discount: discount || 0,
+            stock: stock || 0,
+            weightGrams: weightGrams || null,
+            images: processedImages,
+            materials: processedMaterials,
+            isKit: isKit || false,
+            fragrances: processedFragrances,
             seller: sellerId,
         });
 
+        console.log("=== DỮ LIỆU TRƯỚC KHI LƯU ===");
+        console.log("Images:", processedImages);
+        console.log("Fragrances:", processedFragrances);
+        console.log("Materials:", processedMaterials);
+        console.log("===============================");
+
+        console.log("=== TRƯỚC KHI SAVE ===");
+        console.log("newProduct:", newProduct);
+        
         await newProduct.save();
+        
+        console.log("=== SAU KHI SAVE ===");
+        console.log("Product saved successfully");
 
         res.status(201).json({
             message: "Thêm sản phẩm thành công",
             product: newProduct,
         });
     } catch (error) {
-        console.error("Add product error:", error);
-        res.status(500).json({ message: "Lỗi khi thêm sản phẩm", error: error.message });
+        console.error("❌ ADD PRODUCT ERROR:", error);
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+        res.status(500).json({ 
+            message: "Lỗi khi thêm sản phẩm", 
+            error: error.message,
+            details: error.name === 'ValidationError' ? error.errors : null
+        });
     }
 };
 
@@ -164,51 +203,94 @@ const updateProduct = async (req, res) => {
         if (product.seller.toString() !== sellerId)
             return res.status(403).json({ message: "Bạn không có quyền sửa sản phẩm này" });
 
-        // Lấy dữ liệu từ req.body
-        let { materials, fragrances, oldImages, ...rest } = req.body;
+        // Lấy dữ liệu từ request
+        const {
+            name,
+            sku,
+            category,
+            description,
+            price,
+            oldPrice,
+            discount,
+            stock,
+            weightGrams,
+            materials = [],
+            isKit = false,
+            fragrances = [],
+            images = []
+        } = req.body;
 
-        // Chắc chắn fragrances là array
-        if (fragrances) {
-            if (typeof fragrances === "string") {
-                try {
-                    fragrances = JSON.parse(fragrances); // nếu client gửi JSON string
-                } catch {
-                    fragrances = fragrances.split(",").map(f => f.trim()).filter(Boolean);
-                }
-            } else if (!Array.isArray(fragrances)) {
-                fragrances = [fragrances];
-            }
-        } else {
-            fragrances = [];
+        console.log("=== NHẬN DỮ LIỆU CẬP NHẬT ===");
+        console.log("Images:", images);
+        console.log("Fragrances:", fragrances);
+        console.log("=============================");
+
+        // Validate category
+        if (category && !mongoose.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({ message: "Category không hợp lệ" });
         }
 
-        if (oldImages && typeof oldImages === "string") oldImages = JSON.parse(oldImages);
+        // Xử lý fragrances - đảm bảo là array
+        let processedFragrances = [];
+        if (fragrances && fragrances.length > 0) {
+            if (typeof fragrances === "string") {
+                processedFragrances = fragrances.split(",").map(f => f.trim()).filter(Boolean);
+            } else if (Array.isArray(fragrances)) {
+                processedFragrances = fragrances.filter(f => f && f.trim());
+            }
+        }
 
-        // Upload ảnh mới
-        let uploadedImages = [];
+        // Xử lý materials - đảm bảo là array
+        let processedMaterials = [];
+        if (materials && materials.length > 0) {
+            processedMaterials = Array.isArray(materials) ? materials : [];
+        }
+
+        // Xử lý images - đảm bảo là array
+        let processedImages = [];
+        if (images && images.length > 0) {
+            processedImages = Array.isArray(images) ? images : [];
+        }
+
+        // Upload ảnh mới nếu có file gửi kèm
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
-                const result = await cloudinary.uploader.upload(file.path, { folder: "products" });
-                uploadedImages.push(result.secure_url);
+                const result = await cloudinary.uploader.upload(file.path, {
+                    folder: "products",
+                });
+                processedImages.push(result.secure_url);
                 fs.unlinkSync(file.path);
             }
         }
 
-        // Kết hợp ảnh cũ + mới
-        const images = [...(oldImages || []), ...uploadedImages];
-
-        // Chắc chắn các field kiểu number
-        ["price", "oldPrice", "discount", "stock", "weightGrams"].forEach((field) => {
-            if (rest[field] !== undefined) rest[field] = Number(rest[field]);
-        });
-
-        // Tính giá nếu cần
-        if (rest.oldPrice !== undefined && rest.discount !== undefined && rest.price === undefined) {
-            rest.price = Math.round(rest.oldPrice * (1 - rest.discount / 100));
+        // Tính giá nếu có oldPrice + discount
+        let finalPrice = price;
+        if (oldPrice && discount && !price) {
+            finalPrice = Math.round(oldPrice * (1 - discount / 100));
         }
 
-        // Tạo object update cuối cùng
-        const updateData = { ...rest, materials, fragrances, images };
+        // Tạo object update
+        const updateData = {
+            name,
+            sku,
+            category,
+            description,
+            price: finalPrice,
+            oldPrice: oldPrice || null,
+            discount: discount || 0,
+            stock: stock || 0,
+            weightGrams: weightGrams || null,
+            images: processedImages,
+            materials: processedMaterials,
+            isKit: isKit || false,
+            fragrances: processedFragrances,
+        };
+
+        console.log("=== DỮ LIỆU TRƯỚC KHI CẬP NHẬT ===");
+        console.log("Images:", processedImages);
+        console.log("Fragrances:", processedFragrances);
+        console.log("Materials:", processedMaterials);
+        console.log("===================================");
 
         const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
             new: true,
