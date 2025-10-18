@@ -8,8 +8,7 @@ const createUpload = require("../middleware/upload");
 const upload = createUpload("products");
 
 // Route cho JSON request (không có file upload)
-router.post(
-    "/",
+router.post("/",
     verifyToken,
     authorize("seller"),
     ProductController.addProduct
