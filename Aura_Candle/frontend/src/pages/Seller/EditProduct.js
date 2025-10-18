@@ -109,9 +109,9 @@ export default function EditProduct() {
   // Thêm mùi hương
   const addScent = () => {
     if (!scentInput.trim()) return;
-    setForm((prev) => ({ 
-      ...prev, 
-      fragrances: [...prev.fragrances, scentInput.trim()] 
+    setForm((prev) => ({
+      ...prev,
+      fragrances: [...prev.fragrances, scentInput.trim()]
     }));
     setScentInput("");
   };
@@ -366,7 +366,7 @@ export default function EditProduct() {
                   </span>
                 </label>
               </div>
-              
+
               {/* Hiển thị ảnh hiện tại */}
               {form.images.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
@@ -413,7 +413,7 @@ export default function EditProduct() {
                   Thêm
                 </button>
               </div>
-              
+
               {/* Hiển thị danh sách mùi hương */}
               {form.fragrances.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -437,7 +437,7 @@ export default function EditProduct() {
             </div>
 
             {/* Nguyên liệu */}
-            <div className="col-span-2">
+            {/* <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nguyên liệu
               </label>
@@ -445,11 +445,10 @@ export default function EditProduct() {
                 {materialsList.map((mat) => (
                   <label
                     key={mat._id}
-                    className={`px-3 py-1 rounded-full border cursor-pointer transition ${
-                      form.materials.includes(mat._id)
-                        ? "bg-emerald-100 border-emerald-400 text-emerald-700"
-                        : "border-gray-300 text-gray-600 hover:bg-gray-50"
-                    }`}
+                    className={`px-3 py-1 rounded-full border cursor-pointer transition ${form.materials.includes(mat._id)
+                      ? "bg-emerald-100 border-emerald-400 text-emerald-700"
+                      : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                      }`}
                   >
                     <input
                       type="checkbox"
@@ -461,7 +460,7 @@ export default function EditProduct() {
                   </label>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Submit button */}
             <div className="col-span-2">

@@ -108,9 +108,9 @@ const addProduct = async (req, res) => {
 
         console.log("=== TRƯỚC KHI SAVE ===");
         console.log("newProduct:", newProduct);
-        
+
         await newProduct.save();
-        
+
         console.log("=== SAU KHI SAVE ===");
         console.log("Product saved successfully");
 
@@ -123,8 +123,8 @@ const addProduct = async (req, res) => {
         console.error("Error name:", error.name);
         console.error("Error message:", error.message);
         console.error("Error stack:", error.stack);
-        res.status(500).json({ 
-            message: "Lỗi khi thêm sản phẩm", 
+        res.status(500).json({
+            message: "Lỗi khi thêm sản phẩm",
             error: error.message,
             details: error.name === 'ValidationError' ? error.errors : null
         });
@@ -193,118 +193,113 @@ const getProductById = async (req, res) => {
 // UPDATE – Cập nhật sản phẩm
 // =============================
 
-const updateProduct = async (req, res) => {
-    const sellerId = req.user?.id;
-    const { id } = req.params;
+const Product = require("../models/Product");
+const Material = require("../models/Material");
+const Category = require("../models/Category");
+const uploadImage = require("../utils/uploadImage"); // nếu có hàm upload lên Cloudinary
+const mongoose = require("mongoose");
 
+exports.updateProduct = async (req, res) => {
     try {
-        const product = await Product.findById(id);
-        if (!product) return res.status(404).json({ message: "Không tìm thấy sản phẩm" });
-        if (product.seller.toString() !== sellerId)
-            return res.status(403).json({ message: "Bạn không có quyền sửa sản phẩm này" });
-
-        // Lấy dữ liệu từ request
+        const productId = req.params.id;
         const {
             name,
             sku,
-            category,
             description,
             price,
             oldPrice,
             discount,
             stock,
             weightGrams,
-            materials = [],
-            isKit = false,
-            fragrances = [],
-            images = []
+            isKit,
+            category,
+            fragrances,
+            materials,
+            images,
         } = req.body;
 
-        console.log("=== NHẬN DỮ LIỆU CẬP NHẬT ===");
-        console.log("Images:", images);
-        console.log("Fragrances:", fragrances);
-        console.log("=============================");
+        // ✅ Kiểm tra id sản phẩm
+        if (!mongoose.Types.ObjectId.isValid(productId))
+            return res.status(400).json({ ok: false, message: "ID sản phẩm không hợp lệ" });
 
-        // Validate category
-        if (category && !mongoose.Types.ObjectId.isValid(category)) {
-            return res.status(400).json({ message: "Category không hợp lệ" });
+        const product = await Product.findById(productId);
+        if (!product)
+            return res.status(404).json({ ok: false, message: "Không tìm thấy sản phẩm" });
+
+        // ✅ Chuẩn hóa dữ liệu nhận vào
+        const updatedFields = {};
+
+        if (name) updatedFields.name = name.trim();
+        if (sku) updatedFields.sku = sku.trim();
+        if (description) updatedFields.description = description;
+        if (price) updatedFields.price = parseFloat(price);
+        if (oldPrice) updatedFields.oldPrice = parseFloat(oldPrice);
+        if (discount) updatedFields.discount = parseFloat(discount);
+        if (stock) updatedFields.stock = parseInt(stock);
+        if (weightGrams) updatedFields.weightGrams = parseFloat(weightGrams);
+        if (typeof isKit !== "undefined") updatedFields.isKit = isKit === "true" || isKit === true;
+
+        // ✅ Category
+        if (category && mongoose.Types.ObjectId.isValid(category)) {
+            updatedFields.category = category;
         }
 
-        // Xử lý fragrances - đảm bảo là array
-        let processedFragrances = [];
-        if (fragrances && fragrances.length > 0) {
-            if (typeof fragrances === "string") {
-                processedFragrances = fragrances.split(",").map(f => f.trim()).filter(Boolean);
-            } else if (Array.isArray(fragrances)) {
-                processedFragrances = fragrances.filter(f => f && f.trim());
+        // ✅ Materials
+        if (materials) {
+            const parsedMaterials =
+                typeof materials === "string" ? JSON.parse(materials) : materials;
+            if (Array.isArray(parsedMaterials)) {
+                updatedFields.materials = parsedMaterials;
             }
         }
 
-        // Xử lý materials - đảm bảo là array
-        let processedMaterials = [];
-        if (materials && materials.length > 0) {
-            processedMaterials = Array.isArray(materials) ? materials : [];
+        // ✅ Fragrances
+        if (fragrances) {
+            const parsedFragrances =
+                typeof fragrances === "string" ? JSON.parse(fragrances) : fragrances;
+            if (Array.isArray(parsedFragrances)) {
+                updatedFields.fragrances = parsedFragrances;
+            }
         }
 
-        // Xử lý images - đảm bảo là array
-        let processedImages = [];
-        if (images && images.length > 0) {
-            processedImages = Array.isArray(images) ? images : [];
-        }
+        // ✅ Ảnh
+        let imageUrls = [];
 
-        // Upload ảnh mới nếu có file gửi kèm
         if (req.files && req.files.length > 0) {
-            for (const file of req.files) {
-                const result = await cloudinary.uploader.upload(file.path, {
-                    folder: "products",
-                });
-                processedImages.push(result.secure_url);
-                fs.unlinkSync(file.path);
-            }
+            // Có upload ảnh mới
+            const uploaded = await Promise.all(
+                req.files.map(async (file) => {
+                    const result = await uploadImage(file.path);
+                    return result.secure_url;
+                })
+            );
+            imageUrls = uploaded;
+        } else if (images) {
+            // Giữ ảnh cũ từ frontend
+            const parsedImages = typeof images === "string" ? JSON.parse(images) : images;
+            if (Array.isArray(parsedImages)) imageUrls = parsedImages;
         }
 
-        // Tính giá nếu có oldPrice + discount
-        let finalPrice = price;
-        if (oldPrice && discount && !price) {
-            finalPrice = Math.round(oldPrice * (1 - discount / 100));
+        if (imageUrls.length > 0) {
+            updatedFields.images = imageUrls;
         }
 
-        // Tạo object update
-        const updateData = {
-            name,
-            sku,
-            category,
-            description,
-            price: finalPrice,
-            oldPrice: oldPrice || null,
-            discount: discount || 0,
-            stock: stock || 0,
-            weightGrams: weightGrams || null,
-            images: processedImages,
-            materials: processedMaterials,
-            isKit: isKit || false,
-            fragrances: processedFragrances,
-        };
-
-        console.log("=== DỮ LIỆU TRƯỚC KHI CẬP NHẬT ===");
-        console.log("Images:", processedImages);
-        console.log("Fragrances:", processedFragrances);
-        console.log("Materials:", processedMaterials);
-        console.log("===================================");
-
-        const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
-            new: true,
-            runValidators: true,
-        })
+        // ✅ Cập nhật
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            { $set: updatedFields },
+            { new: true }
+        )
             .populate("category", "name")
             .populate("materials", "name");
 
-        res.json({ message: "Cập nhật sản phẩm thành công", product: updatedProduct });
+        res.json({ ok: true, message: "Cập nhật sản phẩm thành công", data: updatedProduct });
     } catch (error) {
-        console.error("❌ Update product error:", error);
-        res.status(500).json({ message: "Lỗi khi cập nhật sản phẩm", error: error.message });
+        console.error("❌ Lỗi cập nhật sản phẩm:", error);
+        res.status(500).json({ ok: false, message: "Lỗi máy chủ", error: error.message });
     }
 };
+
 
 module.exports = { updateProduct };
 
