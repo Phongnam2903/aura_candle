@@ -98,12 +98,13 @@ export default function AddProduct() {
   // Thêm mùi hương
   const addScent = () => {
     if (!scentInput.trim()) return;
-    setForm((prev) => ({ 
-      ...prev, 
-      fragrances: [...prev.fragrances, scentInput.trim()] 
+    setForm((prev) => ({
+      ...prev,
+      fragrances: [...prev.fragrances, scentInput.trim()]
     }));
     setScentInput("");
   };
+  console.log("Đã thêm mùi:", scentInput);
 
   // Xóa mùi hương
   const removeScent = (index) => {
@@ -337,7 +338,7 @@ export default function AddProduct() {
                 </span>
               </label>
             </div>
-            
+
             {/* Hiển thị ảnh đã upload */}
             {form.images.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
@@ -371,9 +372,9 @@ export default function AddProduct() {
                 type="text"
                 value={scentInput}
                 onChange={(e) => setScentInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addScent())}
                 placeholder="Nhập mùi hương..."
                 className="flex-1 border rounded-xl p-3 focus:ring-2 focus:ring-pink-300 outline-none"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addScent())}
               />
               <button
                 type="button"
@@ -384,9 +385,8 @@ export default function AddProduct() {
                 Thêm
               </button>
             </div>
-            
-            {/* Hiển thị danh sách mùi hương */}
-            {form.fragrances.length > 0 && (
+
+            {form.fragrances?.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {form.fragrances.map((scent, i) => (
                   <span
