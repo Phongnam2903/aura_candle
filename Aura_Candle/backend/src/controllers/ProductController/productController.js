@@ -193,13 +193,7 @@ const getProductById = async (req, res) => {
 // UPDATE – Cập nhật sản phẩm
 // =============================
 
-const Product = require("../models/Product");
-const Material = require("../models/Material");
-const Category = require("../models/Category");
-const uploadImage = require("../utils/uploadImage"); // nếu có hàm upload lên Cloudinary
-const mongoose = require("mongoose");
-
-exports.updateProduct = async (req, res) => {
+const updateProduct = async (req, res) => {
     try {
         const productId = req.params.id;
         const {
@@ -300,8 +294,6 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
-
-module.exports = { updateProduct };
 
 // =============================
 // DELETE – Xóa sản phẩm
