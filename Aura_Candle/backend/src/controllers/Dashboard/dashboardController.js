@@ -23,7 +23,7 @@ exports.getSellerDashboardStats = async (req, res) => {
 
         // 👥 Khách hàng mới (đăng ký hôm nay)
         const newCustomers = await User.countDocuments({
-            role: "buyer",
+            role: "customer",
             createdAt: { $gte: startOfDay },
         });
 

@@ -9,7 +9,7 @@ export default function Orders() {
   const [currentPage, setCurrentPage] = useState(1);
   const ORDERS_PER_PAGE = 5;
 
-  const STATUS_OPTIONS = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled"];
+  const STATUS_OPTIONS = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled", "Completed", "Refunded"];
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -108,10 +108,10 @@ export default function Orders() {
                         ) : (
                           <span
                             className={`px-2 py-1 rounded text-xs font-semibold ${item.status === "Delivered"
-                                ? "bg-green-100 text-green-700"
-                                : item.status === "Cancelled"
-                                  ? "bg-red-100 text-red-600"
-                                  : "bg-yellow-100 text-yellow-700"
+                              ? "bg-green-100 text-green-700"
+                              : item.status === "Cancelled"
+                                ? "bg-red-100 text-red-600"
+                                : "bg-yellow-100 text-yellow-700"
                               }`}
                           >
                             {item.status}
@@ -164,8 +164,8 @@ export default function Orders() {
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
           disabled={currentPage === 1}
           className={`px-3 py-1 rounded-md ${currentPage === 1
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-pink-100 text-pink-700 hover:bg-pink-200"
+            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "bg-pink-100 text-pink-700 hover:bg-pink-200"
             }`}
         >
           ← Trước
@@ -176,8 +176,8 @@ export default function Orders() {
             key={index}
             onClick={() => setCurrentPage(index + 1)}
             className={`px-3 py-1 rounded-md ${currentPage === index + 1
-                ? "bg-pink-600 text-white"
-                : "bg-pink-100 text-pink-700 hover:bg-pink-200"
+              ? "bg-pink-600 text-white"
+              : "bg-pink-100 text-pink-700 hover:bg-pink-200"
               }`}
           >
             {index + 1}
@@ -188,8 +188,8 @@ export default function Orders() {
           onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
           disabled={currentPage === totalPages}
           className={`px-3 py-1 rounded-md ${currentPage === totalPages
-              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-              : "bg-pink-100 text-pink-700 hover:bg-pink-200"
+            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+            : "bg-pink-100 text-pink-700 hover:bg-pink-200"
             }`}
         >
           Sau →

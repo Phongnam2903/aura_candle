@@ -35,7 +35,7 @@ const updateSellerOrderStatus = async (req, res) => {
         const { orderId, status } = req.body;
 
         // Kiểm tra status hợp lệ
-        const validStatus = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled"];
+        const validStatus = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled", "Completed", "Refunded"];
         if (!validStatus.includes(status)) {
             return res.status(400).json({ error: "Invalid status" });
         }
