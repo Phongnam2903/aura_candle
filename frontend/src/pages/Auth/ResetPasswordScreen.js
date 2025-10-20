@@ -1,0 +1,13 @@
+import React from "react";
+import Layout from "../../layout/Layout";
+import ResetPassword from "../../components/Auth/ResetPassword";
+
+export default function ResetPasswordScreen() {
+    return (
+        <Layout>
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
+                <ResetPassword />
+            </div>
+        </Layout>
+    );
+}
