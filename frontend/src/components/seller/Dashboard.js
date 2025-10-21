@@ -12,6 +12,7 @@ export default function Dashboard() {
         const fetchStats = async () => {
             try {
                 const res = await getSellerDashboardStats();
+                console.log("Lấy tất cả thống kê dashboard: ", res);
                 if (res.ok) setStats(res.data);
                 else toast.error(res.message || "Không thể tải thống kê");
             } catch (error) {
@@ -27,7 +28,9 @@ export default function Dashboard() {
         { id: 1, icon: <ShoppingBag size={28} />, label: "Đơn hàng hôm nay", value: stats.ordersToday },
         { id: 2, icon: <Package size={28} />, label: "Sản phẩm đang bán", value: stats.totalProducts },
         { id: 3, icon: <Users size={28} />, label: "Khách hàng mới", value: stats.newCustomers },
-        { id: 4, icon: <BarChart3 size={28} />, label: "Doanh thu tháng", value: `₫${stats.monthlyRevenue.toLocaleString()}` },
+        // { id: 4, icon: <BarChart3 size={28} />, label: "Doanh thu tháng", value: `₫${stats.monthlyRevenue.toLocaleString()}` },
+        { id: 4, icon: <BarChart3 size={28} />, label: "Doanh thu tháng", value: `₫${Number(stats.monthlyRevenue).toLocaleString()}` },
+
     ];
 
     return (

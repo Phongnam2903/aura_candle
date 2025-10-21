@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 exports.getSellerDashboardStats = async (req, res) => {
     try {
         const sellerId = req.user?.id;
+        console.log(sellerId);
         if (!sellerId) return res.status(401).json({ ok: false, message: "Unauthorized" });
 
         const now = new Date();
@@ -29,34 +30,31 @@ exports.getSellerDashboardStats = async (req, res) => {
 
         //  Doanh thu tháng hiện tại
         const monthlyRevenueAgg = await Order.aggregate([
-            {
-                $match: {
-                    status: "Completed",
-                    createdAt: { $gte: startOfMonth }
-                }
-            },
             { $unwind: "$items" },
             {
                 $lookup: {
                     from: "products",
                     localField: "items.product",
                     foreignField: "_id",
-                    as: "productDetails"
-                }
+                    as: "productData",
+                },
             },
-            { $unwind: "$productDetails" },
+            { $unwind: "$productData" },
             {
                 $match: {
-                    "productDetails.seller": new mongoose.Types.ObjectId(sellerId)
-                }
+                    "productData.seller": new mongoose.Types.ObjectId(sellerId),
+                    status: "Completed",
+                    createdAt: { $gte: startOfMonth },
+                },
             },
             {
                 $group: {
                     _id: null,
-                    total: { $sum: { $multiply: ["$items.quantity", "$items.price"] } }
-                }
-            }
+                    total: { $sum: "$items.price" },
+                },
+            },
         ]);
+
 
         const monthlyRevenue =
             monthlyRevenueAgg.length > 0 ? monthlyRevenueAgg[0].total : 0;
