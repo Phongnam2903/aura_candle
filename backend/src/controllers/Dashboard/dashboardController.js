@@ -1,7 +1,7 @@
 // controllers/dashboardController.js
 
 const { Product, Order, User } = require("../../models");
-
+const mongoose = require("mongoose");
 
 exports.getSellerDashboardStats = async (req, res) => {
     try {
@@ -12,41 +12,59 @@ exports.getSellerDashboardStats = async (req, res) => {
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        // 📦 Tổng sản phẩm đang bán
+        //  Tổng sản phẩm đang bán
         const totalProducts = await Product.countDocuments({ seller: sellerId, isActive: true });
 
-        // 🛒 Đơn hàng hôm nay
+        //  Đơn hàng hôm nay
         const ordersToday = await Order.find({
             seller: sellerId,
             createdAt: { $gte: startOfDay },
         });
 
-        // 👥 Khách hàng mới (đăng ký hôm nay)
+        //  Khách hàng mới (đăng ký hôm nay)
         const newCustomers = await User.countDocuments({
             role: "customer",
             createdAt: { $gte: startOfDay },
         });
 
-        // 💰 Doanh thu tháng hiện tại
+        //  Doanh thu tháng hiện tại
         const monthlyRevenueAgg = await Order.aggregate([
             {
                 $match: {
-                    seller: sellerId,
                     status: "Completed",
-                    createdAt: { $gte: startOfMonth },
-                },
+                    createdAt: { $gte: startOfMonth }
+                }
+            },
+            { $unwind: "$items" },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "items.product",
+                    foreignField: "_id",
+                    as: "productDetails"
+                }
+            },
+            { $unwind: "$productDetails" },
+            {
+                $match: {
+                    "productDetails.seller": new mongoose.Types.ObjectId(sellerId)
+                }
             },
             {
                 $group: {
                     _id: null,
-                    total: { $sum: "$totalAmount" },
-                },
-            },
+                    total: { $sum: { $multiply: ["$items.quantity", "$items.price"] } }
+                }
+            }
         ]);
 
         const monthlyRevenue =
             monthlyRevenueAgg.length > 0 ? monthlyRevenueAgg[0].total : 0;
 
+        console.log("monthlyRevenue: ", monthlyRevenue);
+        console.log("ordersToday: ", ordersToday.length);
+        console.log("totalProducts:", totalProducts);
+        console.log("newCustomers: ", newCustomers);
         res.json({
             ok: true,
             data: {
