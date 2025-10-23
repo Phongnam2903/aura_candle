@@ -124,12 +124,6 @@ const Header = () => {
               >
                 Set quà tặng
               </Link>
-              <Link
-                to="/product/category/phu-kien"
-                className="block px-6 py-3 hover:bg-[#F9F6F2] rounded-b-2xl"
-              >
-                Phụ kiện nến
-              </Link>
             </div>
           </div>
 
