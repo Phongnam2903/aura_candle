@@ -50,8 +50,9 @@ const CheckoutPage = () => {
             const result = await checkout(payload);
             if (result.orderCode) {
                 setOrderId(result.orderCode);
-                if (["VNPay", "Momo", "ZaloPay"].includes(payment)) {
-                    setShowPaymentModal(true);
+                if (payment === "Bank") {
+                    // Không mở modal nữa, vì bank là chuyển khoản QR
+                    toast.success("Vui lòng quét mã QR để thanh toán!");
                 } else {
                     toast.success("Đặt hàng thành công!");
                     clearCart();
@@ -107,8 +108,8 @@ const CheckoutPage = () => {
                                         <label
                                             key={addr._id}
                                             className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all duration-200 ${selectedAddressId === addr._id
-                                                    ? "border-emerald-600 bg-emerald-50 shadow-sm"
-                                                    : "border-gray-300 hover:border-emerald-400"
+                                                ? "border-emerald-600 bg-emerald-50 shadow-sm"
+                                                : "border-gray-300 hover:border-emerald-400"
                                                 }`}
                                         >
                                             <input
@@ -133,7 +134,7 @@ const CheckoutPage = () => {
                         <div>
                             <h2 className="font-semibold text-lg mb-3 text-emerald-600">Phương thức thanh toán</h2>
                             <div className="space-y-3">
-                                {["COD", "Bank", "Momo", "ZaloPay"].map((method) => (
+                                {["COD", "Bank"].map((method) => (
                                     <label
                                         key={method}
                                         className="flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition hover:shadow-sm"
@@ -149,15 +150,27 @@ const CheckoutPage = () => {
                                         <span>
                                             {method === "COD"
                                                 ? "Thanh toán khi nhận hàng (COD)"
-                                                : method === "Bank"
-                                                    ? "Chuyển khoản ngân hàng"
-                                                    : method === "Momo"
-                                                        ? "Ví Momo"
-                                                        : "ZaloPay"}
+                                                : "Chuyển khoản ngân hàng"}
                                         </span>
                                     </label>
                                 ))}
                             </div>
+
+                            {/* Hiển thị QR nếu chọn Bank */}
+                            {payment === "Bank" && (
+                                <div className="mt-4 border border-emerald-200 p-4 rounded-2xl bg-emerald-50 text-center">
+                                    <p className="font-medium text-emerald-700 mb-2">Quét mã QR để thanh toán</p>
+                                    <img
+                                        src="/assets/QR.png"
+                                        alt="QR thanh toán ngân hàng"
+                                        className="mx-auto w-64 h-64 object-contain rounded-xl border border-emerald-300 shadow-md"
+                                    />
+                                    <p className="text-sm text-gray-600 mt-2">
+                                        Nội dung chuyển khoản: <strong>Thanh toán đơn hàng #{orderId || "###"}</strong>
+                                    </p>
+                                </div>
+                            )}
+
                         </div>
 
                         <button
@@ -221,6 +234,7 @@ const CheckoutPage = () => {
                 </div>
             </div>
 
+            {/* Modal thanh toán (chỉ giữ nếu sau này cần lại) */}
             <PaymentModal
                 isOpen={showPaymentModal}
                 onClose={() => setShowPaymentModal(false)}
