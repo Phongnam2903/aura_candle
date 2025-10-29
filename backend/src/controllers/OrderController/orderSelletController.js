@@ -58,6 +58,14 @@ const updateSellerOrderStatus = async (req, res) => {
 
         if (!order) return res.status(404).json({ error: "Order not found" });
 
+        // ⚠️ KHÔNG CHO PHÉP CẬP NHẬT nếu đơn hàng đã bị HỦY
+        if (order.status === "Cancelled") {
+            return res.status(400).json({ 
+                error: "Không thể cập nhật đơn hàng đã bị hủy.",
+                currentStatus: order.status
+            });
+        }
+
         // ⚠️ KHÔNG CHO PHÉP HỦY nếu đã SHIPPED hoặc sau đó
         if (status === "Cancelled") {
             const nonCancellableStatuses = ["Shipped", "Delivered", "Completed"];

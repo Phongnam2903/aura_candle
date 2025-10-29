@@ -314,48 +314,55 @@ export default function Orders() {
 
                   {/* Thao tác */}
                   <td className="p-4">
-                    <div className="flex flex-col gap-2">
-                      {/* Nút xác nhận thanh toán - chỉ hiện nếu chưa thanh toán */}
-                      {o.paymentStatus === "unpaid" && o.paymentMethod !== "COD" && (
-                        <button
-                          onClick={() => handleConfirmPayment(o._id)}
-                          className="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-1 justify-center text-xs font-medium"
-                          title="Xác nhận đã nhận được thanh toán"
-                        >
-                          <DollarSign size={14} /> Xác nhận TT
-                        </button>
-                      )}
+                    {o.status === "Cancelled" ? (
+                      // Hiển thị text thông báo khi đơn hàng đã bị hủy
+                      <div className="text-center text-xs text-gray-500 italic">
+                        Đơn đã hủy
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {/* Nút xác nhận thanh toán - chỉ hiện nếu chưa thanh toán và chưa bị hủy */}
+                        {o.paymentStatus === "unpaid" && o.paymentMethod !== "COD" && (
+                          <button
+                            onClick={() => handleConfirmPayment(o._id)}
+                            className="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-1 justify-center text-xs font-medium"
+                            title="Xác nhận đã nhận được thanh toán"
+                          >
+                            <DollarSign size={14} /> Xác nhận TT
+                          </button>
+                        )}
 
-                      {/* Nút cập nhật trạng thái */}
-                      {editingOrderId === o._id ? (
-                        <div className="flex gap-2">
+                        {/* Nút cập nhật trạng thái */}
+                        {editingOrderId === o._id ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={handleSaveStatus}
+                              className="px-3 py-1 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition flex items-center gap-1 text-xs"
+                            >
+                              <CheckCircle size={14} /> Lưu
+                            </button>
+                            <button
+                              onClick={() => setEditingOrderId(null)}
+                              className="px-3 py-1 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition flex items-center gap-1 text-xs"
+                            >
+                              <XCircle size={14} /> Hủy
+                            </button>
+                          </div>
+                        ) : (
                           <button
-                            onClick={handleSaveStatus}
-                            className="px-3 py-1 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition flex items-center gap-1 text-xs"
+                            onClick={() => handleUpdateClick(o._id, o.status)}
+                            disabled={o.status === "Completed"}
+                            className={`px-3 py-1 rounded-lg flex items-center gap-1 justify-center transition text-xs ${
+                              o.status === "Completed"
+                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                : "bg-pink-500 text-white hover:bg-pink-600"
+                            }`}
                           >
-                            <CheckCircle size={14} /> Lưu
+                            <Edit3 size={14} /> Cập nhật
                           </button>
-                          <button
-                            onClick={() => setEditingOrderId(null)}
-                            className="px-3 py-1 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition flex items-center gap-1 text-xs"
-                          >
-                            <XCircle size={14} /> Hủy
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleUpdateClick(o._id, o.status)}
-                          disabled={o.status === "Completed"}
-                          className={`px-3 py-1 rounded-lg flex items-center gap-1 justify-center transition text-xs ${
-                            o.status === "Completed"
-                              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                              : "bg-pink-500 text-white hover:bg-pink-600"
-                          }`}
-                        >
-                          <Edit3 size={14} /> Cập nhật
-                        </button>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))

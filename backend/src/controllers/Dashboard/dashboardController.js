@@ -50,7 +50,7 @@ exports.getSellerDashboardStats = async (req, res) => {
             {
                 $group: {
                     _id: null,
-                    total: { $sum: "$items.price" },
+                    total: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
                 },
             },
         ]);
@@ -59,10 +59,115 @@ exports.getSellerDashboardStats = async (req, res) => {
         const monthlyRevenue =
             monthlyRevenueAgg.length > 0 ? monthlyRevenueAgg[0].total : 0;
 
+        // ========== THÊM: Doanh thu theo tháng (12 tháng gần nhất) ==========
+        const last12Months = [];
+        for (let i = 11; i >= 0; i--) {
+            const date = new Date(now);
+            date.setMonth(date.getMonth() - i);
+            date.setDate(1); // Ngày đầu tháng
+            date.setHours(0, 0, 0, 0);
+            last12Months.push(date);
+        }
+
+        const revenueByMonth = await Promise.all(
+            last12Months.map(async (monthStart) => {
+                const monthEnd = new Date(monthStart);
+                monthEnd.setMonth(monthEnd.getMonth() + 1);
+
+                const monthRevenue = await Order.aggregate([
+                    { $unwind: "$items" },
+                    {
+                        $lookup: {
+                            from: "products",
+                            localField: "items.product",
+                            foreignField: "_id",
+                            as: "productData",
+                        },
+                    },
+                    { $unwind: "$productData" },
+                    {
+                        $match: {
+                            "productData.seller": new mongoose.Types.ObjectId(sellerId),
+                            status: "Completed",
+                            createdAt: { $gte: monthStart, $lt: monthEnd },
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            total: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+                        },
+                    },
+                ]);
+
+                return {
+                    date: monthStart.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }),
+                    revenue: monthRevenue.length > 0 ? monthRevenue[0].total : 0,
+                };
+            })
+        );
+
+        // ========== THÊM: Tổng doanh thu toàn thời gian ==========
+        const totalRevenueAgg = await Order.aggregate([
+            { $unwind: "$items" },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "items.product",
+                    foreignField: "_id",
+                    as: "productData",
+                },
+            },
+            { $unwind: "$productData" },
+            {
+                $match: {
+                    "productData.seller": new mongoose.Types.ObjectId(sellerId),
+                    status: "Completed",
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+                },
+            },
+        ]);
+
+        const totalRevenue = totalRevenueAgg.length > 0 ? totalRevenueAgg[0].total : 0;
+
+        // ========== THÊM: Khách hàng mới theo tháng (12 tháng gần nhất) ==========
+        const newCustomersByMonth = await Promise.all(
+            last12Months.map(async (monthStart) => {
+                const monthEnd = new Date(monthStart);
+                monthEnd.setMonth(monthEnd.getMonth() + 1);
+
+                const count = await User.countDocuments({
+                    role: "customer",
+                    createdAt: { $gte: monthStart, $lt: monthEnd },
+                });
+
+                return {
+                    date: monthStart.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }),
+                    customers: count,
+                };
+            })
+        );
+
+        // ========== THÊM: Chi tiết đơn hàng hôm nay ==========
+        const todayOrdersDetails = ordersToday.map(order => ({
+            _id: order._id,
+            orderCode: order.orderCode,
+            totalAmount: order.totalAmount,
+            status: order.status,
+            paymentStatus: order.paymentStatus,
+            createdAt: order.createdAt
+        }));
+
         console.log("monthlyRevenue: ", monthlyRevenue);
         console.log("ordersToday: ", ordersToday.length);
         console.log("totalProducts:", totalProducts);
         console.log("newCustomers: ", newCustomers);
+        
         res.json({
             ok: true,
             data: {
@@ -70,6 +175,12 @@ exports.getSellerDashboardStats = async (req, res) => {
                 totalProducts,
                 newCustomers,
                 monthlyRevenue,
+                totalRevenue, // Tổng doanh thu toàn thời gian
+                // Charts data (12 tháng)
+                revenueChart: revenueByMonth,
+                customersChart: newCustomersByMonth,
+                // Chi tiết đơn hàng hôm nay
+                todayOrders: todayOrdersDetails,
             },
         });
     } catch (error) {
