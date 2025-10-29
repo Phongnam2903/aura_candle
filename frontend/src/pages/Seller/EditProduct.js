@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Upload, X, Plus } from "lucide-react";
 import { getProductById, updateProduct } from "../../api/products/productApi";
 import { getCategories } from "../../api/category/categoriesApi";
-import { getMaterials } from "../../api/material/materialApi";
 
 export default function EditProduct() {
   const { id } = useParams();
@@ -15,7 +14,6 @@ export default function EditProduct() {
 
   const [form, setForm] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [materialsList, setMaterialsList] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [scentInput, setScentInput] = useState("");
@@ -24,14 +22,12 @@ export default function EditProduct() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [product, cats, mats] = await Promise.all([
+        const [product, cats] = await Promise.all([
           getProductById(id),
           getCategories(),
-          getMaterials(),
         ]);
 
         setCategories(cats);
-        setMaterialsList(mats);
 
         // Xử lý dữ liệu sản phẩm
         const materialsValue = product.materials?.map((m) => m.material?._id || m.material).filter(Boolean) || [];
@@ -121,16 +117,6 @@ export default function EditProduct() {
     setForm((prev) => ({
       ...prev,
       fragrances: prev.fragrances.filter((_, i) => i !== index),
-    }));
-  };
-
-  // Toggle material
-  const toggleMaterial = (materialId) => {
-    setForm((prev) => ({
-      ...prev,
-      materials: prev.materials.includes(materialId)
-        ? prev.materials.filter(id => id !== materialId)
-        : [...prev.materials, materialId]
     }));
   };
 
