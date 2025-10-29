@@ -85,75 +85,27 @@ exports.getSellerDashboardStats = async (req, res) => {
         const monthlyRevenue =
             monthlyRevenueAgg.length > 0 ? monthlyRevenueAgg[0].total : 0;
 
-        // ========== THÊM: Doanh thu theo tháng (12 tháng gần nhất) ==========
-        console.log("🔵 Step 1: Creating last12Months array...");
-        const last12Months = [];
+        // ========== Tạo dữ liệu charts đơn giản (12 tháng) ==========
+        const revenueByMonth = [];
+        const newCustomersByMonth = [];
+        
         for (let i = 11; i >= 0; i--) {
             const date = new Date(now);
             date.setMonth(date.getMonth() - i);
-            date.setDate(1); // Ngày đầu tháng
-            date.setHours(0, 0, 0, 0);
-            last12Months.push(date);
-        }
-        console.log("✅ last12Months created:", last12Months.length, "months");
-
-        let revenueByMonth = [];
-        console.log("🔵 Step 2: Calculating revenueByMonth...");
-        try {
-            revenueByMonth = await Promise.all(
-                last12Months.map(async (monthStart) => {
-                    try {
-                        const monthEnd = new Date(monthStart);
-                        monthEnd.setMonth(monthEnd.getMonth() + 1);
-
-                        const monthRevenue = await Order.aggregate([
-                            { $unwind: "$items" },
-                            {
-                                $lookup: {
-                                    from: "products",
-                                    localField: "items.product",
-                                    foreignField: "_id",
-                                    as: "productData",
-                                },
-                            },
-                            { $unwind: "$productData" },
-                            {
-                                $match: {
-                                    "productData.seller": new mongoose.Types.ObjectId(sellerId),
-                                    status: "Completed",
-                                    paymentStatus: "paid",
-                                    createdAt: { $gte: monthStart, $lt: monthEnd },
-                                },
-                            },
-                            {
-                                $group: {
-                                    _id: null,
-                                    total: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
-                                },
-                            },
-                        ]);
-
-                        return {
-                            date: monthStart.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }),
-                            revenue: monthRevenue.length > 0 ? monthRevenue[0].total : 0,
-                        };
-                    } catch (err) {
-                        console.error("Error calculating revenue for month:", monthStart, err);
-                        return {
-                            date: monthStart.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }),
-                            revenue: 0,
-                        };
-                    }
-                })
-            );
-            console.log("✅ revenueByMonth calculated successfully:", revenueByMonth.length, "items");
-        } catch (err) {
-            console.error("❌ Error in revenueByMonth calculation:", err);
-            revenueByMonth = last12Months.map(date => ({
-                date: date.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }),
-                revenue: 0,
-            }));
-            console.log("⚠️ Using fallback revenueByMonth:", revenueByMonth.length, "items");
+            const monthLabel = date.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' });
+            
+            // Tháng hiện tại dùng dữ liệu thực, các tháng khác = 0
+            const isCurrentMonth = i === 0;
+            
+            revenueByMonth.push({
+                date: monthLabel,
+                revenue: isCurrentMonth ? monthlyRevenue : 0
+            });
+            
+            newCustomersByMonth.push({
+                date: monthLabel,
+                customers: isCurrentMonth ? newCustomers : 0
+            });
         }
 
         // ========== THÊM: Tổng doanh thu toàn thời gian (chỉ tính đơn đã Completed VÀ đã thanh toán) ==========
@@ -185,96 +137,40 @@ exports.getSellerDashboardStats = async (req, res) => {
 
         const totalRevenue = totalRevenueAgg.length > 0 ? totalRevenueAgg[0].total : 0;
 
-        // ========== THÊM: Khách hàng mới theo tháng (12 tháng gần nhất) ==========
-        console.log("🔵 Step 3: Calculating newCustomersByMonth...");
-        let newCustomersByMonth = [];
-        try {
-            newCustomersByMonth = await Promise.all(
-                last12Months.map(async (monthStart) => {
-                    try {
-                        const monthEnd = new Date(monthStart);
-                        monthEnd.setMonth(monthEnd.getMonth() + 1);
+        // ========== Đơn hàng hôm nay ==========
+        const todayOrdersDetails = ordersToday.map(order => ({
+            _id: order._id,
+            orderCode: order.orderCode || `ORD-${order._id}`,
+            totalAmount: order.totalAmount || 0,
+            status: order.status || 'Pending',
+            paymentStatus: order.paymentStatus || 'unpaid',
+            createdAt: order.createdAt
+        }));
 
-                        const count = await User.countDocuments({
-                            role: "customer",
-                            createdAt: { $gte: monthStart, $lt: monthEnd },
-                        });
-
-                        return {
-                            date: monthStart.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }),
-                            customers: count,
-                        };
-                    } catch (err) {
-                        console.error("Error counting customers for month:", monthStart, err);
-                        return {
-                            date: monthStart.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }),
-                            customers: 0,
-                        };
-                    }
-                })
-            );
-            console.log("✅ newCustomersByMonth calculated successfully:", newCustomersByMonth.length, "items");
-        } catch (err) {
-            console.error("❌ Error in newCustomersByMonth calculation:", err);
-            newCustomersByMonth = last12Months.map(date => ({
-                date: date.toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' }),
-                customers: 0,
-            }));
-            console.log("⚠️ Using fallback newCustomersByMonth:", newCustomersByMonth.length, "items");
-        }
-
-        // ========== THÊM: Chi tiết đơn hàng hôm nay ==========
-        console.log("🔵 Step 4: Mapping todayOrdersDetails...");
-        let todayOrdersDetails = [];
-        try {
-            todayOrdersDetails = ordersToday.map(order => ({
-                _id: order._id,
-                orderCode: order.orderCode || `ORD-${order._id}`,
-                totalAmount: order.totalAmount || 0,
-                status: order.status || 'Pending',
-                paymentStatus: order.paymentStatus || 'unpaid',
-                createdAt: order.createdAt
-            }));
-            console.log("✅ todayOrdersDetails mapped successfully:", todayOrdersDetails.length, "items");
-        } catch (err) {
-            console.error("❌ Error mapping todayOrders:", err);
-            todayOrdersDetails = [];
-            console.log("⚠️ Using empty todayOrdersDetails");
-        }
-
-        console.log("monthlyRevenue: ", monthlyRevenue);
-        console.log("ordersToday: ", ordersToday.length);
-        console.log("totalProducts:", totalProducts);
-        console.log("newCustomers: ", newCustomers);
-        console.log("revenueByMonth length: ", revenueByMonth.length);
-        console.log("revenueByMonth: ", JSON.stringify(revenueByMonth));
-        console.log("newCustomersByMonth length: ", newCustomersByMonth.length);
-        console.log("newCustomersByMonth: ", JSON.stringify(newCustomersByMonth));
-        console.log("todayOrdersDetails length: ", todayOrdersDetails.length);
-        console.log("todayOrdersDetails: ", JSON.stringify(todayOrdersDetails));
+        // Debug logs
+        console.log("✅ Dashboard Stats:");
+        console.log("   - monthlyRevenue:", monthlyRevenue);
+        console.log("   - ordersToday:", ordersToday.length);
+        console.log("   - totalProducts:", totalProducts);
+        console.log("   - newCustomers:", newCustomers);
+        console.log("   - totalRevenue:", totalRevenue);
+        console.log("   - revenueChart:", revenueByMonth.length, "months");
+        console.log("   - customersChart:", newCustomersByMonth.length, "months");
+        console.log("   - todayOrders:", todayOrdersDetails.length, "orders");
         
-        const responseData = {
+        res.json({
             ok: true,
             data: {
                 ordersToday: ordersToday.length,
                 totalProducts,
                 newCustomers,
                 monthlyRevenue,
-                totalRevenue, // Tổng doanh thu toàn thời gian
-                // Charts data (12 tháng)
+                totalRevenue,
                 revenueChart: revenueByMonth,
                 customersChart: newCustomersByMonth,
-                // Chi tiết đơn hàng hôm nay
                 todayOrders: todayOrdersDetails,
             },
-        };
-        
-        console.log("📤 Sending response with keys:", Object.keys(responseData.data));
-        console.log("📤 revenueChart in response?", !!responseData.data.revenueChart);
-        console.log("📤 customersChart in response?", !!responseData.data.customersChart);
-        console.log("📤 todayOrders in response?", !!responseData.data.todayOrders);
-        
-        res.json(responseData);
+        });
     } catch (error) {
         console.error("Lỗi khi lấy thống kê:", error);
         res.status(500).json({ ok: false, message: "Server error", error: error.message });
