@@ -17,7 +17,7 @@ const detectIntent = (message) => {
     const normalized = message.toLowerCase();
     
     const intents = {
-        // Câu hỏi đơn giản → Rule-based
+        // Câu hỏi đơn giản → Rule-based (ƯU TIÊN!)
         simple: [
             /mùi (nào|gì)/,
             /có mùi/,
@@ -27,21 +27,25 @@ const detectIntent = (message) => {
             /chào|hello|hi/,
             /cảm ơn|thanks/,
             /ship|giao hàng/,
-            /thanh toán/
+            /thanh toán/,
+            /quà|tặng|sinh nhật|gift|birthday/,  // Thêm: quà tặng, sinh nhật
+            /thư giãn|relax|ngủ|sleep/,           // Thêm: thư giãn
+            /size|kích thước/,                     // Thêm: size
+            /chất liệu|thành phần|sáp/,           // Thêm: chất liệu
+            /bảo quản|lưu trữ/                     // Thêm: bảo quản
         ],
         
-        // Câu hỏi phức tạp → AI (Ollama/OpenAI)
+        // Câu hỏi THỰC SỰ phức tạp → AI (Ollama)
+        // Chỉ dùng AI khi THỰC SỰ cần phân tích sâu
         complex: [
-            /so sánh/,
-            /khác nhau/,
-            /nên chọn/,
-            /tư vấn/,
-            /phù hợp/,
-            /recommend/
+            /so sánh .+ và .+/,           // "so sánh A và B"
+            /khác (nhau|biệt) giữa/,      // "khác nhau giữa A và B"
+            /phân tích/,                   // phân tích
+            /review|đánh giá chi tiết/     // review chi tiết
         ]
     };
     
-    // Check simple patterns
+    // Check simple patterns TRƯỚC (ưu tiên)
     for (const pattern of intents.simple) {
         if (pattern.test(normalized)) {
             return 'simple';
@@ -55,7 +59,7 @@ const detectIntent = (message) => {
         }
     }
     
-    // Default: simple (rule-based)
+    // Default: simple (rule-based) - An toàn!
     return 'simple';
 };
 

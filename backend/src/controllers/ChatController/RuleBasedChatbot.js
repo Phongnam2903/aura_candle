@@ -54,10 +54,83 @@ const containsKeywords = (message, keywords) => {
 };
 
 /**
- * Rule-based response generator
+ * Rule-based response generator với conversation memory
  */
-const generateResponse = async (message, shopContext) => {
+const generateResponse = async (message, shopContext, conversationHistory = []) => {
     const { fragrances, categories, products } = shopContext;
+    
+    // Lấy câu bot reply trước đó (để hiểu context)
+    const lastBotMessage = conversationHistory.length > 0 
+        ? conversationHistory[conversationHistory.length - 1]?.content 
+        : null;
+
+    // ========== FOLLOW-UP RESPONSES (Dựa trên context) ==========
+    
+    // Rule 0.1: User trả lời "Có/Được/OK" cho câu hỏi trước
+    if (containsKeywords(message, ['có', 'được', 'ok', 'okay', 'yes', 'ừ', 'uhm', 'đồng ý'])) {
+        // Check context của câu bot trước
+        if (lastBotMessage) {
+            // Nếu bot hỏi về set quà tặng
+            if (normalizeText(lastBotMessage).includes('set qua tang') || 
+                normalizeText(lastBotMessage).includes('hop dep')) {
+                return `Tuyệt vời! 🎁\n\nShop mình có các set quà tặng:\n• Set 2 nến mini (150k) - Hộp hồng xinh xắn\n• Set 3 nến mix mùi (250k) - Hộp sang trọng\n• Set premium + thiệp (350k) - Hộp gỗ cao cấp\n\nBạn thích set nào nhất? Hoặc budget khoảng bao nhiêu?`;
+            }
+            
+            // Nếu bot hỏi về chi tiết sản phẩm
+            if (normalizeText(lastBotMessage).includes('chi tiet') || 
+                normalizeText(lastBotMessage).includes('muon biet them')) {
+                return `Vâng ạ! Mình sẽ tư vấn chi tiết nha 🌸\n\nNến của shop:\n✨ Sáp đậu nành tự nhiên 100%\n✨ Thời gian cháy: 20-40 giờ\n✨ Đóng hộp đẹp, có thiệp\n✨ Bảo hành 6 tháng\n\nBạn muốn biết thêm về mùi hương hay size nào?`;
+            }
+            
+            // Nếu bot gợi ý mùi cụ thể
+            for (const fragrance of fragrances) {
+                if (normalizeText(lastBotMessage).includes(normalizeText(fragrance))) {
+                    const fragranceProducts = products.filter(p => 
+                        p.fragrances && p.fragrances.some(f => 
+                            normalizeText(f) === normalizeText(fragrance)
+                        )
+                    );
+                    
+                    if (fragranceProducts.length > 0) {
+                        const product = fragranceProducts[0];
+                        return `Tuyệt! Mùi ${fragrance} rất được ưa chuộng 🕯️\n\n${product.name}\nGiá: ${product.price.toLocaleString()}đ\n\nĐặc điểm:\n✨ Thơm lâu 20-40 giờ\n✨ Sáp tự nhiên, an toàn\n✨ Đóng hộp sang trọng\n\nBạn muốn đặt bao nhiêu cái? Hoặc xem thêm mùi khác?`;
+                    }
+                }
+            }
+        }
+        
+        // Fallback nếu không match context cụ thể
+        return `Tuyệt vời! 😊\n\nBạn muốn mình tư vấn thêm về:\n• Giá cả & size\n• Mùi hương phù hợp\n• Giao hàng & thanh toán\n• Set quà tặng\n\nCứ hỏi thoải mái nha!`;
+    }
+    
+    // Rule 0.2: User trả lời "Không" cho câu hỏi trước
+    if (containsKeywords(message, ['không', 'no', 'thôi', 'ko', 'khong'])) {
+        return `Không sao! 😊\n\nBạn muốn xem mùi hương khác hoặc cần tư vấn gì không?\n\nShop có ${fragrances.length} mùi khác nhau, luôn sẵn sàng giúp bạn tìm được nến ưng ý nhất! 🕯️`;
+    }
+    
+    // Rule 0.3: User hỏi "Bao nhiêu?" sau khi bot giới thiệu
+    if (containsKeywords(message, ['bao nhiêu', 'giá', 'price']) && lastBotMessage) {
+        // Tìm mùi hương trong câu bot trước
+        for (const fragrance of fragrances) {
+            if (normalizeText(lastBotMessage).includes(normalizeText(fragrance))) {
+                const fragranceProducts = products.filter(p => 
+                    p.fragrances && p.fragrances.some(f => 
+                        normalizeText(f) === normalizeText(fragrance)
+                    )
+                );
+                
+                if (fragranceProducts.length > 0) {
+                    const productList = fragranceProducts.map(p => 
+                        `• ${p.name}: ${p.price.toLocaleString()}đ`
+                    ).join('\n');
+                    
+                    return `Giá nến ${fragrance}: 💰\n\n${productList}\n\nBạn muốn size nào? Hoặc cần tư vấn thêm không?`;
+                }
+            }
+        }
+    }
+
+    // ========== MAIN RULES (Câu hỏi chính) ==========
 
     // Rule 1: Hỏi về mùi hương có sẵn
     if (containsKeywords(message, ['mùi nào', 'có mùi', 'hương nào', 'mùi gì', 'scent', 'fragrance'])) {
@@ -178,7 +251,7 @@ const generateResponse = async (message, shopContext) => {
  * Handle chat với rule-based bot
  */
 const handleRuleBasedChat = async (req, res) => {
-    const { message } = req.body;
+    const { message, conversationHistory = [] } = req.body;
 
     if (!message || message.trim() === "") {
         return res.status(400).json({ error: "Tin nhắn không được để trống." });
@@ -188,8 +261,8 @@ const handleRuleBasedChat = async (req, res) => {
         // Lấy shop context
         const shopContext = await getShopContext();
         
-        // Generate response based on rules
-        const reply = await generateResponse(message, shopContext);
+        // Generate response based on rules WITH conversation history
+        const reply = await generateResponse(message, shopContext, conversationHistory);
         
         return res.json({
             reply,

@@ -53,8 +53,9 @@ export default function ChatWidget() {
       }));
 
       // Gọi API tới backend với conversation history
-      // Hybrid mode: Tự động chọn Rule-based (nhanh) hoặc Ollama/OpenAI (thông minh)
-      const res = await axios.post("http://localhost:5000/chat/hybrid", {
+      // Rule-based mode: 100% FREE, unlimited, KHÔNG cần OpenAI API!
+      // Nếu muốn thông minh hơn → Đổi thành "/chat/hybrid" hoặc "/chat/ollama"
+      const res = await axios.post("http://localhost:5000/chat/rule-based", {
         message: text,
         conversationHistory: conversationHistory, // Gửi lịch sử hội thoại
       });
