@@ -28,7 +28,7 @@ exports.getSellerDashboardStats = async (req, res) => {
             createdAt: { $gte: startOfDay },
         });
 
-        //  Doanh thu tháng hiện tại
+        //  Doanh thu tháng hiện tại (chỉ tính đơn đã Completed VÀ đã thanh toán)
         const monthlyRevenueAgg = await Order.aggregate([
             { $unwind: "$items" },
             {
@@ -44,6 +44,7 @@ exports.getSellerDashboardStats = async (req, res) => {
                 $match: {
                     "productData.seller": new mongoose.Types.ObjectId(sellerId),
                     status: "Completed",
+                    paymentStatus: "paid",
                     createdAt: { $gte: startOfMonth },
                 },
             },
@@ -89,6 +90,7 @@ exports.getSellerDashboardStats = async (req, res) => {
                         $match: {
                             "productData.seller": new mongoose.Types.ObjectId(sellerId),
                             status: "Completed",
+                            paymentStatus: "paid",
                             createdAt: { $gte: monthStart, $lt: monthEnd },
                         },
                     },
@@ -107,7 +109,7 @@ exports.getSellerDashboardStats = async (req, res) => {
             })
         );
 
-        // ========== THÊM: Tổng doanh thu toàn thời gian ==========
+        // ========== THÊM: Tổng doanh thu toàn thời gian (chỉ tính đơn đã Completed VÀ đã thanh toán) ==========
         const totalRevenueAgg = await Order.aggregate([
             { $unwind: "$items" },
             {
@@ -123,6 +125,7 @@ exports.getSellerDashboardStats = async (req, res) => {
                 $match: {
                     "productData.seller": new mongoose.Types.ObjectId(sellerId),
                     status: "Completed",
+                    paymentStatus: "paid",
                 },
             },
             {

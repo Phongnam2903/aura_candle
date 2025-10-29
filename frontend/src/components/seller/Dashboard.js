@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { BarChart3, Package, ShoppingBag, Users, TrendingUp, Calendar, DollarSign } from "lucide-react";
+import { Package, ShoppingBag, Users, TrendingUp, Calendar, DollarSign } from "lucide-react";
 
 import { toast } from "react-toastify";
 import { getSellerDashboardStats } from "../../api/dashboard/dashboardApi";
@@ -25,10 +25,42 @@ export default function Dashboard() {
     if (!stats) return <p className="text-center mt-10 text-gray-500">Đang tải dữ liệu...</p>;
 
     const cards = [
-        { id: 1, icon: <ShoppingBag size={28} />, label: "Đơn hàng hôm nay", value: stats.ordersToday, color: "blue" },
-        { id: 2, icon: <Package size={28} />, label: "Sản phẩm đang bán", value: stats.totalProducts, color: "green" },
-        { id: 3, icon: <Users size={28} />, label: "Khách hàng mới", value: stats.newCustomers, color: "purple" },
-        { id: 4, icon: <DollarSign size={28} />, label: "Tổng doanh thu", value: `₫${Number(stats.totalRevenue || 0).toLocaleString()}`, color: "orange" },
+        {
+            id: 1,
+            icon: <ShoppingBag size={28} />,
+            label: "Đơn hàng hôm nay",
+            value: stats.ordersToday,
+            iconBg: "bg-blue-100",
+            iconColor: "text-blue-600",
+            bgDecor: "bg-blue-50"
+        },
+        {
+            id: 2,
+            icon: <Package size={28} />,
+            label: "Sản phẩm đang bán",
+            value: stats.totalProducts,
+            iconBg: "bg-green-100",
+            iconColor: "text-green-600",
+            bgDecor: "bg-green-50"
+        },
+        {
+            id: 3,
+            icon: <Users size={28} />,
+            label: "Khách hàng mới",
+            value: stats.newCustomers,
+            iconBg: "bg-purple-100",
+            iconColor: "text-purple-600",
+            bgDecor: "bg-purple-50"
+        },
+        {
+            id: 4,
+            icon: <DollarSign size={28} />,
+            label: "Tổng doanh thu",
+            value: `${Number(stats.monthlyRevenue || 0).toLocaleString()}₫`,
+            iconBg: "bg-orange-100",
+            iconColor: "text-orange-600",
+            bgDecor: "bg-orange-50"
+        },
     ];
 
     // Tìm giá trị max để scale charts
@@ -51,12 +83,12 @@ export default function Dashboard() {
                     <motion.div
                         key={item.id}
                         whileHover={{ scale: 1.03 }}
-                        className={`bg-white rounded-2xl shadow-md p-6 flex flex-col items-start border border-gray-100 transition relative overflow-hidden`}
+                        className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-start border border-gray-100 transition relative overflow-hidden"
                     >
-                        <div className={`p-3 bg-${item.color}-100 text-${item.color}-600 rounded-xl mb-4`}>{item.icon}</div>
+                        <div className={`p-3 ${item.iconBg} ${item.iconColor} rounded-xl mb-4`}>{item.icon}</div>
                         <p className="text-gray-500 text-sm mb-1">{item.label}</p>
                         <h2 className="text-2xl font-semibold text-gray-800">{item.value}</h2>
-                        <div className={`absolute top-0 right-0 w-32 h-32 bg-${item.color}-50 rounded-full -mr-16 -mt-16 opacity-50`}></div>
+                        <div className={`absolute top-0 right-0 w-32 h-32 ${item.bgDecor} rounded-full -mr-16 -mt-16 opacity-50`}></div>
                     </motion.div>
                 ))}
             </div>
@@ -174,20 +206,18 @@ export default function Dashboard() {
                                             <span className="font-semibold text-blue-600">{order.totalAmount?.toLocaleString()}đ</span>
                                         </td>
                                         <td className="px-4 py-3 text-sm">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                order.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                                                order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                order.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                                                'bg-blue-100 text-blue-700'
-                                            }`}>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                                                    order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                        order.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                            'bg-blue-100 text-blue-700'
+                                                }`}>
                                                 {order.status}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-sm">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                                order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                                                'bg-orange-100 text-orange-700'
-                                            }`}>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
+                                                    'bg-orange-100 text-orange-700'
+                                                }`}>
                                                 {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
                                             </span>
                                         </td>
