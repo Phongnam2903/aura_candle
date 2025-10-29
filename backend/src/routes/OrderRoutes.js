@@ -21,10 +21,11 @@ router.put("/:id/cancel", verifyToken, async (req, res) => {
         const order = await Order.findById(orderId).populate("user"); // buyer
         if (!order) return res.status(404).json({ ok: false, message: "Đơn hàng không tồn tại" });
 
-        if (["Completed", "Cancelled"].includes(order.status)) {
+        // Chỉ cho phép hủy đơn khi trạng thái còn là "Pending"
+        if (order.status !== "Pending") {
             return res.status(400).json({
                 ok: false,
-                message: `Đơn hàng đã ${order.status}, không thể hủy`,
+                message: `Không thể hủy đơn hàng đã ${order.status}. Chỉ có thể hủy đơn hàng đang chờ xử lý.`,
             });
         }
 

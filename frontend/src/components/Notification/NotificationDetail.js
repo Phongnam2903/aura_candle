@@ -104,8 +104,8 @@ export default function NotificationDetail() {
                             ))}
                         </div>
 
-                        {/* Nút hủy đơn */}
-                        {["Pending", "Confirmed", "Shipped"].includes(notification.relatedOrder.status) && (
+                        {/* Nút hủy đơn - chỉ cho phép hủy khi trạng thái là Pending */}
+                        {notification.relatedOrder.status === "Pending" && (
                             <button
                                 onClick={handleCancelOrder}
                                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
