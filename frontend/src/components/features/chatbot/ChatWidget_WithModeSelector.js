@@ -1,7 +1,8 @@
 // src/components/features/chatbot/ChatWidget.jsx
+// VERSION WITH MODE SELECTOR - User có thể chọn Rule-based, Ollama, hoặc Hybrid
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { Send, X, MessageCircle, Sparkles, Wind } from "lucide-react";
+import { Send, X, MessageCircle, Sparkles, Wind, Settings } from "lucide-react";
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -14,7 +15,9 @@ export default function ChatWidget() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [shopContext, setShopContext] = useState(null); // Lưu fragrances & categories
+  const [shopContext, setShopContext] = useState(null);
+  const [botMode, setBotMode] = useState('hybrid'); // 'rule-based', 'ollama', 'hybrid'
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -52,16 +55,20 @@ export default function ChatWidget() {
         content: m.text
       }));
 
+      // Chọn endpoint dựa trên mode
+      const endpoint = `http://localhost:5000/chat/${botMode}`;
+      console.log(`🤖 Using mode: ${botMode}`);
+
       // Gọi API tới backend với conversation history
-      // Hybrid mode: Tự động chọn Rule-based (nhanh) hoặc Ollama/OpenAI (thông minh)
-      const res = await axios.post("http://localhost:5000/chat/hybrid", {
+      const res = await axios.post(endpoint, {
         message: text,
-        conversationHistory: conversationHistory, // Gửi lịch sử hội thoại
+        conversationHistory: conversationHistory,
       });
 
       // Lấy phản hồi của bot và shop context
       const botReply = res.data.reply;
       const newShopContext = res.data.shopContext;
+      const source = res.data.source || botMode;
 
       // Lưu shop context (fragrances, categories)
       if (newShopContext) {
@@ -71,15 +78,27 @@ export default function ChatWidget() {
       // Hiển thị tin nhắn bot
       setMessages((prev) => [
         ...prev,
-        { from: "bot", text: botReply, timestamp: new Date() },
+        { 
+          from: "bot", 
+          text: botReply, 
+          timestamp: new Date(),
+          source: source // Để biết bot dùng backend nào
+        },
       ]);
     } catch (error) {
       console.error("Lỗi khi gọi API chatbot:", error);
+      
+      let errorMsg = "Xin lỗi, hiện tại tôi đang gặp chút trục trặc 😅.";
+      
+      if (error.response?.status === 503) {
+        errorMsg = error.response.data.error + "\n\n💡 Tip: Chuyển sang mode 'Rule-based' để dùng ngay!";
+      }
+      
       setMessages((prev) => [
         ...prev,
         {
           from: "bot",
-          text: "Xin lỗi, hiện tại tôi đang gặp chút trục trặc 😅. Bạn thử lại sau nhé!",
+          text: errorMsg,
           timestamp: new Date(),
         },
       ]);
@@ -99,6 +118,13 @@ export default function ChatWidget() {
   const formatTime = (date) =>
     date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
 
+  // Mode labels
+  const modeLabels = {
+    'rule-based': '📋 Rule-based (Nhanh)',
+    'ollama': '🦙 Ollama (Thông minh)',
+    'hybrid': '🎯 Hybrid (Tự động)'
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {/* Nút mở/đóng */}
@@ -113,14 +139,63 @@ export default function ChatWidget() {
       {open && (
         <div className="absolute bottom-20 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
           {/* Header */}
-          <div className="bg-gradient-to-r from-pink-500 to-purple-500 p-4 text-white flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <Sparkles className="w-5 h-5" />
+          <div className="bg-gradient-to-r from-pink-500 to-purple-500 p-4 text-white">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm">Chuyên gia nến thơm</h3>
+                  <p className="text-xs text-white/80">{modeLabels[botMode]}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
             </div>
-            <div>
-              <h3 className="font-semibold text-sm">Chuyên gia nến thơm</h3>
-              <p className="text-xs text-white/80">Sẵn sàng tư vấn</p>
-            </div>
+
+            {/* Settings Panel */}
+            {showSettings && (
+              <div className="mt-3 p-3 bg-white/10 rounded-lg backdrop-blur">
+                <p className="text-xs mb-2">Chọn chế độ bot:</p>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={() => { setBotMode('rule-based'); setShowSettings(false); }}
+                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${
+                      botMode === 'rule-based' 
+                        ? 'bg-white text-purple-600 font-semibold' 
+                        : 'bg-white/20 hover:bg-white/30'
+                    }`}
+                  >
+                    📋 Rule-based - Nhanh, Free
+                  </button>
+                  <button
+                    onClick={() => { setBotMode('ollama'); setShowSettings(false); }}
+                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${
+                      botMode === 'ollama' 
+                        ? 'bg-white text-purple-600 font-semibold' 
+                        : 'bg-white/20 hover:bg-white/30'
+                    }`}
+                  >
+                    🦙 Ollama - Thông minh (cần setup)
+                  </button>
+                  <button
+                    onClick={() => { setBotMode('hybrid'); setShowSettings(false); }}
+                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${
+                      botMode === 'hybrid' 
+                        ? 'bg-white text-purple-600 font-semibold' 
+                        : 'bg-white/20 hover:bg-white/30'
+                    }`}
+                  >
+                    🎯 Hybrid - Tự động chọn
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Tin nhắn */}
@@ -147,10 +222,14 @@ export default function ChatWidget() {
                       {m.text}
                     </div>
                     <div
-                      className={`text-xs text-gray-400 px-2 ${m.from === "user" ? "text-right" : "text-left"
-                        }`}
+                      className={`text-xs text-gray-400 px-2 flex items-center gap-1 ${
+                        m.from === "user" ? "justify-end" : "justify-start"
+                      }`}
                     >
                       {formatTime(m.timestamp)}
+                      {m.source && m.from === "bot" && (
+                        <span className="text-[10px] opacity-60">• {m.source}</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -177,7 +256,7 @@ export default function ChatWidget() {
               <p className="text-xs text-gray-500 mb-2 font-medium">💡 Gợi ý câu hỏi:</p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  "Có mùi nào thơm nhẹ nhàng?",
+                  "Có mùi nào thơm nhẹ nhẹ không?",
                   "Tặng sinh nhật nên chọn gì?",
                   "Nến giá bao nhiêu?",
                   "Có mùi hoa hồng không?"
@@ -250,3 +329,4 @@ export default function ChatWidget() {
     </div>
   );
 }
+
