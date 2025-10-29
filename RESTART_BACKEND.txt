@@ -1,0 +1,78 @@
+╔══════════════════════════════════════════════════════════════╗
+║          HƯỚNG DẪN RESTART BACKEND ĐỂ DEBUG                  ║
+╚══════════════════════════════════════════════════════════════╝
+
+📋 BƯỚC 1: TẮT BACKEND HIỆN TẠI
+   - Nhấn Ctrl+C trong terminal backend
+   - Đợi server tắt hoàn toàn
+
+📋 BƯỚC 2: RESTART BACKEND
+   cd D:\Project\Ecommerce_EXE\Aura_Candle\backend
+   npm start
+   
+   (hoặc nếu dùng nodemon: nodemon server.js)
+
+📋 BƯỚC 3: MỞ DASHBOARD TRONG BROWSER
+   - Refresh trang Dashboard
+   - Mở DevTools (F12) → Console tab
+
+📋 BƯỚC 4: XEM BACKEND CONSOLE
+   Tìm các dòng log theo thứ tự:
+   
+   ✅ Nên thấy:
+   ----------------------------------------------------------
+   🔵 Step 1: Creating last12Months array...
+   ✅ last12Months created: 12 months
+   
+   🔵 Step 2: Calculating revenueByMonth...
+   ✅ revenueByMonth calculated successfully: 12 items
+   
+   🔵 Step 3: Calculating newCustomersByMonth...
+   ✅ newCustomersByMonth calculated successfully: 12 items
+   
+   🔵 Step 4: Mapping todayOrdersDetails...
+   ✅ todayOrdersDetails mapped successfully: 0 items
+   
+   revenueByMonth length: 12
+   revenueByMonth: [{"date":"...","revenue":0},...]
+   
+   newCustomersByMonth length: 12
+   newCustomersByMonth: [{"date":"...","customers":1},...]
+   
+   📤 Sending response with keys: [...]
+   📤 revenueChart in response? true
+   📤 customersChart in response? true
+   📤 todayOrders in response? true
+   ----------------------------------------------------------
+   
+   ❌ Nếu thấy lỗi:
+   - Chụp màn hình error
+   - Gửi cho tôi để debug tiếp
+
+📋 BƯỚC 5: XEM BROWSER CONSOLE
+   Tìm các dòng:
+   
+   ✅ Nên thấy:
+   ----------------------------------------------------------
+   🔍 revenueChart exists? true
+   🔍 revenueChart length: 12
+   🔍 customersChart exists? true
+   🔍 customersChart length: 12
+   🔍 todayOrders exists? true
+   🔍 todayOrders length: 0
+   ----------------------------------------------------------
+   
+   ❌ Nếu vẫn false → Chụp màn hình cả Backend + Browser console
+
+📋 BƯỚC 6: KIỂM TRA GIAO DIỆN
+   - Charts nên hiển thị 12 dòng với labels tháng
+   - Nếu revenue = 0 → hiển thị "0đ" ở giữa thanh xám
+   - Nếu có data → thanh màu xanh/tím
+
+╔══════════════════════════════════════════════════════════════╗
+║  NẾU VẪN KHÔNG HOẠT ĐỘNG, GỬI CHO TÔI:                      ║
+║  1. Screenshot Backend Console                                ║
+║  2. Screenshot Browser Console                                ║
+║  3. Network tab → /dashboard/seller → Response                ║
+╚══════════════════════════════════════════════════════════════╝
+

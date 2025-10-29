@@ -59,6 +59,15 @@ export default function Dashboard() {
 
     if (!stats) return <p className="text-center mt-10 text-gray-500">Đang tải dữ liệu...</p>;
 
+    // Debug: Kiểm tra stats có gì
+    console.log("🔍 Stats object:", stats);
+    console.log("🔍 revenueChart exists?", !!stats.revenueChart);
+    console.log("🔍 revenueChart length:", stats.revenueChart?.length);
+    console.log("🔍 customersChart exists?", !!stats.customersChart);
+    console.log("🔍 customersChart length:", stats.customersChart?.length);
+    console.log("🔍 todayOrders exists?", !!stats.todayOrders);
+    console.log("🔍 todayOrders length:", stats.todayOrders?.length);
+
     const cards = [
         {
             id: 1,
@@ -143,23 +152,28 @@ export default function Dashboard() {
                     {stats.revenueChart && stats.revenueChart.length > 0 ? (
                         <div className="space-y-3">
                             {stats.revenueChart.map((item, index) => {
-                                const percentage = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
+                                // Nếu tất cả đều = 0, hiển thị width cố định nhỏ để người dùng biết có data
+                                const percentage = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : (item.revenue === 0 ? 5 : 0);
                                 return (
                                     <div key={index} className="flex items-center gap-3">
                                         <span className="text-xs text-gray-600 font-medium w-16">{item.date}</span>
                                         <div className="flex-1 bg-gray-100 rounded-full h-8 relative overflow-hidden">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${percentage}%` }}
-                                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                                className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-end pr-3"
-                                            >
-                                                {item.revenue > 0 && (
+                                            {item.revenue > 0 ? (
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${percentage}%` }}
+                                                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                                                    className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-end pr-3"
+                                                >
                                                     <span className="text-xs font-semibold text-white">
                                                         {item.revenue.toLocaleString()}đ
                                                     </span>
-                                                )}
-                                            </motion.div>
+                                                </motion.div>
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full">
+                                                    <span className="text-xs text-gray-400">0đ</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 );
@@ -183,23 +197,28 @@ export default function Dashboard() {
                     {stats.customersChart && stats.customersChart.length > 0 ? (
                         <div className="space-y-3">
                             {stats.customersChart.map((item, index) => {
-                                const percentage = maxCustomers > 0 ? (item.customers / maxCustomers) * 100 : 0;
+                                // Nếu tất cả đều = 0, hiển thị width cố định nhỏ để người dùng biết có data
+                                const percentage = maxCustomers > 0 ? (item.customers / maxCustomers) * 100 : (item.customers === 0 ? 5 : 0);
                                 return (
                                     <div key={index} className="flex items-center gap-3">
                                         <span className="text-xs text-gray-600 font-medium w-16">{item.date}</span>
                                         <div className="flex-1 bg-gray-100 rounded-full h-8 relative overflow-hidden">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${percentage}%` }}
-                                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                                className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-end pr-3"
-                                            >
-                                                {item.customers > 0 && (
+                                            {item.customers > 0 ? (
+                                                <motion.div
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${percentage}%` }}
+                                                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                                                    className="h-full bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-end pr-3"
+                                                >
                                                     <span className="text-xs font-semibold text-white">
                                                         {item.customers} người
                                                     </span>
-                                                )}
-                                            </motion.div>
+                                                </motion.div>
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full">
+                                                    <span className="text-xs text-gray-400">0 người</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 );
