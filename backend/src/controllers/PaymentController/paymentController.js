@@ -1,340 +1,288 @@
-// const PaymentService = require('../../services/paymentService');
-// const { Payment, Order } = require('../../models');
-// const mongoose = require('mongoose');
+const PaymentService = require('../../services/paymentService');
+const { Order } = require('../../models');
 
-// // Tạo thanh toán VNPay
+// =============================
+// Tạo thanh toán VNPay
+// =============================
+const createVNPayPayment = async (req, res) => {
+    try {
+        const { orderId, amount, orderDescription, bankCode } = req.body;
 
-// // Helper function để xác thực đơn hàng trước khi thanh toán
-// const validateOrderForPayment = async (orderId, amount, userId) => {
-//     if (!orderId || !amount) {
-//         return { success: false, status: 400, message: 'Thiếu thông tin orderId hoặc amount' };
-//     }
+        // Validate input
+        if (!orderId || !amount) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Thiếu thông tin orderId hoặc amount'
+            });
+        }
 
-//     const order = await Order.findById(orderId).populate('user');
-//     if (!order) {
-//         return { success: false, status: 404, message: 'Không tìm thấy đơn hàng' };
-//     }
+        // Kiểm tra order có tồn tại và thuộc về user không
+        const order = await Order.findOne({
+            _id: orderId,
+            user: req.user.id
+        });
 
-//     if (order.user._id.toString() !== userId) {
-//         return { success: false, status: 403, message: 'Bạn không có quyền thanh toán đơn hàng này' };
-//     }
+        if (!order) {
+            return res.status(404).json({
+                ok: false,
+                message: 'Không tìm thấy đơn hàng'
+            });
+        }
 
-//     // Có thể thêm kiểm tra:
-//     // if (order.totalAmount !== amount) {
-//     //     return { success: false, status: 400, message: 'Số tiền thanh toán không khớp với tổng giá trị đơn hàng' };
-//     // }
-//     // if (order.paymentStatus === 'paid') {
-//     //     return { success: false, status: 400, message: 'Đơn hàng này đã được thanh toán' };
-//     // }
+        // Tạo payment URL
+        const result = await PaymentService.createVNPayPayment({
+            orderId: order._id.toString(),
+            amount: order.totalAmount,
+            orderDescription: orderDescription || `Thanh toán đơn hàng ${order._id}`,
+            bankCode: bankCode || ''
+        });
 
-//     return { success: true, order };
-// };
+        if (result.success) {
+            // Cập nhật trạng thái đơn hàng
+            order.paymentStatus = 'processing';
+            await order.save();
 
-// const createVNPayPayment = async (req, res) => {
-//     try {
-//         const { orderId, amount, description } = req.body;
-//         const userId = req.user?.id;
+            return res.json({
+                ok: true,
+                message: 'Tạo link thanh toán thành công',
+                paymentUrl: result.paymentUrl,
+                orderId: result.orderId
+            });
+        } else {
+            return res.status(500).json({
+                ok: false,
+                message: result.error || 'Không thể tạo link thanh toán'
+            });
+        }
+    } catch (error) {
+        console.error('❌ Create VNPay payment error:', error);
+        res.status(500).json({
+            ok: false,
+            message: 'Lỗi server khi tạo thanh toán',
+            error: error.message
+        });
+    }
+};
 
-//         const validation = await validateOrderForPayment(orderId, amount, userId);
-//         if (!validation.success) return res.status(validation.status).json({ success: false, message: validation.message });
+// =============================
+// Xử lý VNPay callback
+// =============================
+const handleVNPayCallback = async (req, res) => {
+    try {
+        const vnp_Params = req.query;
 
+        // Xác thực chữ ký
+        const isValid = PaymentService.verifyVNPayCallback(vnp_Params);
 
-//         // Tạo payment record
-//         const payment = new Payment({
-//             order: orderId,
-//             method: 'VNPay',
-//             amount: amount,
-//             status: 'Pending',
-//             transactionId: `VNPAY_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-//         });
-//         await payment.save();
+        if (!isValid) {
+            return res.redirect(`${process.env.CLIENT_URL}/payment/failed?message=Invalid signature`);
+        }
 
-//         // Tạo VNPay payment URL
-//         const paymentResult = await PaymentService.createVNPayPayment({
-//             orderId: orderId,
-//             amount: amount,
-//             orderDescription: description || `Thanh toán đơn hàng ${orderId}`,
-//             orderType: 'other'
-//         });
+        const orderId = vnp_Params['vnp_TxnRef'];
+        const responseCode = vnp_Params['vnp_ResponseCode'];
 
-//         if (paymentResult.success) {
-//             // Tạo QR Code
-//             const qrCode = await PaymentService.generateQRCode(paymentResult.paymentUrl);
-            
-//             res.json({
-//                 success: true,
-//                 paymentUrl: paymentResult.paymentUrl,
-//                 qrCode: qrCode,
-//                 paymentId: payment._id,
-//                 orderId: orderId
-//             });
-//         } else {
-//             res.status(400).json({
-//                 success: false,
-//                 message: 'Không thể tạo thanh toán VNPay',
-//                 error: paymentResult.error
-//             });
-//         }
-//     } catch (error) {
-//         console.error('Create VNPay payment error:', error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'Lỗi server khi tạo thanh toán VNPay',
-//             error: error.message
-//         });
-//     }
-// };
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.redirect(`${process.env.CLIENT_URL}/payment/failed?message=Order not found`);
+        }
 
-// // Tạo thanh toán Momo
-// const createMomoPayment = async (req, res) => {
-//     try {
-//         const { orderId, amount, description } = req.body;
-//         const userId = req.user?.id;
+        // ResponseCode = 00 nghĩa là thành công
+        if (responseCode === '00') {
+            order.paymentStatus = 'paid';
+            order.status = 'Confirmed';
+            await order.save();
 
-//         if (!orderId || !amount) {
-//             return res.status(400).json({ 
-//                 success: false, message: 'Thiếu thông tin orderId hoặc amount' 
-//             });
-//         }
+            return res.redirect(`${process.env.CLIENT_URL}/payment/success?orderId=${orderId}`);
+        } else {
+            order.paymentStatus = 'failed';
+            await order.save();
 
-//         const validation = await validateOrderForPayment(orderId, amount, userId);
-//         if (!validation.success) return res.status(validation.status).json({ success: false, message: validation.message });
+            return res.redirect(`${process.env.CLIENT_URL}/payment/failed?orderId=${orderId}&code=${responseCode}`);
+        }
+    } catch (error) {
+        console.error('❌ VNPay callback error:', error);
+        res.redirect(`${process.env.CLIENT_URL}/payment/failed?message=Server error`);
+    }
+};
 
-//         // Tạo payment record
-//         const payment = new Payment({
-//             order: orderId,
-//             method: 'Momo',
-//             amount: amount,
-//             status: 'Pending',
-//             transactionId: `MOMO_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-//         });
-//         await payment.save();
+// =============================
+// Tạo thanh toán Momo
+// =============================
+const createMomoPayment = async (req, res) => {
+    try {
+        const { orderId, orderDescription } = req.body;
 
-//         // Tạo Momo payment
-//         const paymentResult = await PaymentService.createMomoPayment({
-//             orderId: orderId,
-//             amount: amount,
-//             orderDescription: description || `Thanh toán đơn hàng ${orderId}`,
-//             orderType: 'momo_wallet'
-//         });
+        if (!orderId) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Thiếu thông tin orderId'
+            });
+        }
 
-//         if (paymentResult.success) {
-//             // Tạo QR Code từ Momo QR URL hoặc payment URL
-//             const qrCode = await PaymentService.generateQRCode(
-//                 paymentResult.qrCode || paymentResult.paymentUrl
-//             );
-            
-//             res.json({
-//                 success: true,
-//                 paymentUrl: paymentResult.paymentUrl,
-//                 qrCode: qrCode,
-//                 momoQRCode: paymentResult.qrCode,
-//                 paymentId: payment._id,
-//                 orderId: orderId
-//             });
-//         } else {
-//             res.status(400).json({
-//                 success: false,
-//                 message: 'Không thể tạo thanh toán Momo',
-//                 error: paymentResult.error
-//             });
-//         }
-//     } catch (error) {
-//         console.error('Create Momo payment error:', error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'Lỗi server khi tạo thanh toán Momo',
-//             error: error.message
-//         });
-//     }
-// };
+        // Kiểm tra order
+        const order = await Order.findOne({
+            _id: orderId,
+            user: req.user.id
+        });
 
-// // Xử lý VNPay callback
-// const handleVNPayCallback = async (req, res) => {
-//     try {
-//         const vnp_Params = req.query;
-//         const isValid = PaymentService.verifyVNPayCallback(vnp_Params);
+        if (!order) {
+            return res.status(404).json({
+                ok: false,
+                message: 'Không tìm thấy đơn hàng'
+            });
+        }
 
-//         if (!isValid) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: 'Chữ ký không hợp lệ'
-//             });
-//         }
+        // Tạo payment
+        const result = await PaymentService.createMomoPayment({
+            orderId: order._id.toString(),
+            amount: order.totalAmount,
+            orderDescription: orderDescription || `Thanh toán đơn hàng ${order._id}`
+        });
 
-//         const orderId = vnp_Params['vnp_TxnRef'];
-//         const responseCode = vnp_Params['vnp_ResponseCode'];
-//         const transactionId = vnp_Params['vnp_TransactionNo'];
+        if (result.success) {
+            order.paymentStatus = 'processing';
+            await order.save();
 
-//         // Tìm payment record
-//         const payment = await Payment.findOne({ 
-//             order: orderId, 
-//             method: 'VNPay' 
-//         });
+            return res.json({
+                ok: true,
+                message: 'Tạo link thanh toán Momo thành công',
+                paymentUrl: result.paymentUrl,
+                qrCode: result.qrCode,
+                orderId: result.orderId
+            });
+        } else {
+            return res.status(500).json({
+                ok: false,
+                message: result.error || 'Không thể tạo link thanh toán Momo'
+            });
+        }
+    } catch (error) {
+        console.error('❌ Create Momo payment error:', error);
+        res.status(500).json({
+            ok: false,
+            message: 'Lỗi server khi tạo thanh toán',
+            error: error.message
+        });
+    }
+};
 
-//         if (!payment) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: 'Không tìm thấy payment record'
-//             });
-//         }
+// =============================
+// Xử lý Momo callback
+// =============================
+const handleMomoCallback = async (req, res) => {
+    try {
+        const params = req.body;
 
-//         if (responseCode === '00') {
-//             // Thanh toán thành công
-//             payment.status = 'Success';
-//             payment.transactionId = transactionId;
-//             payment.paidAt = new Date();
-//             await payment.save();
+        // Xác thực chữ ký
+        const isValid = PaymentService.verifyMomoCallback(params);
 
-//             // Cập nhật order status
-//             const order = await Order.findById(orderId);
-//             if (order) {
-//                 order.paymentStatus = 'paid';
-//                 await order.save();
-//             }
+        if (!isValid) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Invalid signature'
+            });
+        }
 
-//             res.json({
-//                 success: true,
-//                 message: 'Thanh toán thành công',
-//                 orderId: orderId,
-//                 transactionId: transactionId
-//             });
-//         } else {
-//             // Thanh toán thất bại
-//             payment.status = 'Failed';
-//             await payment.save();
+        const orderId = params.orderId;
+        const resultCode = params.resultCode;
 
-//             res.json({
-//                 success: false,
-//                 message: 'Thanh toán thất bại',
-//                 orderId: orderId
-//             });
-//         }
-//     } catch (error) {
-//         console.error('VNPay callback error:', error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'Lỗi xử lý callback VNPay',
-//             error: error.message
-//         });
-//     }
-// };
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({
+                ok: false,
+                message: 'Order not found'
+            });
+        }
 
-// // Xử lý Momo callback
-// const handleMomoCallback = async (req, res) => {
-//     try {
-//         const params = req.body;
-//         const isValid = PaymentService.verifyMomoCallback(params);
+        // resultCode = 0 nghĩa là thành công
+        if (resultCode === 0) {
+            order.paymentStatus = 'paid';
+            order.status = 'Confirmed';
+            await order.save();
 
-//         if (!isValid) {
-//             return res.status(400).json({
-//                 success: false,
-//                 message: 'Chữ ký không hợp lệ'
-//             });
-//         }
+            return res.json({
+                ok: true,
+                message: 'Thanh toán thành công'
+            });
+        } else {
+            order.paymentStatus = 'failed';
+            await order.save();
 
-//         const { orderId, resultCode, transId, amount } = params;
+            return res.json({
+                ok: false,
+                message: 'Thanh toán thất bại'
+            });
+        }
+    } catch (error) {
+        console.error('❌ Momo callback error:', error);
+        res.status(500).json({
+            ok: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
 
-//         // Tìm payment record
-//         const payment = await Payment.findOne({ 
-//             order: orderId, 
-//             method: 'Momo' 
-//         });
+// =============================
+// Xử lý Momo return (redirect từ Momo về)
+// =============================
+const handleMomoReturn = async (req, res) => {
+    try {
+        const params = req.query;
+        const orderId = params.orderId;
+        const resultCode = params.resultCode;
 
-//         if (!payment) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: 'Không tìm thấy payment record'
-//             });
-//         }
+        if (resultCode === '0') {
+            return res.redirect(`${process.env.CLIENT_URL}/payment/success?orderId=${orderId}`);
+        } else {
+            return res.redirect(`${process.env.CLIENT_URL}/payment/failed?orderId=${orderId}&code=${resultCode}`);
+        }
+    } catch (error) {
+        console.error('❌ Momo return error:', error);
+        res.redirect(`${process.env.CLIENT_URL}/payment/failed?message=Server error`);
+    }
+};
 
-//         if (resultCode === 0) {
-//             // Thanh toán thành công
-//             payment.status = 'Success';
-//             payment.transactionId = transId;
-//             payment.paidAt = new Date();
-//             await payment.save();
+// =============================
+// Kiểm tra trạng thái thanh toán
+// =============================
+const checkPaymentStatus = async (req, res) => {
+    try {
+        const { orderId } = req.params;
 
-//             // Cập nhật order status
-//             const order = await Order.findById(orderId);
-//             if (order) {
-//                 order.paymentStatus = 'paid';
-//                 await order.save();
-//             }
+        const order = await Order.findOne({
+            _id: orderId,
+            user: req.user.id
+        });
 
-//             res.json({
-//                 success: true,
-//                 message: 'Thanh toán thành công',
-//                 orderId: orderId,
-//                 transactionId: transId
-//             });
-//         } else {
-//             // Thanh toán thất bại
-//             payment.status = 'Failed';
-//             await payment.save();
+        if (!order) {
+            return res.status(404).json({
+                ok: false,
+                message: 'Không tìm thấy đơn hàng'
+            });
+        }
 
-//             res.json({
-//                 success: false,
-//                 message: 'Thanh toán thất bại',
-//                 orderId: orderId
-//             });
-//         }
-//     } catch (error) {
-//         console.error('Momo callback error:', error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'Lỗi xử lý callback Momo',
-//             error: error.message
-//         });
-//     }
-// };
+        return res.json({
+            ok: true,
+            paymentStatus: order.paymentStatus,
+            orderStatus: order.status,
+            totalAmount: order.totalAmount
+        });
+    } catch (error) {
+        console.error('❌ Check payment status error:', error);
+        res.status(500).json({
+            ok: false,
+            message: 'Lỗi server',
+            error: error.message
+        });
+    }
+};
 
-// // Kiểm tra trạng thái thanh toán
-// const checkPaymentStatus = async (req, res) => {
-//     try {
-//         const { orderId } = req.params;
-//         const userId = req.user?.id;
-
-//         const order = await Order.findById(orderId).populate('user');
-//         if (!order) {
-//             return res.status(404).json({
-//                 success: false,
-//                 message: 'Không tìm thấy đơn hàng'
-//             });
-//         }
-
-//         // Kiểm tra quyền sở hữu
-//         if (order.user._id.toString() !== userId) {
-//             return res.status(403).json({
-//                 success: false,
-//                 message: 'Bạn không có quyền xem đơn hàng này'
-//             });
-//         }
-
-//         const payment = await Payment.findOne({ order: orderId });
-        
-//         res.json({
-//             success: true,
-//             paymentStatus: payment ? payment.status : 'Pending',
-//             orderStatus: order.status,
-//             paymentMethod: order.paymentMethod,
-//             totalAmount: order.totalAmount,
-//             payment: payment
-//         });
-//     } catch (error) {
-//         console.error('Check payment status error:', error);
-//         res.status(500).json({
-//             success: false,
-//             message: 'Lỗi kiểm tra trạng thái thanh toán',
-//             error: error.message
-//         });
-//     }
-// };
-
-// module.exports = {
-//     createVNPayPayment,
-//     createMomoPayment,
-//     handleVNPayCallback,
-//     handleMomoCallback,
-//     checkPaymentStatus
-// };
+module.exports = {
+    createVNPayPayment,
+    handleVNPayCallback,
+    createMomoPayment,
+    handleMomoCallback,
+    handleMomoReturn,
+    checkPaymentStatus
+};

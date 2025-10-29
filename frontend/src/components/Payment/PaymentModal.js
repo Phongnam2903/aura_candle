@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Smartphone, CreditCard, CheckCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { createVNPayPayment, createMomoPayment, checkPaymentStatus as checkPaymentStatusAPI } from '../../api/payment/paymentApi';
 
 const PaymentModal = ({ isOpen, onClose, orderId, amount, onPaymentSuccess }) => {
   const [selectedMethod, setSelectedMethod] = useState('');
@@ -23,38 +24,40 @@ const PaymentModal = ({ isOpen, onClose, orderId, amount, onPaymentSuccess }) =>
     setSelectedMethod(method);
 
     try {
-      const response = await fetch(`/api/payment/${method.toLowerCase()}/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          orderId,
-          amount,
-          description: `Thanh toán đơn hàng ${orderId}`
-        })
-      });
+      let data;
+      const paymentData = {
+        orderId,
+        amount,
+        orderDescription: `Thanh toán đơn hàng ${orderId}`
+      };
 
-      const data = await response.json();
+      // Gọi API tương ứng
+      if (method === 'VNPay') {
+        data = await createVNPayPayment(paymentData);
+      } else if (method === 'Momo') {
+        data = await createMomoPayment(paymentData);
+      }
 
-      if (data.success) {
-        setQrCode(data.qrCode);
+      if (data.ok) {
+        setQrCode(data.qrCode || '');
         setPaymentUrl(data.paymentUrl);
 
         // Mở payment URL trong tab mới
         if (data.paymentUrl) {
           window.open(data.paymentUrl, '_blank');
+          toast.info('Vui lòng hoàn tất thanh toán trên trang vừa mở');
         }
 
         // Bắt đầu kiểm tra trạng thái thanh toán
         checkPaymentStatus();
       } else {
         toast.error(data.message || 'Không thể tạo thanh toán');
+        setSelectedMethod('');
       }
     } catch (error) {
       console.error('Payment creation error:', error);
-      toast.error('Lỗi khi tạo thanh toán');
+      toast.error(error.response?.data?.message || 'Lỗi khi tạo thanh toán');
+      setSelectedMethod('');
     } finally {
       setLoading(false);
     }
@@ -62,30 +65,29 @@ const PaymentModal = ({ isOpen, onClose, orderId, amount, onPaymentSuccess }) =>
 
   const checkPaymentStatus = async () => {
     try {
-      const response = await fetch(`/api/payment/status/${orderId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const data = await checkPaymentStatusAPI(orderId);
 
-      const data = await response.json();
-
-      if (data.success) {
-        if (data.paymentStatus === 'Success') {
+      if (data.ok) {
+        if (data.paymentStatus === 'paid') {
           setPaymentStatus('success');
           toast.success('Thanh toán thành công!');
-          onPaymentSuccess();
+          if (onPaymentSuccess) onPaymentSuccess();
           setTimeout(() => onClose(), 2000);
-        } else if (data.paymentStatus === 'Failed') {
+        } else if (data.paymentStatus === 'failed') {
           setPaymentStatus('failed');
           toast.error('Thanh toán thất bại');
-        } else {
+        } else if (data.paymentStatus === 'processing') {
           // Tiếp tục kiểm tra sau 3 giây
+          setTimeout(checkPaymentStatus, 3000);
+        } else {
+          // unpaid - tiếp tục kiểm tra
           setTimeout(checkPaymentStatus, 3000);
         }
       }
     } catch (error) {
       console.error('Check payment status error:', error);
+      // Vẫn tiếp tục retry
+      setTimeout(checkPaymentStatus, 5000);
     }
   };
 

@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { useCart } from "../../../context/CartContext";
 import { getAddressesByUser } from "../../../api/address/addressApi";
 import { checkout } from "../../../api/order/orderApi";
-import PaymentModal from "../../Payment/PaymentModal";
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -14,7 +13,6 @@ const CheckoutPage = () => {
     const [addresses, setAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState("");
     const [payment, setPayment] = useState("");
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [orderId, setOrderId] = useState(null);
 
     useEffect(() => {
@@ -48,16 +46,27 @@ const CheckoutPage = () => {
                 payment,
             };
             const result = await checkout(payload);
-            if (result.orderCode) {
-                setOrderId(result.orderCode);
+            
+            if (result.ok && result.order) {
+                setOrderId(result.order._id); // Lưu orderId từ response
+                
+                // Clear cart cho tất cả phương thức thanh toán
+                clearCart();
+                
+                // Xử lý theo phương thức thanh toán
                 if (payment === "Bank") {
-                    // Không mở modal nữa, vì bank là chuyển khoản QR
-                    toast.success("Vui lòng quét mã QR để thanh toán!");
+                    // Thanh toán chuyển khoản - hiển thị QR, sau đó redirect
+                    toast.success("Đơn hàng đã được tạo! Vui lòng quét mã QR để thanh toán.");
+                    setTimeout(() => {
+                        navigate("/");
+                    }, 3000); // Redirect sau 3 giây để user thấy QR
                 } else {
+                    // COD - thanh toán khi nhận hàng
                     toast.success("Đặt hàng thành công!");
-                    clearCart();
                     navigate("/");
                 }
+            } else {
+                toast.error(result.message || "Không thể tạo đơn hàng");
             }
         } catch (err) {
             console.error(err);
@@ -134,24 +143,28 @@ const CheckoutPage = () => {
                         <div>
                             <h2 className="font-semibold text-lg mb-3 text-emerald-600">Phương thức thanh toán</h2>
                             <div className="space-y-3">
-                                {["COD", "Bank"].map((method) => (
+                                {[
+                                    { value: "COD", label: "Thanh toán khi nhận hàng (COD)", icon: "💵" },
+                                    { value: "Bank", label: "Chuyển khoản ngân hàng", icon: "🏦" }
+                                ].map((method) => (
                                     <label
-                                        key={method}
-                                        className="flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition hover:shadow-sm"
+                                        key={method.value}
+                                        className={`flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                                            payment === method.value 
+                                                ? "border-emerald-600 bg-emerald-50 shadow-md" 
+                                                : "border-gray-300 hover:border-emerald-400 hover:shadow-sm"
+                                        }`}
                                     >
                                         <input
                                             type="radio"
                                             name="payment"
-                                            value={method}
-                                            checked={payment === method}
+                                            value={method.value}
+                                            checked={payment === method.value}
                                             onChange={(e) => setPayment(e.target.value)}
                                             className="text-emerald-600"
                                         />
-                                        <span>
-                                            {method === "COD"
-                                                ? "Thanh toán khi nhận hàng (COD)"
-                                                : "Chuyển khoản ngân hàng"}
-                                        </span>
+                                        <span className="text-2xl">{method.icon}</span>
+                                        <span className="font-medium">{method.label}</span>
                                     </label>
                                 ))}
                             </div>
@@ -233,19 +246,6 @@ const CheckoutPage = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Modal thanh toán (chỉ giữ nếu sau này cần lại) */}
-            <PaymentModal
-                isOpen={showPaymentModal}
-                onClose={() => setShowPaymentModal(false)}
-                orderId={orderId}
-                amount={totalPrice}
-                onPaymentSuccess={() => {
-                    toast.success("Thanh toán thành công!");
-                    clearCart();
-                    navigate("/");
-                }}
-            />
         </>
     );
 };

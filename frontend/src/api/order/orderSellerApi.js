@@ -8,8 +8,16 @@ export const getSellerOrders = async () => {
 };
 
 // Cập nhật trạng thái đơn hàng
-export const updateSellerOrderStatus = async (orderId, status) => {
-    const res = await api.put(BASE_URL, { orderId, status });
+export const updateSellerOrderStatus = async (orderId, status, paymentStatus) => {
+    const payload = { orderId };
+    
+    // Chỉ thêm status nếu có
+    if (status) payload.status = status;
+    
+    // Chỉ thêm paymentStatus nếu có
+    if (paymentStatus) payload.paymentStatus = paymentStatus;
+    
+    const res = await api.put(BASE_URL, payload);
     return res.data;
 };
 
