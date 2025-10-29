@@ -12,9 +12,44 @@ export default function Dashboard() {
         const fetchStats = async () => {
             try {
                 const res = await getSellerDashboardStats();
-                console.log("Lấy tất cả thống kê dashboard: ", res);
-                if (res.ok) setStats(res.data);
-                else toast.error(res.message || "Không thể tải thống kê");
+                // console.log("Lấy tất cả thống kê dashboard: ", res);
+                // if (res.ok) setStats(res.data);
+                // else toast.error(res.message || "Không thể tải thống kê");
+                console.log("📊 Kết quả API dashboard:", res);
+
+                if (res.ok) {
+                    console.log("✅ Dữ liệu dashboard nhận được:");
+                    console.table(res.data); // In bảng các giá trị cấp 1
+
+                    // In chi tiết biểu đồ doanh thu nếu có
+                    if (res.data.revenueChart) {
+                        console.log("💰 Biểu đồ doanh thu 12 tháng:");
+                        console.table(res.data.revenueChart);
+                    } else {
+                        console.warn("⚠️ Không có trường 'revenueChart' trong dữ liệu trả về!");
+                    }
+
+                    // In chi tiết biểu đồ khách hàng nếu có
+                    if (res.data.customersChart) {
+                        console.log("👥 Biểu đồ khách hàng mới 12 tháng:");
+                        console.table(res.data.customersChart);
+                    } else {
+                        console.warn("⚠️ Không có trường 'customersChart' trong dữ liệu trả về!");
+                    }
+
+                    // In danh sách đơn hàng hôm nay nếu có
+                    if (res.data.todayOrders) {
+                        console.log("🛍️ Danh sách đơn hàng hôm nay:");
+                        console.table(res.data.todayOrders);
+                    } else {
+                        console.warn("⚠️ Không có trường 'todayOrders' trong dữ liệu trả về!");
+                    }
+
+                    setStats(res.data);
+                } else {
+                    toast.error(res.message || "Không thể tải thống kê");
+                }
+
             } catch (error) {
                 toast.error("Lỗi kết nối đến server");
             }
@@ -207,16 +242,16 @@ export default function Dashboard() {
                                         </td>
                                         <td className="px-4 py-3 text-sm">
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                                                    order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                        order.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                                                            'bg-blue-100 text-blue-700'
+                                                order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                    order.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                        'bg-blue-100 text-blue-700'
                                                 }`}>
                                                 {order.status}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-sm">
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' :
-                                                    'bg-orange-100 text-orange-700'
+                                                'bg-orange-100 text-orange-700'
                                                 }`}>
                                                 {order.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
                                             </span>
