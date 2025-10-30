@@ -42,12 +42,20 @@ export const AuthProvider = ({ children }) => {
 
     // Logout function
     const logout = () => {
+        // Clear AuthContext state
         setUser(null);
         setToken(null);
         setRole(null);
+        
+        // Clear localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('user');
+        
+        // Clear session-related data khác nếu có
+        // VD: localStorage.removeItem('cart'); - Tùy theo logic app
+        
+        console.log('✅ Logout successful - All auth data cleared');
     };
 
     // Check if user is authenticated

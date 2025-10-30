@@ -9,13 +9,15 @@ import {
   FaTags,
   FaNewspaper,
 } from "react-icons/fa";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SellerSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.clear();
+    logout(); // Sử dụng logout từ AuthContext
     navigate("/login");
   };
 
