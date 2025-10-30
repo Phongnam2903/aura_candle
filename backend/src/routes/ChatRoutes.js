@@ -1,7 +1,7 @@
 // routes/chat.js
 const express = require("express");
 const router = express.Router();
-const ChatController = require("../controllers/ChatController/ChatController");
+const ChatController = require("../controllers/ChatController/chatController");
 const RuleBasedChatbot = require("../controllers/ChatController/RuleBasedChatbot");
 const OllamaChatbot = require("../controllers/ChatController/OllamaChatbot");
 const HybridChatbot = require("../controllers/ChatController/HybridChatbot");
