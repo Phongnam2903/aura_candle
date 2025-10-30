@@ -40,6 +40,7 @@ const notificationRouter = require("./src/routes/NotificationRoutes.js");
 const commentRouter = require("./src/routes/CommentRoutes.js");
 const dashboardRouter = require("./src/routes/DashboardRoutes.js");
 const paymentRouter = require("./src/routes/PaymentRoutes");
+const blogRouter = require("./src/routes/BlogRoutes");
 
 // Đăng ký routes
 app.use("/product", productRouter);
@@ -56,6 +57,7 @@ app.use("/notification", notificationRouter);
 app.use("/comments", commentRouter);
 app.use("/dashboard", dashboardRouter);
 app.use("/payment", paymentRouter);
+app.use("/blog", blogRouter);
 
 // Chạy server
 const port = process.env.PORT || 5000;

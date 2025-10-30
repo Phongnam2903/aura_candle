@@ -7,6 +7,7 @@ import {
   FaSignOutAlt,
   FaFlask,
   FaTags,
+  FaNewspaper,
 } from "react-icons/fa";
 
 export default function SellerSidebar() {
@@ -24,6 +25,7 @@ export default function SellerSidebar() {
     { path: "/seller/categories", label: "Danh mục", icon: <FaTags /> },
     { path: "/seller/materials", label: "Nguyên liệu", icon: <FaFlask /> },
     { path: "/seller/orders", label: "Đơn hàng", icon: <FaShoppingBag /> },
+    { path: "/seller/blogs", label: "Bài viết", icon: <FaNewspaper /> },
   ];
 
   return (

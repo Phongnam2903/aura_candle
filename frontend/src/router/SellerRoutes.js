@@ -13,6 +13,10 @@ import EditMaterial from "../components/seller/EditMaterial";
 import EditProduct from "../pages/Seller/EditProduct";
 import ProductDetail from "../pages/Seller/ProductDetail";
 import CategoryList from "../components/seller/CategoryList";
+import BlogList from "../pages/Seller/BlogList";
+import CreateBlog from "../pages/Seller/CreateBlog";
+import EditBlog from "../pages/Seller/EditBlog";
+import BlogDetail from "../pages/Seller/BlogDetail";
 
 
 export default function SellerRoutes() {
@@ -35,6 +39,10 @@ export default function SellerRoutes() {
                 <Route path="/materials" element={<MaterialsPage />} />
                 <Route path="/materials/new" element={<AddMaterial />} />
                 <Route path="/materials/:id/edit" element={<EditMaterial />} />
+                <Route path="/blogs" element={<BlogList />} />
+                <Route path="/blogs/create" element={<CreateBlog />} />
+                <Route path="/blogs/:id" element={<BlogDetail />} />
+                <Route path="/blogs/:id/edit" element={<EditBlog />} />
             </Route>
         </Routes>
     );
