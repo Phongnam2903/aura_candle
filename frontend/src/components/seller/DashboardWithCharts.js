@@ -9,7 +9,6 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend,
     ResponsiveContainer
 } from "recharts";
 import { Package, ShoppingBag, Users, DollarSign } from "lucide-react";
