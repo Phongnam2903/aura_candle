@@ -20,7 +20,6 @@ function AppContent() {
 
   return (
     <>
-      {/* First Visit Redirect - Redirect người dùng mới đến About */}
       <FirstVisitRedirect />
       
       {/* Toast thông báo */}
