@@ -5,14 +5,30 @@ const { Notification } = require("../../models");
 const getNotifications = async (req, res) => {
     try {
         const userId = req.user.id; // lấy từ middleware verifyToken
+        const limit = parseInt(req.query.limit) || 50; // Mặc định lấy 50, có thể customize
+        const page = parseInt(req.query.page) || 1;
+        const skip = (page - 1) * limit;
 
         const notifications = await Notification.find({ user: userId })
             .sort({ createdAt: -1 }) // mới nhất lên đầu
-            .limit(10); // lấy 10 cái gần nhất, có thể tùy chỉnh
+            .limit(limit)
+            .skip(skip)
+            .populate({
+                path: "relatedBlog",
+                select: "title images",
+            });
+
+        const total = await Notification.countDocuments({ user: userId });
 
         res.status(200).json({
             ok: true,
             data: notifications,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
         });
     } catch (err) {
         console.error("Get notifications error:", err);
@@ -31,6 +47,14 @@ const getNotificationDetail = async (req, res) => {
                 populate: {
                     path: "items.product",
                     select: "name price images",
+                },
+            })
+            .populate({
+                path: "relatedBlog",
+                select: "title description images createdAt author",
+                populate: {
+                    path: "author",
+                    select: "name email",
                 },
             })
             .populate("comments.user", "username avatar_url");

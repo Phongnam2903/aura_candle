@@ -8,10 +8,11 @@ const notificationSchema = new mongoose.Schema(
         message: { type: String, required: true }, // Nội dung chi tiết
         type: {
             type: String,
-            enum: ["Order", "Payment", "System", "Promotion"],
+            enum: ["Order", "Payment", "System", "Promotion", "Blog"],
             default: "System",
         },
         relatedOrder: { type: mongoose.Schema.Types.ObjectId, ref: "Order" }, // Nếu có
+        relatedBlog: { type: mongoose.Schema.Types.ObjectId, ref: "Blog" }, // Nếu có
         isRead: { type: Boolean, default: false },
 
         //  Thả tim

@@ -1,4 +1,4 @@
-const { Blog } = require("../../models");
+const { Blog, User, Notification } = require("../../models");
 
 // Lấy tất cả blogs (public)
 const getAllBlogs = async (req, res) => {
@@ -62,6 +62,30 @@ const createBlog = async (req, res) => {
 
         await blog.save();
         const populatedBlog = await Blog.findById(blog._id).populate("author", "name email");
+
+        // 🔔 Gửi thông báo cho tất cả người dùng
+        try {
+            // Lấy tất cả users (có thể lọc theo điều kiện nếu cần)
+            const allUsers = await User.find({ role: { $ne: "seller" } }).select("_id");
+            
+            if (allUsers.length > 0) {
+                // Tạo mảng notifications cho tất cả users
+                const notifications = allUsers.map(user => ({
+                    user: user._id,
+                    title: "📰 Bài viết mới!",
+                    message: `${populatedBlog.author.name || "Seller"} vừa đăng bài viết mới: "${title}"`,
+                    type: "Blog",
+                    relatedBlog: blog._id,
+                }));
+
+                // Insert nhiều notifications cùng lúc
+                await Notification.insertMany(notifications);
+                console.log(`✅ Đã gửi thông báo blog mới cho ${allUsers.length} người dùng`);
+            }
+        } catch (notifError) {
+            console.error("⚠️ Lỗi khi gửi thông báo blog:", notifError);
+            // Không block response nếu notification fail
+        }
 
         res.status(201).json({
             ok: true,

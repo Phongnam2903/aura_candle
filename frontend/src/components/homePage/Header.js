@@ -290,7 +290,7 @@ const Header = () => {
                     </li>
                   )}
                 </ul>
-                <div className="border-t border-[#F1ECE5] px-4 py-2 text-center">
+                <div className="border-t border-[#F1ECE5] px-4 py-2 flex items-center justify-between">
                   <button
                     onClick={async () => {
                       await markAllRead();
@@ -299,10 +299,17 @@ const Header = () => {
                         prev.map((n) => ({ ...n, isRead: true }))
                       );
                     }}
-                    className="text-[#A0785D] text-sm font-medium hover:underline"
+                    className="text-[#A0785D] text-xs font-medium hover:underline"
                   >
-                    Xem tất cả thông báo
+                    Đánh dấu đã đọc
                   </button>
+                  <Link
+                    to="/notifications"
+                    className="text-[#A0785D] text-xs font-medium hover:underline"
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    Xem tất cả →
+                  </Link>
                 </div>
               </div>
             )}

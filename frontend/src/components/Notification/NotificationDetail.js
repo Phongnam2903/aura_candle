@@ -115,6 +115,44 @@ export default function NotificationDetail() {
                         )}
                     </div>
                 )}
+
+                {/* Hiển thị Blog nếu có */}
+                {notification.relatedBlog && (
+                    <div className="mt-6 border-t border-gray-200 pt-4">
+                        <h3 className="font-medium text-[#2C2420] mb-3">Bài viết mới</h3>
+                        
+                        {notification.relatedBlog.images && notification.relatedBlog.images.length > 0 && (
+                            <img
+                                src={notification.relatedBlog.images[0]}
+                                alt={notification.relatedBlog.title}
+                                className="w-full h-48 object-cover rounded-lg mb-4"
+                            />
+                        )}
+                        
+                        <h4 className="text-lg font-semibold text-[#2C2420] mb-2">
+                            {notification.relatedBlog.title}
+                        </h4>
+                        
+                        {notification.relatedBlog.description && (
+                            <p className="text-sm text-gray-600 mb-3">
+                                {notification.relatedBlog.description}
+                            </p>
+                        )}
+                        
+                        <div className="flex items-center gap-2 text-xs text-gray-400 mb-4">
+                            <span>Tác giả: {notification.relatedBlog.author?.name || "Unknown"}</span>
+                            <span>•</span>
+                            <span>{new Date(notification.relatedBlog.createdAt).toLocaleDateString("vi-VN")}</span>
+                        </div>
+                        
+                        <button
+                            onClick={() => navigate(`/blog/${notification.relatedBlog._id}`)}
+                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
+                        >
+                            Đọc bài viết
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

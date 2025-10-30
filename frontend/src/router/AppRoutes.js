@@ -14,6 +14,7 @@ import ProfileScreen from "../pages/Profile/ProfileScreen";
 import ProductByCategory from "../pages/Product/ProductByCategory";
 import AboutScreen from "../pages/About/About";
 import NotificationDetailScreen from "../pages/Notification/NotificationDetail";
+import NotificationListScreen from "../pages/Notification/NotificationListScreen";
 import ResetPasswordScreen from "../pages/Auth/ResetPasswordScreen";
 
 export default function AppRoutes() {
@@ -34,6 +35,7 @@ export default function AppRoutes() {
                 <Route path="/profile/:id" element={<ProfileScreen />} />
                 <Route path="/about" element={<AboutScreen />} />
 
+                <Route path="/notifications" element={<NotificationListScreen />} />
                 <Route path="/notification/:id" element={<NotificationDetailScreen />} />
 
                 {/*  Gộp seller routes vào đây */}
