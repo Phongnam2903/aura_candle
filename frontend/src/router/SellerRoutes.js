@@ -1,7 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import SellerLayout from "../layout/SellerLayout";
-import Dashboard from "../components/seller/Dashboard";
+import DashboardWithCharts from "../components/seller/DashboardWithCharts";
 import Products from "../components/seller/Products";
 import Orders from "../components/seller/Orders";
 import AddProduct from "../pages/Seller/AddProduct";
@@ -27,7 +27,7 @@ export default function SellerRoutes() {
     return (
         <Routes>
             <Route element={<SellerLayout />}>
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard" element={<DashboardWithCharts />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/products/:id" element={<ProductDetail />} />
                 <Route path="/products/addProducts" element={<AddProduct />} />

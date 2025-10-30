@@ -137,14 +137,26 @@ exports.getSellerDashboardStats = async (req, res) => {
 
         const totalRevenue = totalRevenueAgg.length > 0 ? totalRevenueAgg[0].total : 0;
 
-        // ========== Đơn hàng hôm nay ==========
-        const todayOrdersDetails = ordersToday.map(order => ({
+        // ========== Đơn hàng hôm nay với thông tin khách hàng ==========
+        const todayOrdersWithUser = await Order.find({
+            _id: { $in: ordersToday.map(o => o._id) }
+        })
+        .populate('user', 'name email')
+        .populate('items.product', 'name price')
+        .lean();
+
+        const todayOrdersDetails = todayOrdersWithUser.map(order => ({
             _id: order._id,
             orderCode: order.orderCode || `ORD-${order._id}`,
             totalAmount: order.totalAmount || 0,
             status: order.status || 'Pending',
             paymentStatus: order.paymentStatus || 'unpaid',
-            createdAt: order.createdAt
+            createdAt: order.createdAt,
+            user: {
+                name: order.user?.name || 'Khách vãng lai',
+                email: order.user?.email || ''
+            },
+            items: order.items || []
         }));
 
         // Debug logs
