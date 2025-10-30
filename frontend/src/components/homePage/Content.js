@@ -7,6 +7,7 @@ import { useCart } from "../../context/CartContext"
 import { toast } from "react-toastify"
 import { getCategories } from "../../api/category/categoriesApi"
 import { getProducts } from "../../api/products/productApi"
+import { getAllBlogs } from "../../api/blog/blogApi"
 
 const Content = () => {
   const [itemsPerPage, setItemsPerPage] = useState(3)
@@ -14,37 +15,8 @@ const Content = () => {
   const { addItem } = useCart()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
+  const [blogs, setBlogs] = useState([])
   const [loading, setLoading] = useState(true)
-
-  const newsData = [
-    {
-      id: 1,
-      title: "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Sự Kiện - Event Lớn",
-      date: "20 Tháng 09, 2025",
-      description: "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Sự Kiện - Event Lớn...",
-      image:
-        "https://cdn.hstatic.net/files/200000666175/article/z6973103465917_bb75323dbc076712846dfd63d5e4735e_d4bc109947314beeb162790f7f898bc6_grande.jpg",
-      link: "/blog",
-    },
-    {
-      id: 2,
-      title: "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Thiền – Yoga",
-      date: "20 Tháng 09, 2025",
-      description: "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Thiền – Yoga...",
-      image:
-        "https://cdn.hstatic.net/files/200000666175/article/z6999667987112_4b3e2c993b0d25b6550c8810d5f25e80_3e2c4d6b47d04ee787a262351c7ee9a3_grande.jpg",
-      link: "/blog",
-    },
-    {
-      id: 3,
-      title: "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Tiệm Quà Tặng",
-      date: "20 Tháng 09, 2025",
-      description: "Dịch Vụ Gia Công Quà Tặng Nến Thơm, Sáp Thơm Cho Tiệm Quà Tặng...",
-      image:
-        "https://cdn.hstatic.net/files/200000666175/article/z6999668611612_207c06f925c522772bf62cda88c5bad4_ea2c9d9d5f97476e879f6bd859069770_grande.jpg",
-      link: "/blog",
-    },
-  ]
 
   const navigate = useNavigate(); // dùng navigate, không phải navigator
 
@@ -73,8 +45,17 @@ const Content = () => {
         setLoading(false)
       }
     }
+    const fetchBlogs = async () => {
+      try {
+        const data = await getAllBlogs()
+        setBlogs(data)
+      } catch (error) {
+        console.error("Lỗi khi fetch blogs:", error)
+      }
+    }
     fetchProfuct()
     fetchCategories()
+    fetchBlogs()
   }, [])
 
   useEffect(() => {
@@ -295,16 +276,22 @@ const Content = () => {
 
           {/* Danh sách bài viết */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {newsData.map((news) => (
+            {blogs.slice(0, 3).map((blog) => (
               <article
-                key={news.id}
+                key={blog._id}
                 className="group rounded-3xl overflow-hidden bg-card/70 backdrop-blur-md shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
               >
                 {/* Ảnh */}
                 <div className="relative overflow-hidden aspect-[4/3]">
                   <img
-                    src={news.image || "/placeholder.svg"}
-                    alt={news.title}
+                    src={
+                      blog.images && blog.images.length > 0
+                        ? blog.images[0].startsWith("https")
+                          ? blog.images[0]
+                          : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${blog.images[0]}`
+                        : "/placeholder.svg"
+                    }
+                    alt={blog.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   {/* Overlay sáng khi hover */}
@@ -312,28 +299,28 @@ const Content = () => {
 
                   {/* Ngày đăng */}
                   <div className="absolute top-4 left-4 bg-white/90 text-foreground text-xs font-medium px-3 py-1 rounded-full shadow-sm">
-                    {news.date}
+                    {new Date(blog.createdAt).toLocaleDateString("vi-VN")}
                   </div>
                 </div>
 
                 {/* Nội dung */}
                 <div className="p-6">
                   <h3 className="font-serif text-xl font-medium mt-2 mb-3 line-clamp-2 text-foreground group-hover:text-accent transition-colors">
-                    {news.title}
+                    {blog.title}
                   </h3>
 
                   <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3 mb-6">
-                    {news.description}
+                    {blog.description || blog.content?.substring(0, 150) + "..."}
                   </p>
 
                   {/* Nút đọc thêm */}
-                  <a
-                    href={news.link}
+                  <Link
+                    to={`/blog/${blog._id}`}
                     className="inline-flex items-center gap-2 text-accent hover:gap-3 transition-all font-medium group/link"
                   >
                     Đọc thêm
                     <span className="transition-transform group-hover/link:translate-x-1">→</span>
-                  </a>
+                  </Link>
                 </div>
               </article>
             ))}

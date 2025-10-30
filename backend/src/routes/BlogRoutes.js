@@ -6,11 +6,13 @@ const router = express.Router();
 
 // Public routes
 router.get("/", blogController.getAllBlogs);
-router.get("/:id", blogController.getBlogById);
 
-// Protected routes (seller only)
+// Protected routes (seller only) - Phải đặt TRƯỚC route /:id
 router.get("/seller/my-blogs", verifyToken, blogController.getSellerBlogs);
 router.post("/", verifyToken, blogController.createBlog);
+
+// Public và Protected routes với :id
+router.get("/:id", blogController.getBlogById);
 router.put("/:id", verifyToken, blogController.updateBlog);
 router.delete("/:id", verifyToken, blogController.deleteBlog);
 

@@ -8,6 +8,7 @@ import ForgotPasswordScreen from "../pages/Auth/ForgotPasswordScreen";
 import CartScreen from "../pages/Cart/CartScreen";
 import CheckOutScreen from "../pages/Cart/CheckoutScreen";
 import BlogScreen from "../pages/Blog/BlogScreen";
+import BlogDetailScreen from "../pages/Blog/BlogDetailScreen";
 import SellerRoutes from "./SellerRoutes";
 import ProfileScreen from "../pages/Profile/ProfileScreen";
 import ProductByCategory from "../pages/Product/ProductByCategory";
@@ -29,6 +30,7 @@ export default function AppRoutes() {
                 <Route path="/cart" element={<CartScreen />} />
                 <Route path="/checkout" element={<CheckOutScreen />} />
                 <Route path="/blog" element={<BlogScreen />} />
+                <Route path="/blog/:id" element={<BlogDetailScreen />} />
                 <Route path="/profile/:id" element={<ProfileScreen />} />
                 <Route path="/about" element={<AboutScreen />} />
 
