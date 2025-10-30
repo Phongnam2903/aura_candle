@@ -22,6 +22,12 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 //  Cho phép CORS
 app.use(cors({ origin: "*" }));
 
+//  Middleware để log mọi request (giúp debug)
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.url}`);
+  next();
+});
+
 //  Public folder cho uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -58,6 +64,22 @@ app.use("/comments", commentRouter);
 app.use("/dashboard", dashboardRouter);
 app.use("/payment", paymentRouter);
 app.use("/blog", blogRouter);
+
+console.log("✅ All routes registered successfully");
+
+// Test route để kiểm tra server hoạt động
+app.get("/", (req, res) => {
+  res.json({ 
+    message: "Aura Candle API is running", 
+    routes: ["/product", "/category", "/material", "/auth", "/upload", "/cart", "/order", "/orderSeller", "/addresses", "/chat", "/notification", "/comments", "/dashboard", "/payment", "/blog"]
+  });
+});
+
+// 404 handler - đặt sau tất cả routes
+app.use((req, res) => {
+  console.log(`❌ 404 Not Found: ${req.method} ${req.url}`);
+  res.status(404).json({ error: "Route not found", path: req.url });
+});
 
 // Chạy server
 const port = process.env.PORT || 5000;

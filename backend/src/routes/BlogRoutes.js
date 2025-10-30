@@ -4,6 +4,8 @@ const blogController = require("../controllers/BlogController/blogController");
 
 const router = express.Router();
 
+console.log("✅ BlogRoutes loaded");
+
 // Public routes
 router.get("/", blogController.getAllBlogs);
 

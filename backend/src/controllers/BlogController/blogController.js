@@ -44,10 +44,12 @@ const getBlogById = async (req, res) => {
 // Tạo blog mới (seller only)
 const createBlog = async (req, res) => {
     try {
+        console.log("📝 Creating new blog...", { userId: req.user?.id });
         const { title, description, content, images, link } = req.body;
         const author = req.user.id;
 
         if (!title) {
+            console.log("❌ Title is missing");
             return res.status(400).json({ error: "Title is required" });
         }
 
@@ -61,6 +63,7 @@ const createBlog = async (req, res) => {
         });
 
         await blog.save();
+        console.log("✅ Blog saved:", blog._id);
         const populatedBlog = await Blog.findById(blog._id).populate("author", "name email");
 
         // 🔔 Gửi thông báo cho tất cả người dùng
