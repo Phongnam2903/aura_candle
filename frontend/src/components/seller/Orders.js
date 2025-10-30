@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   getSellerOrders,
   updateSellerOrderStatus,
 } from "../../api/order/orderSellerApi";
-import { CheckCircle, XCircle, Package, Edit3, DollarSign, Filter } from "lucide-react";
+import { CheckCircle, XCircle, Package, Edit3, DollarSign, Filter, Eye } from "lucide-react";
 
 export default function Orders() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [editingOrderId, setEditingOrderId] = useState(null);
@@ -314,55 +316,66 @@ export default function Orders() {
 
                   {/* Thao tác */}
                   <td className="p-4">
-                    {o.status === "Cancelled" ? (
-                      // Hiển thị text thông báo khi đơn hàng đã bị hủy
-                      <div className="text-center text-xs text-gray-500 italic">
-                        Đơn đã hủy
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        {/* Nút xác nhận thanh toán - chỉ hiện nếu chưa thanh toán và chưa bị hủy */}
-                        {o.paymentStatus === "unpaid" && o.paymentMethod !== "COD" && (
-                          <button
-                            onClick={() => handleConfirmPayment(o._id)}
-                            className="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-1 justify-center text-xs font-medium"
-                            title="Xác nhận đã nhận được thanh toán"
-                          >
-                            <DollarSign size={14} /> Xác nhận TT
-                          </button>
-                        )}
+                    <div className="flex flex-col gap-2">
+                      {/* Nút xem chi tiết - luôn hiển thị */}
+                      <button
+                        onClick={() => navigate(`/seller/orders/${o._id}`)}
+                        className="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-1 justify-center text-xs font-medium"
+                        title="Xem chi tiết đơn hàng"
+                      >
+                        <Eye size={14} /> Chi tiết
+                      </button>
 
-                        {/* Nút cập nhật trạng thái */}
-                        {editingOrderId === o._id ? (
-                          <div className="flex gap-2">
+                      {o.status === "Cancelled" ? (
+                        // Hiển thị text thông báo khi đơn hàng đã bị hủy
+                        <div className="text-center text-xs text-gray-500 italic">
+                          Đơn đã hủy
+                        </div>
+                      ) : (
+                        <>
+                          {/* Nút xác nhận thanh toán - chỉ hiện nếu chưa thanh toán và chưa bị hủy */}
+                          {o.paymentStatus === "unpaid" && o.paymentMethod !== "COD" && (
                             <button
-                              onClick={handleSaveStatus}
-                              className="px-3 py-1 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition flex items-center gap-1 text-xs"
+                              onClick={() => handleConfirmPayment(o._id)}
+                              className="px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-1 justify-center text-xs font-medium"
+                              title="Xác nhận đã nhận được thanh toán"
                             >
-                              <CheckCircle size={14} /> Lưu
+                              <DollarSign size={14} /> Xác nhận TT
                             </button>
+                          )}
+
+                          {/* Nút cập nhật trạng thái */}
+                          {editingOrderId === o._id ? (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleSaveStatus}
+                                className="px-3 py-1 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition flex items-center gap-1 text-xs"
+                              >
+                                <CheckCircle size={14} /> Lưu
+                              </button>
+                              <button
+                                onClick={() => setEditingOrderId(null)}
+                                className="px-3 py-1 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition flex items-center gap-1 text-xs"
+                              >
+                                <XCircle size={14} /> Hủy
+                              </button>
+                            </div>
+                          ) : (
                             <button
-                              onClick={() => setEditingOrderId(null)}
-                              className="px-3 py-1 bg-gray-400 text-white rounded-lg hover:bg-gray-500 transition flex items-center gap-1 text-xs"
+                              onClick={() => handleUpdateClick(o._id, o.status)}
+                              disabled={o.status === "Completed"}
+                              className={`px-3 py-1 rounded-lg flex items-center gap-1 justify-center transition text-xs ${
+                                o.status === "Completed"
+                                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                  : "bg-pink-500 text-white hover:bg-pink-600"
+                              }`}
                             >
-                              <XCircle size={14} /> Hủy
+                              <Edit3 size={14} /> Cập nhật
                             </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleUpdateClick(o._id, o.status)}
-                            disabled={o.status === "Completed"}
-                            className={`px-3 py-1 rounded-lg flex items-center gap-1 justify-center transition text-xs ${
-                              o.status === "Completed"
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                : "bg-pink-500 text-white hover:bg-pink-600"
-                            }`}
-                          >
-                            <Edit3 size={14} /> Cập nhật
-                          </button>
-                        )}
-                      </div>
-                    )}
+                          )}
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))

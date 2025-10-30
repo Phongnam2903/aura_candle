@@ -207,7 +207,60 @@ function getNotificationMessage(order, paymentStatus, status) {
 }
 
 
+// Lấy chi tiết 1 đơn hàng cho seller
+const getSellerOrderById = async (req, res) => {
+    try {
+        const sellerId = req.user.id;
+        const { id } = req.params;
+
+        // Tìm order và populate đầy đủ thông tin
+        const order = await Order.findById(id)
+            .populate({
+                path: "items.product",
+                populate: { path: "seller", select: "name email" }
+            })
+            .populate("address")
+            .populate({
+                path: "user",
+                select: "name email phone"
+            });
+
+        if (!order) {
+            return res.status(404).json({ error: "Order not found" });
+        }
+
+        console.log("📦 Order address:", order.address);
+        console.log("📦 Order user:", order.user);
+
+        // Kiểm tra xem order có chứa sản phẩm của seller này không
+        const hasSellerProduct = order.items.some(
+            item => item.product?.seller?._id?.toString() === sellerId
+        );
+
+        if (!hasSellerProduct) {
+            return res.status(403).json({ error: "You don't have permission to view this order" });
+        }
+
+        // Lọc chỉ hiển thị items của seller này
+        const orderObj = order.toObject();
+        const filteredOrder = {
+            ...orderObj,
+            items: orderObj.items.filter(
+                item => item.product?.seller?._id?.toString() === sellerId
+            )
+        };
+
+        console.log("📦 Filtered order address:", filteredOrder.address);
+
+        res.json(filteredOrder);
+    } catch (err) {
+        console.error("Get seller order by ID error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+};
+
 module.exports = {
     getSellerOrders,
     updateSellerOrderStatus,
+    getSellerOrderById,
 };
