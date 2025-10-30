@@ -34,7 +34,7 @@ export default function About() {
                         mang thông điệp ẩn dành riêng cho tâm hồn bạn.
                     </p>
                     <Link
-                        to="/product/category/nen-thom"
+                        to="/"
                         className="inline-flex items-center gap-2 px-8 py-4 border border-white text-white rounded-full backdrop-blur-sm hover:bg-white hover:text-black transition-all duration-300 hover:scale-105"
                     >
                         Khám Phá Ngay <span className="transition-transform group-hover:translate-x-1">→</span>

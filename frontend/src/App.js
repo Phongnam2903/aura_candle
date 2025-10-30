@@ -8,6 +8,7 @@ import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import ChatWidget from "./components/features/chatbot/ChatWidget";
 import AppRoutes from "./router/AppRoutes";
+import FirstVisitRedirect from "./components/Welcome/FirstVisitRedirect";
 
 // Tách riêng component để dùng hook useLocation
 function AppContent() {
@@ -19,6 +20,9 @@ function AppContent() {
 
   return (
     <>
+      {/* First Visit Redirect - Redirect người dùng mới đến About */}
+      <FirstVisitRedirect />
+      
       {/* Toast thông báo */}
       <ToastContainer position="top-right" autoClose={2000} />
       <ScrollToTop />
