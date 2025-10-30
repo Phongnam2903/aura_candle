@@ -8,7 +8,7 @@
 
 const RuleBasedChatbot = require('./RuleBasedChatbot');
 const OllamaChatbot = require('./OllamaChatbot');
-const OpenAIChatbot = require('./ChatController');
+// const OpenAIChatbot = require('./ChatController'); // Commented out - OpenAI not implemented yet
 
 /**
  * Phát hiện intent của user
@@ -78,11 +78,11 @@ const isOllamaAvailable = async () => {
 };
 
 /**
- * Check OpenAI API key có không
+ * Check OpenAI API key có không (disabled - not needed)
  */
-const isOpenAIAvailable = () => {
-    return !!process.env.OPENAI_API_KEY;
-};
+// const isOpenAIAvailable = () => {
+//     return !!process.env.OPENAI_API_KEY;
+// };
 
 /**
  * Handle chat với hybrid approach
@@ -113,15 +113,15 @@ const handleHybridChat = async (req, res) => {
             return await OllamaChatbot.handleOllamaChat(req, res);
         }
 
-        // Strategy 3: Fallback to OpenAI if available
-        const openAIAvailable = isOpenAIAvailable();
-        if (openAIAvailable) {
-            console.log('🤖 Using OpenAI chatbot');
-            return await OpenAIChatbot.handleChat(req, res);
-        }
+        // Strategy 3: Fallback to OpenAI if available (disabled - not implemented yet)
+        // const openAIAvailable = isOpenAIAvailable();
+        // if (openAIAvailable) {
+        //     console.log('🤖 Using OpenAI chatbot');
+        //     return await OpenAIChatbot.handleChat(req, res);
+        // }
 
         // Strategy 4: Last resort → Rule-based
-        console.log('📋 Fallback to Rule-based chatbot');
+        console.log('📋 Fallback to Rule-based chatbot (Ollama not available)');
         return await RuleBasedChatbot.handleRuleBasedChat(req, res);
 
     } catch (error) {

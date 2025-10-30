@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Backend API - Aura Candle</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            background: #f8f9ff;
+            display: none;
+        }
+        .result.show {
+            display: block;
+        }
+        .result.success {
+            border-left-color: #10b981;
+            background: #ecfdf5;
+        }
+        .result.error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .result.success .result-title {
+            color: #10b981;
+        }
+        .result.error .result-title {
+            color: #ef4444;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 10px;
+        }
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .status-badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-badge.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Backend API</h1>
+        <p class="subtitle">Kiểm tra backend Aura Candle có hoạt động đúng không</p>
+
+        <div class="input-group">
+            <label for="apiUrl">Backend URL:</label>
+            <input 
+                type="url" 
+                id="apiUrl" 
+                value="https://aura-candle.onrender.com"
+                placeholder="https://aura-candle.onrender.com"
+            >
+        </div>
+
+        <div>
+            <button onclick="testServerHealth()">1️⃣ Test Server Health</button>
+            <button onclick="testBlogList()">2️⃣ Test GET /blog</button>
+            <button onclick="testNotFound()">3️⃣ Test 404 Handler</button>
+            <button onclick="testAll()">🚀 Test All</button>
+        </div>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const resultDiv = document.getElementById('result');
+
+        function getApiUrl() {
+            return document.getElementById('apiUrl').value.trim().replace(/\/$/, '');
+        }
+
+        function showResult(title, message, type = 'info', data = null) {
+            resultDiv.className = `result show ${type}`;
+            let html = `<div class="result-title">${title}</div>`;
+            html += `<div>${message}</div>`;
+            if (data) {
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            resultDiv.innerHTML = html;
+        }
+
+        function showLoading(message) {
+            resultDiv.className = 'result show';
+            resultDiv.innerHTML = `
+                <div class="result-title">
+                    <span class="loading"></span>${message}
+                </div>
+            `;
+        }
+
+        async function testServerHealth() {
+            const url = getApiUrl();
+            showLoading('Đang kiểm tra server...');
+
+            try {
+                const res = await fetch(`${url}/`);
+                const data = await res.json();
+
+                if (res.ok) {
+                    showResult(
+                        '✅ Server đang hoạt động!',
+                        `Status: ${res.status} OK`,
+                        'success',
+                        data
+                    );
+                } else {
+                    showResult(
+                        '⚠️ Server trả về lỗi',
+                        `Status: ${res.status}`,
+                        'error',
+                        data
+                    );
+                }
+            } catch (err) {
+                showResult(
+                    '❌ Không thể kết nối đến server',
+                    err.message,
+                    'error',
+                    { error: err.toString() }
+                );
+            }
+        }
+
+        async function testBlogList() {
+            const url = getApiUrl();
+            showLoading('Đang lấy danh sách blog...');
+
+            try {
+                const res = await fetch(`${url}/blog`);
+                const data = await res.json();
+
+                if (res.ok) {
+                    showResult(
+                        `✅ Endpoint /blog hoạt động!`,
+                        `Tìm thấy ${Array.isArray(data) ? data.length : 0} blogs`,
+                        'success',
+                        Array.isArray(data) ? data.slice(0, 2) : data
+                    );
+                } else {
+                    showResult(
+                        '❌ Lỗi 404 - Route /blog không tồn tại!',
+                        'Backend chưa đăng ký route /blog hoặc đang crash',
+                        'error',
+                        data
+                    );
+                }
+            } catch (err) {
+                showResult(
+                    '❌ Request thất bại',
+                    err.message,
+                    'error',
+                    { error: err.toString() }
+                );
+            }
+        }
+
+        async function testNotFound() {
+            const url = getApiUrl();
+            showLoading('Đang test 404 handler...');
+
+            try {
+                const res = await fetch(`${url}/nonexistent-route-12345`);
+                const data = await res.json();
+
+                if (res.status === 404) {
+                    showResult(
+                        '✅ 404 Handler hoạt động!',
+                        'Server đang xử lý đúng các route không tồn tại',
+                        'success',
+                        data
+                    );
+                } else {
+                    showResult(
+                        '⚠️ Không nhận được 404',
+                        `Mong đợi 404 nhưng nhận được ${res.status}`,
+                        'error',
+                        data
+                    );
+                }
+            } catch (err) {
+                showResult(
+                    '❌ Request thất bại',
+                    err.message,
+                    'error',
+                    { error: err.toString() }
+                );
+            }
+        }
+
+        async function testAll() {
+            await testServerHealth();
+            await new Promise(r => setTimeout(r, 1000));
+            await testBlogList();
+            await new Promise(r => setTimeout(r, 1000));
+            await testNotFound();
+        }
+
+        // Auto test when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testServerHealth();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+
