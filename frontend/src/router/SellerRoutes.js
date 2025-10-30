@@ -1,5 +1,6 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import ProtectedRoute from "../components/Auth/ProtectedRoute";
 import SellerLayout from "../layout/SellerLayout";
 import DashboardWithCharts from "../components/seller/DashboardWithCharts";
 import Products from "../components/seller/Products";
@@ -20,30 +21,28 @@ import BlogDetail from "../pages/Seller/BlogDetail";
 
 
 export default function SellerRoutes() {
-    // Kiểm tra role từ localStorage
-    const role = localStorage.getItem("role");
-    if (role !== "seller") return <Navigate to="/login" replace />;
-
     return (
-        <Routes>
-            <Route element={<SellerLayout />}>
-                <Route path="/dashboard" element={<DashboardWithCharts />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/products/:id" element={<ProductDetail />} />
-                <Route path="/products/addProducts" element={<AddProduct />} />
-                <Route path="/products/:id/edit" element={<EditProduct />} />
-                <Route path="/categories" element={<CategoryList />} />"
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/orders/:id" element={<OrderDetail />} />
-                <Route path="/orders/:id/edit" element={<UpdateOrder />} />
-                <Route path="/materials" element={<MaterialsPage />} />
-                <Route path="/materials/new" element={<AddMaterial />} />
-                <Route path="/materials/:id/edit" element={<EditMaterial />} />
-                <Route path="/blogs" element={<BlogList />} />
-                <Route path="/blogs/create" element={<CreateBlog />} />
-                <Route path="/blogs/:id" element={<BlogDetail />} />
-                <Route path="/blogs/:id/edit" element={<EditBlog />} />
-            </Route>
-        </Routes>
+        <ProtectedRoute allowedRoles="seller">
+            <Routes>
+                <Route element={<SellerLayout />}>
+                    <Route path="/dashboard" element={<DashboardWithCharts />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/products/:id" element={<ProductDetail />} />
+                    <Route path="/products/addProducts" element={<AddProduct />} />
+                    <Route path="/products/:id/edit" element={<EditProduct />} />
+                    <Route path="/categories" element={<CategoryList />} />
+                    <Route path="/orders" element={<Orders />} />
+                    <Route path="/orders/:id" element={<OrderDetail />} />
+                    <Route path="/orders/:id/edit" element={<UpdateOrder />} />
+                    <Route path="/materials" element={<MaterialsPage />} />
+                    <Route path="/materials/new" element={<AddMaterial />} />
+                    <Route path="/materials/:id/edit" element={<EditMaterial />} />
+                    <Route path="/blogs" element={<BlogList />} />
+                    <Route path="/blogs/create" element={<CreateBlog />} />
+                    <Route path="/blogs/:id" element={<BlogDetail />} />
+                    <Route path="/blogs/:id/edit" element={<EditBlog />} />
+                </Route>
+            </Routes>
+        </ProtectedRoute>
     );
 }

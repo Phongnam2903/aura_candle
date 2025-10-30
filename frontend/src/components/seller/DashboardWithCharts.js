@@ -14,6 +14,7 @@ import {
 import { Package, ShoppingBag, Users, DollarSign } from "lucide-react";
 import { toast } from "react-toastify";
 import { getSellerDashboardStats } from "../../api/dashboard/dashboardApi";
+import RoleInfoBanner from "../Auth/RoleInfoBanner";
 
 export default function DashboardWithCharts() {
     const [stats, setStats] = useState(null);
@@ -122,6 +123,9 @@ export default function DashboardWithCharts() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-8">
+            {/* Info Banner */}
+            <RoleInfoBanner />
+
             {/* Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}

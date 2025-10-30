@@ -5,6 +5,7 @@ import { ToastContainer } from "react-toastify";
 import "./index.css";
 import ScrollToTop from "./components/Scroll/ScrollToTop";
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/AuthContext";
 import ChatWidget from "./components/features/chatbot/ChatWidget";
 import AppRoutes from "./router/AppRoutes";
 
@@ -29,10 +30,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <CartProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </CartProvider>
+    </AuthProvider>
   );
 }

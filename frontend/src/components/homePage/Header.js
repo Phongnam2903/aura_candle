@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
 import { searchProducts } from "../../api/products/productApi";
 import {
   getNotifications,
@@ -19,8 +20,8 @@ import {
 
 const Header = () => {
   const { cart } = useCart();
+  const { user, logout, role } = useAuth();
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const totalItems = cart.reduce((sum, i) => sum + (i.quantity || 1), 0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -32,10 +33,15 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchRef = useRef();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+  // Xác định home URL dựa trên role
+  const getHomeUrl = () => {
+    if (!user) return '/';
+    if (role === 'seller') return '/seller/dashboard';
+    if (role === 'admin') return '/admin/dashboard';
+    return '/';
+  };
 
+  useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target))
         setShowSearch(false);
@@ -45,8 +51,7 @@ const Header = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
-    setUser(null);
+    logout();
     navigate("/");
   };
 
@@ -90,7 +95,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-white border-b border-[#E7E2DC] shadow-sm transition-all duration-300">
       <div className="max-w-[1300px] mx-auto px-6 lg:px-10 py-4 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3">
+        <Link to={getHomeUrl()} className="flex items-center gap-3">
           <img
             src="/assets/logo_2.png"
             alt="Aura Candle"
@@ -101,10 +106,10 @@ const Header = () => {
         {/* Navigation */}
         <nav className="hidden lg:flex items-center gap-10 text-[15px] font-medium tracking-wide text-[#2C2420]">
           <Link
-            to="/"
+            to={getHomeUrl()}
             className="hover:text-[#A0785D] transition-colors relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#A0785D] hover:after:w-full after:transition-all"
           >
-            Trang chủ
+            {role === 'seller' ? 'Dashboard' : role === 'admin' ? 'Admin Panel' : 'Trang chủ'}
           </Link>
 
           <div className="relative group">

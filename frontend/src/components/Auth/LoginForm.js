@@ -3,6 +3,7 @@ import { loginUser } from "../../api/auth/auth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { useAuth } from "../../context/AuthContext";
 
 export default function LoginForm() {
     const [form, setForm] = useState({ email: "", password: "" });
@@ -10,6 +11,7 @@ export default function LoginForm() {
     const [loading, setLoading] = useState(false);
     const [showPass, setShowPass] = useState(false);
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -37,9 +39,8 @@ export default function LoginForm() {
 
         try {
             const data = await loginUser(form);
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("role", data.user.role);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            // Sử dụng login từ AuthContext
+            login(data.user, data.token);
             toast.success(`Xin chào ${data.user.name}!`);
             switch (data.user.role) {
                 case "admin":
