@@ -3,7 +3,17 @@ import CONFIG from "../config";
 
 const CartContext = createContext();
 
-const initialState = JSON.parse(localStorage.getItem("cart")) || [];
+const getInitialCart = () => {
+  try {
+    return JSON.parse(localStorage.getItem("cart")) || [];
+  } catch (error) {
+    console.error("Lỗi parse cart:", error);
+    localStorage.removeItem("cart");
+    return [];
+  }
+};
+
+const initialState = getInitialCart();
 
 function cartReducer(state, action) {
   switch (action.type) {

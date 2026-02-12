@@ -18,16 +18,25 @@ export const AuthProvider = ({ children }) => {
 
     // Load user từ localStorage khi app khởi động
     useEffect(() => {
-        const storedToken = localStorage.getItem('token');
-        const storedRole = localStorage.getItem('role');
-        const storedUser = localStorage.getItem('user');
+        try {
+            const storedToken = localStorage.getItem('token');
+            const storedRole = localStorage.getItem('role');
+            const storedUser = localStorage.getItem('user');
 
-        if (storedToken && storedRole && storedUser) {
-            setToken(storedToken);
-            setRole(storedRole);
-            setUser(JSON.parse(storedUser));
+            if (storedToken && storedRole && storedUser) {
+                setToken(storedToken);
+                setRole(storedRole);
+                setUser(JSON.parse(storedUser));
+            }
+        } catch (error) {
+            console.error("Lỗi khi load dữ liệu từ localStorage:", error);
+            // Nếu dữ liệu lỗi, xóa sạch để tránh lỗi lặp lại
+            localStorage.removeItem("token");
+            localStorage.removeItem("role");
+            localStorage.removeItem("user");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
     // Login function
@@ -46,15 +55,15 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setToken(null);
         setRole(null);
-        
+
         // Clear localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('user');
-        
+
         // Clear session-related data khác nếu có
         // VD: localStorage.removeItem('cart'); - Tùy theo logic app
-        
+
         console.log('✅ Logout successful - All auth data cleared');
     };
 

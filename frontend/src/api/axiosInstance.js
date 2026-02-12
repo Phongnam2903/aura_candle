@@ -16,4 +16,22 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+// Xử lý lỗi 401 (Unauthorized) - Token hết hạn hoặc không hợp lệ
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // Xóa thông tin user khỏi localStorage
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("role");
+
+            // Chuyển hướng về trang login
+            // Lưu ý: window.location.href sẽ reload lại trang, đảm bảo state được reset sạch sẽ
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;
