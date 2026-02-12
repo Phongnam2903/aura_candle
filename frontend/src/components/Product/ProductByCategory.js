@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getProductsByCategory } from "../../api/products/productApi";
 import { getCategories } from "../../api/category/categoriesApi";
+import CONFIG from "../../config";
 
 export default function ProductByCategory() {
     const { slug } = useParams();
@@ -211,7 +212,7 @@ export default function ProductByCategory() {
                                         src={
                                             p.images?.[0]?.startsWith("https")
                                                 ? p.images[0]
-                                                : `http://localhost:5000${p.images?.[0] || ""}`
+                                                : `${CONFIG.API_URL}${p.images?.[0] || ""}`
                                         }
                                         alt={p.name}
                                         className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"

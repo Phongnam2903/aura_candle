@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FaEnvelope, FaSpinner } from "react-icons/fa";
+import CONFIG from "../../config";
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -24,7 +25,7 @@ export default function ForgotPasswordForm() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/auth/forgot-password", { email });
+      const res = await axios.post(`${CONFIG.API_URL}/auth/forgot-password`, { email });
 
       if (res.data.ok) {
         toast.success("✅ Liên kết đặt lại mật khẩu đã được gửi tới email của bạn!");

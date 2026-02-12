@@ -5,6 +5,7 @@ import "swiper/css"
 import { Link, useNavigate } from "react-router-dom"
 import { useCart } from "../../context/CartContext"
 import { toast } from "react-toastify"
+import CONFIG from "../../config"
 import { getCategories } from "../../api/category/categoriesApi"
 import { getProducts } from "../../api/products/productApi"
 import { getAllBlogs } from "../../api/blog/blogApi"
@@ -138,7 +139,7 @@ const Content = () => {
                             src={
                               cat.image.startsWith("https")
                                 ? cat.image
-                                : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${cat.image}`
+                                : `${CONFIG.API_URL}${cat.image}`
                             }
                             alt={cat.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -204,7 +205,7 @@ const Content = () => {
                     src={
                       sp.images[0].startsWith("https")
                         ? sp.images[0]
-                        : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${sp.images[0]}`
+                        : `${CONFIG.API_URL}${sp.images[0]}`
                     }
                     alt={sp.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -288,7 +289,7 @@ const Content = () => {
                       blog.images && blog.images.length > 0
                         ? blog.images[0].startsWith("https")
                           ? blog.images[0]
-                          : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${blog.images[0]}`
+                          : `${CONFIG.API_URL}${blog.images[0]}`
                         : "/placeholder.svg"
                     }
                     alt={blog.title}

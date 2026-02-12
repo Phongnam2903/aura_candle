@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
+import CONFIG from "../config";
 
 const CartContext = createContext();
 
@@ -39,7 +40,7 @@ const getImageUrl = (image, images = []) => {
     const first = images[0];
     return first.startsWith("https")
       ? first
-      : `http://localhost:5000${first}`;
+      : `${CONFIG.API_URL}${first}`;
   }
   return "https://via.placeholder.com/80";
 };

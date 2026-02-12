@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import CONFIG from "../../config";
 import {
     getCategories,
     createCategory,
@@ -42,7 +43,7 @@ export default function CategoryList() {
             setPreview(
                 uploadedPath.startsWith("https")
                     ? uploadedPath
-                    : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${uploadedPath}`
+                    : `${CONFIG.API_URL}${uploadedPath}`
             );
         } catch (err) {
             console.error("❌ Lỗi upload ảnh:", err);
@@ -217,8 +218,8 @@ export default function CategoryList() {
                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
                         className={`px-3 py-1 rounded ${currentPage === 1
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                : "bg-pink-100 text-pink-700 hover:bg-pink-200"
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            : "bg-pink-100 text-pink-700 hover:bg-pink-200"
                             }`}
                     >
                         Trước
@@ -232,8 +233,8 @@ export default function CategoryList() {
                         }
                         disabled={currentPage === totalPages}
                         className={`px-3 py-1 rounded ${currentPage === totalPages
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                : "bg-pink-100 text-pink-700 hover:bg-pink-200"
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            : "bg-pink-100 text-pink-700 hover:bg-pink-200"
                             }`}
                     >
                         Tiếp

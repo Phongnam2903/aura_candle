@@ -1,7 +1,9 @@
 import axios from "axios";
 
+import CONFIG from "../config";
+
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000",
+    baseURL: CONFIG.API_URL,
     withCredentials: false, // vẫn false nếu không dùng cookie
 });
 

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { Loader2, Lock } from "lucide-react";
+import CONFIG from "../../config";
 
 export default function ResetPassword() {
     const { token } = useParams();
@@ -21,7 +22,7 @@ export default function ResetPassword() {
 
         try {
             setLoading(true);
-            const res = await axios.post(`http://localhost:5000/auth/reset-password/${token}`, {
+            const res = await axios.post(`${CONFIG.API_URL}/auth/reset-password/${token}`, {
                 newPassword: password,
             });
 

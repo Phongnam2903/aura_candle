@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { Send, X, MessageCircle, Sparkles, Wind } from "lucide-react";
+import CONFIG from "../../../config";
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -55,7 +56,7 @@ export default function ChatWidget() {
       // Gọi API tới backend với conversation history
       // Rule-based mode: 100% FREE, unlimited, KHÔNG cần OpenAI API!
       // Nếu muốn thông minh hơn → Đổi thành "/chat/hybrid" hoặc "/chat/ollama"
-      const res = await axios.post("http://localhost:5000/chat/rule-based", {
+      const res = await axios.post(`${CONFIG.API_URL}/chat/rule-based`, {
         message: text,
         conversationHistory: conversationHistory, // Gửi lịch sử hội thoại
       });

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { Send, X, MessageCircle, Sparkles, Wind, Settings } from "lucide-react";
+import CONFIG from "../../../config";
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -56,7 +57,7 @@ export default function ChatWidget() {
       }));
 
       // Chọn endpoint dựa trên mode
-      const endpoint = `http://localhost:5000/chat/${botMode}`;
+      const endpoint = `${CONFIG.API_URL}/chat/${botMode}`;
       console.log(`🤖 Using mode: ${botMode}`);
 
       // Gọi API tới backend với conversation history
@@ -78,22 +79,22 @@ export default function ChatWidget() {
       // Hiển thị tin nhắn bot
       setMessages((prev) => [
         ...prev,
-        { 
-          from: "bot", 
-          text: botReply, 
+        {
+          from: "bot",
+          text: botReply,
           timestamp: new Date(),
           source: source // Để biết bot dùng backend nào
         },
       ]);
     } catch (error) {
       console.error("Lỗi khi gọi API chatbot:", error);
-      
+
       let errorMsg = "Xin lỗi, hiện tại tôi đang gặp chút trục trặc 😅.";
-      
+
       if (error.response?.status === 503) {
         errorMsg = error.response.data.error + "\n\n💡 Tip: Chuyển sang mode 'Rule-based' để dùng ngay!";
       }
-      
+
       setMessages((prev) => [
         ...prev,
         {
@@ -165,31 +166,28 @@ export default function ChatWidget() {
                 <div className="flex flex-col gap-2">
                   <button
                     onClick={() => { setBotMode('rule-based'); setShowSettings(false); }}
-                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${
-                      botMode === 'rule-based' 
-                        ? 'bg-white text-purple-600 font-semibold' 
+                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${botMode === 'rule-based'
+                        ? 'bg-white text-purple-600 font-semibold'
                         : 'bg-white/20 hover:bg-white/30'
-                    }`}
+                      }`}
                   >
                     📋 Rule-based - Nhanh, Free
                   </button>
                   <button
                     onClick={() => { setBotMode('ollama'); setShowSettings(false); }}
-                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${
-                      botMode === 'ollama' 
-                        ? 'bg-white text-purple-600 font-semibold' 
+                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${botMode === 'ollama'
+                        ? 'bg-white text-purple-600 font-semibold'
                         : 'bg-white/20 hover:bg-white/30'
-                    }`}
+                      }`}
                   >
                     🦙 Ollama - Thông minh (cần setup)
                   </button>
                   <button
                     onClick={() => { setBotMode('hybrid'); setShowSettings(false); }}
-                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${
-                      botMode === 'hybrid' 
-                        ? 'bg-white text-purple-600 font-semibold' 
+                    className={`text-xs px-3 py-2 rounded-lg text-left transition ${botMode === 'hybrid'
+                        ? 'bg-white text-purple-600 font-semibold'
                         : 'bg-white/20 hover:bg-white/30'
-                    }`}
+                      }`}
                   >
                     🎯 Hybrid - Tự động chọn
                   </button>
@@ -222,9 +220,8 @@ export default function ChatWidget() {
                       {m.text}
                     </div>
                     <div
-                      className={`text-xs text-gray-400 px-2 flex items-center gap-1 ${
-                        m.from === "user" ? "justify-end" : "justify-start"
-                      }`}
+                      className={`text-xs text-gray-400 px-2 flex items-center gap-1 ${m.from === "user" ? "justify-end" : "justify-start"
+                        }`}
                     >
                       {formatTime(m.timestamp)}
                       {m.source && m.from === "bot" && (

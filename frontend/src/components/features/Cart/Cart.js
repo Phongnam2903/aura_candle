@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
 import { toast } from "react-toastify";
 
+import CONFIG from "../../../config";
+
 export default function CartPage() {
   const { cart, removeItem, updateItem } = useCart();
   const navigate = useNavigate();
@@ -55,7 +57,7 @@ export default function CartPage() {
                     item.image
                       ? item.image.startsWith("https")
                         ? item.image
-                        : `http://localhost:5000${item.image}`
+                        : `${CONFIG.API_URL}${item.image}`
                       : "https://via.placeholder.com/80"
                   }
                   alt={item.name}

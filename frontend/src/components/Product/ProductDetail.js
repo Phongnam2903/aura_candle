@@ -3,6 +3,7 @@ import { FaFacebookF, FaTwitter, FaPinterestP, FaStar, FaReply, FaHeart, FaRegHe
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
+import CONFIG from "../../config";
 import { getProductById, getProductsByCategoryApi } from "../../api/products/productApi";
 import { commentForProductApi, deleteCommentApi, getCommentForProductApi, toggleLikeCommentApi } from "../../api/comment/commentApi";
 
@@ -161,7 +162,7 @@ export default function ProductDetail() {
                                 src={
                                     product.images?.[currentImage]?.startsWith("https")
                                         ? product.images[currentImage]
-                                        : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${product.images?.[currentImage] || ""}`
+                                        : `${CONFIG.API_URL}${product.images?.[currentImage] || ""}`
                                 }
                                 alt={product.name}
                                 className="w-full h-auto object-cover shadow-lg transition-transform duration-500 transform group-hover:scale-110 rounded-3xl"
@@ -192,7 +193,7 @@ export default function ProductDetail() {
                                 {product.images.map((img, idx) => (
                                     <img
                                         key={idx}
-                                        src={img.startsWith("https") ? img : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${img}`}
+                                        src={img.startsWith("https") ? img : `${CONFIG.API_URL}${img}`}
                                         alt={`thumb-${idx}`}
                                         className={`w-12 h-12 object-cover rounded-lg border-2 cursor-pointer transition-transform duration-300 ${idx === currentImage ? "border-emerald-500 scale-110" : "border-transparent hover:scale-105"
                                             }`}
