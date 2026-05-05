@@ -1,7 +1,7 @@
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
-require("dotenv").config(); // ✅ Đọc file .env ngay đầu tiên
+require("dotenv").config();
 const connectDB = require("./src/config/db");
 
 //  Kiểm tra SECRET_KEY có đọc được không
