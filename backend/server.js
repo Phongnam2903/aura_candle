@@ -24,7 +24,7 @@ app.use(cors({ origin: "*" }));
 
 //  Middleware để log mọi request (giúp debug)
 app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.url}`);
+  console.log(`${req.method} ${req.url}`);
   next();
 });
 
