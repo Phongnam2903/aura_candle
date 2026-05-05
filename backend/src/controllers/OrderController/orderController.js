@@ -76,9 +76,9 @@ const createOrder = async (req, res) => {
                 type: "Order",
                 relatedOrder: order._id,
             });
-            console.log("✅ Notification created successfully");
+            console.log(" Notification created successfully");
         } catch (error) {
-            console.error("❌ Notification create failed:", error);
+            console.error(" Notification create failed:", error);
         }
 
 
