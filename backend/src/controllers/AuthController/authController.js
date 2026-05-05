@@ -8,8 +8,21 @@ const client = new OAuth2Client(process.env.O2Auth_Key);
 
 const login = async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const { email, identifier, password } = req.body;
+        const loginKey = identifier || email; // Chấp nhận cả key 'identifier' hoặc 'email' từ frontend
+
+        if (!loginKey) {
+            return res.status(400).json({ message: "Vui lòng cung cấp email, tên đăng nhập hoặc số điện thoại." });
+        }
+
+        // Tìm người dùng bằng Email, Username hoặc Số điện thoại
+        const user = await User.findOne({
+            $or: [
+                { email: loginKey.toLowerCase() },
+                { username: loginKey.toLowerCase() },
+                { phone: loginKey }
+            ]
+        });
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -46,17 +59,33 @@ const login = async (req, res) => {
 
 
 const register = async (req, res) => {
-    const { name, email, gender, password, phone } = req.body;
+    const { name, username, email, gender, password, phone } = req.body;
 
     try {
-        const existing = await User.findOne({ email });
-        if (existing) {
+        // Kiểm tra Email trùng lặp
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
             return res.status(400).json({ message: "Email đã tồn tại." });
+        }
+
+        // Kiểm tra Username trùng lặp (nếu có cung cấp)
+        if (username) {
+            const existingUsername = await User.findOne({ username: username.toLowerCase() });
+            if (existingUsername) {
+                return res.status(400).json({ message: "Tên đăng nhập đã tồn tại." });
+            }
+        }
+
+        // Kiểm tra Số điện thoại trùng lặp
+        const existingPhone = await User.findOne({ phone });
+        if (existingPhone) {
+            return res.status(400).json({ message: "Số điện thoại đã tồn tại." });
         }
 
         const hashed = await bcrypt.hash(password, 10);
         const user = new User({
             name,
+            username,
             email,
             gender,
             password: hashed,
