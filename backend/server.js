@@ -65,25 +65,24 @@ app.use("/dashboard", dashboardRouter);
 app.use("/payment", paymentRouter);
 app.use("/blog", blogRouter);
 
-console.log("✅ All routes registered successfully");
 
 // Test route để kiểm tra server hoạt động
 app.get("/", (req, res) => {
-  res.json({ 
-    message: "Aura Candle API is running", 
+  res.json({
+    message: "Aura Candle API is running",
     routes: ["/product", "/category", "/material", "/auth", "/upload", "/cart", "/order", "/orderSeller", "/addresses", "/chat", "/notification", "/comments", "/dashboard", "/payment", "/blog"]
   });
 });
 
 // 404 handler - đặt sau tất cả routes
 app.use((req, res) => {
-  console.log(`❌ 404 Not Found: ${req.method} ${req.url}`);
+  console.log(` 404 Not Found: ${req.method} ${req.url}`);
   res.status(404).json({ error: "Route not found", path: req.url });
 });
 
 // Chạy server
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
-  console.log(`✅ Server đang chạy tại http://localhost:${port}`);
-  console.log(`🔑 SECRET_KEY: ${process.env.SECRET_KEY ? "Loaded OK" : "Not found"}`);
+  console.log(`Server đang chạy tại http://localhost:${port}`);
+  console.log(`SECRET_KEY: ${process.env.SECRET_KEY ? "Loaded OK" : "Not found"}`);
 });
