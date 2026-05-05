@@ -13,4 +13,8 @@ const commentSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+commentSchema.index({ product: 1, createdAt: -1 }); // lấy comment của sản phẩm
+commentSchema.index({ user: 1 });                     // lấy comment của user
+commentSchema.index({ parentComment: 1 });             // lấy reply của comment
+
 module.exports = mongoose.model("Comment", commentSchema);

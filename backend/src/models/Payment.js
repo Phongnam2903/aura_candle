@@ -9,7 +9,7 @@ const paymentSchema = new mongoose.Schema(
         },
         method: {
             type: String,
-            enum: ["COD", "Momo", "VNPay", "PayPal", "Stripe"],
+            enum: ["COD", "Bank", "E-Wallet", "VNPay", "Momo"],
             default: "COD",
         },
         amount: {
@@ -18,7 +18,7 @@ const paymentSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["Pending", "Success", "Failed"],
+            enum: ["Pending", "Success", "Failed", "Refunded"],  // thêm Refunded
             default: "Pending",
         },
         transactionId: {
@@ -31,6 +31,9 @@ const paymentSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+paymentSchema.index({ order: 1 });
+paymentSchema.index({ status: 1, createdAt: -1 });
 
 const Payment = mongoose.model("Payment", paymentSchema, "payments");
 module.exports = Payment;

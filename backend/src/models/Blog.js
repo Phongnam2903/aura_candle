@@ -8,9 +8,14 @@ const blogSchema = new mongoose.Schema(
     images: [{ type: String }],
     link: { type: String },
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    isPublished: { type: Boolean, default: false },
+    publishedAt: { type: Date },
   },
-  { timestamps: true } 
+  { timestamps: true }
 );
+
+blogSchema.index({ author: 1, createdAt: -1 });
+blogSchema.index({ isPublished: 1, createdAt: -1 });
 
 const Blog = mongoose.model("Blog", blogSchema, "blogs");
 module.exports = Blog;

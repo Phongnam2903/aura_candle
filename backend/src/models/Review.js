@@ -9,5 +9,8 @@ const reviewSchema = new mongoose.Schema({
   comment: String,
 }, { timestamps: true });
 
+reviewSchema.index({ product: 1, user: 1 }, { unique: true });
+reviewSchema.index({ product: 1, createdAt: -1 });
+
 const Review = mongoose.model("Review", reviewSchema, "reviews");
 module.exports = Review;

@@ -21,9 +21,10 @@ const MaterialSchema = new mongoose.Schema({
   vendor: String,
 
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  // Ngày tạo (tự động lấy ngày hiện tại)
-  createdAt: { type: Date, default: Date.now }
-});
+
+}, { timestamps: true });
+
+MaterialSchema.index({ createdBy: 1 });
 
 // Tạo model Material từ schema
 const Material = mongoose.model('Material', MaterialSchema, "materials");

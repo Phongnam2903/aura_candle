@@ -8,8 +8,9 @@ const CartItemSchema = new mongoose.Schema({
 const CartSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   items: [CartItemSchema],
-  createdAt: { type: Date, default: Date.now },
-});
+}, { timestamps: true });
+
+CartSchema.index({ user: 1 }, { unique: true });
 
 const Cart = mongoose.model("Cart", CartSchema);
 module.exports = Cart;

@@ -32,4 +32,7 @@ const shopSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+shopSchema.index({ owner: 1 }, { unique: true }); // mỗi user chỉ có 1 shop
+shopSchema.index({ status: 1 });                   // admin filter theo status
+
 module.exports = mongoose.model("Shop", shopSchema, "shops");
