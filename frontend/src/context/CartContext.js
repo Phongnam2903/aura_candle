@@ -43,7 +43,6 @@ function cartReducer(state, action) {
   }
 }
 
-// ✅ Hàm xử lý ảnh chuẩn
 const getImageUrl = (image, images = []) => {
   if (image && image.startsWith("https")) return image;
   if (Array.isArray(images) && images.length > 0) {
@@ -63,7 +62,7 @@ export function CartProvider({ children }) {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addItem = (product) => {
+  const addItem = React.useCallback((product) => {
     dispatch({
       type: "ADD",
       payload: {
@@ -74,17 +73,19 @@ export function CartProvider({ children }) {
         fragrance: product.fragrance || null,
       },
     });
-  };
+  }, []);
 
-  const removeItem = (id) => dispatch({ type: "REMOVE", id });
-  const updateItem = (id, quantity) =>
-    dispatch({ type: "UPDATE_QTY", id, quantity });
-  const clearCart = () => dispatch({ type: "CLEAR_CART" });
+  const removeItem = React.useCallback((id) => dispatch({ type: "REMOVE", id }), []);
+  const updateItem = React.useCallback((id, quantity) =>
+    dispatch({ type: "UPDATE_QTY", id, quantity }), []);
+  const clearCart = React.useCallback(() => dispatch({ type: "CLEAR_CART" }), []);
+
+  const contextValue = React.useMemo(() => ({
+    cart, addItem, removeItem, updateItem, clearCart
+  }), [cart, addItem, removeItem, updateItem, clearCart]);
 
   return (
-    <CartContext.Provider
-      value={{ cart, addItem, removeItem, updateItem, clearCart }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

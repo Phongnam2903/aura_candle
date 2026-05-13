@@ -13,7 +13,7 @@ const PaymentSuccess = () => {
   useEffect(() => {
     // Clear cart khi thanh toán thành công
     clearCart();
-  }, []);
+  }, [clearCart]);
 
   const handleGoToProfile = () => {
     try {
