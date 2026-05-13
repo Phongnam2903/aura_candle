@@ -40,6 +40,15 @@ orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ status: 1, paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
 
+// Tự động sinh orderCode trước khi save: DH000001, DH000002...
+// Dùng để nhận dạng giao dịch chuyển khoản qua SePay (prefix khớp với filter SePay = "DH")
+orderSchema.pre('save', async function () {
+    if (!this.orderCode) {
+        const count = await mongoose.model('Order').countDocuments();
+        this.orderCode = `DH${String(count + 1).padStart(6, '0')}`;
+    }
+});
+
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;
 

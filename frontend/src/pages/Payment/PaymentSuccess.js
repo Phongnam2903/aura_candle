@@ -15,10 +15,32 @@ const PaymentSuccess = () => {
     clearCart();
   }, [clearCart]);
 
+  const handleGoToProfile = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      console.log("[PaymentSuccess] userStr:", userStr);
+      
+      if (!userStr || userStr === 'undefined') {
+        navigate('/');
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      if (user?._id) {
+        navigate(`/profile/${user._id}`);
+      } else {
+        navigate('/');
+      }
+    } catch (err) {
+      console.error("[PaymentSuccess] Error in handleGoToProfile:", err);
+      navigate('/');
+    }
+  };
+
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 text-center">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-6 py-12">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 text-center border border-green-100">
           <div className="mb-6">
             <div className="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-16 h-16 text-green-600" strokeWidth={2} />
@@ -42,15 +64,18 @@ const PaymentSuccess = () => {
 
           <div className="space-y-3">
             <button
-              onClick={() => navigate(`/profile/${JSON.parse(localStorage.getItem('user'))?._id}`)}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-md"
+              onClick={handleGoToProfile}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-all shadow-md active:scale-95"
             >
               Xem đơn hàng của tôi
             </button>
             
             <button
-              onClick={() => navigate('/')}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition-colors"
+              onClick={() => {
+                console.log("[PaymentSuccess] Navigating to home");
+                navigate('/');
+              }}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition-all active:scale-95"
             >
               Tiếp tục mua sắm
             </button>
@@ -58,7 +83,7 @@ const PaymentSuccess = () => {
 
           <div className="mt-6 pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-500">
-              Chúng tôi đã gửi email xác nhận đơn hàng đến địa chỉ email của bạn.
+              Chúng tôi sẽ sớm liên hệ để xác nhận và giao hàng cho bạn.
             </p>
           </div>
         </div>

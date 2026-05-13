@@ -21,6 +21,7 @@ import UnauthorizedPage from "../pages/Error/UnauthorizedPage";
 import NotFoundPage from "../pages/Error/NotFoundPage";
 import ProtectedRoute from "../components/Auth/ProtectedRoute";
 import RoleBasedRedirect from "../components/Auth/RoleBasedRedirect";
+import PaymentSuccess from "../pages/Payment/PaymentSuccess";
 
 export default function AppRoutes() {
     return (
@@ -101,6 +102,14 @@ export default function AppRoutes() {
                     element={
                         <ProtectedRoute allowedRoles={['customer', 'seller', 'admin']}>
                             <NotificationDetailScreen />
+                        </ProtectedRoute>
+                    } 
+                />
+                <Route 
+                    path="/payment/success" 
+                    element={
+                        <ProtectedRoute allowedRoles={['customer', 'seller', 'admin']}>
+                            <PaymentSuccess />
                         </ProtectedRoute>
                     } 
                 />

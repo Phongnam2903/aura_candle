@@ -56,8 +56,7 @@ const getNotificationDetail = async (req, res) => {
                     path: "author",
                     select: "name email",
                 },
-            })
-            .populate("comments.user", "username avatar_url");
+            });
 
         if (!notification)
             return res.status(404).json({ ok: false, message: "Không tìm thấy thông báo" });

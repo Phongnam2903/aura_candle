@@ -6,6 +6,7 @@ import { FaUser, FaPhone, FaEnvelope, FaLock } from "react-icons/fa";
 export default function RegisterForm() {
     const [form, setForm] = useState({
         name: "",
+        username: "",
         gender: "",
         phone: "",
         email: "",
@@ -22,6 +23,8 @@ export default function RegisterForm() {
 
     function validate() {
         if (!form.name.trim()) return "Vui lòng nhập họ và tên.";
+        if (!form.username.trim()) return "Vui lòng nhập tên đăng nhập.";
+        if (form.username.length < 3) return "Tên đăng nhập phải ít nhất 3 ký tự.";
         if (!form.gender) return "Vui lòng chọn giới tính.";
         if (!form.phone.trim()) return "Vui lòng nhập số điện thoại.";
         if (!/^\d{9,11}$/.test(form.phone))
@@ -85,6 +88,18 @@ export default function RegisterForm() {
                             name="name"
                             placeholder="Họ và tên"
                             value={form.name}
+                            onChange={handleChange}
+                            className="w-full border border-gray-300 rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-[#B58D73] focus:border-transparent placeholder-gray-400 transition-all"
+                        />
+                    </div>
+
+                    <div className="relative">
+                        <FaUser className="absolute left-4 top-3.5 text-gray-400" />
+                        <input
+                            type="text"
+                            name="username"
+                            placeholder="Tên đăng nhập"
+                            value={form.username}
                             onChange={handleChange}
                             className="w-full border border-gray-300 rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-[#B58D73] focus:border-transparent placeholder-gray-400 transition-all"
                         />

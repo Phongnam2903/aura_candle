@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { loginUser } from "../../api/auth/auth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginForm() {
@@ -19,9 +19,7 @@ export default function LoginForm() {
     }
 
     function validate() {
-        if (!form.email.trim()) return "Vui lòng nhập email.";
-        const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
-        if (!emailRegex.test(form.email)) return "Email không hợp lệ.";
+        if (!form.email.trim()) return "Vui lòng nhập email hoặc tên đăng nhập.";
         if (!form.password) return "Vui lòng nhập mật khẩu.";
         if (form.password.length < 6) return "Mật khẩu phải ít nhất 6 ký tự.";
         return "";
@@ -54,7 +52,7 @@ export default function LoginForm() {
                     break;
             }
         } catch (err) {
-            setMessage(err.response?.data?.message || "Sai email hoặc mật khẩu");
+            setMessage(err.response?.data?.message || "Sai thông tin đăng nhập hoặc mật khẩu");
         } finally {
             setLoading(false);
         }
@@ -80,11 +78,11 @@ export default function LoginForm() {
                 {/* Form */}
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     <div className="relative">
-                        <FaEnvelope className="absolute left-4 top-3.5 text-gray-400 transition-all" />
+                        <FaUser className="absolute left-4 top-3.5 text-gray-400 transition-all" />
                         <input
-                            type="email"
+                            type="text"
                             name="email"
-                            placeholder="Nhập email của bạn"
+                            placeholder="Email hoặc tên đăng nhập"
                             value={form.email}
                             onChange={handleChange}
                             className="w-full border border-gray-300 rounded-xl pl-12 pr-4 py-3 focus:ring-2 focus:ring-[#B58D73] focus:border-transparent placeholder-gray-400 transition-all"

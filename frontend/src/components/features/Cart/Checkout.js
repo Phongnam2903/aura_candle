@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useCart } from "../../../context/CartContext";
 import { getAddressesByUser } from "../../../api/address/addressApi";
 import { checkout } from "../../../api/order/orderApi";
+import SepayQRModal from "../../Payment/SepayQRModal";
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
@@ -13,7 +14,11 @@ const CheckoutPage = () => {
     const [addresses, setAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState("");
     const [payment, setPayment] = useState("");
-    const [orderId, setOrderId] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // State cho SePay QR Modal
+    const [qrOrder, setQrOrder] = useState(null);       // order object sau khi tạo
+    const [showQRModal, setShowQRModal] = useState(false);
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem("user"));
@@ -39,29 +44,27 @@ const CheckoutPage = () => {
         if (!payment) return toast.error("Bạn cần chọn phương thức thanh toán.");
         if (cart.length === 0) return toast.error("Giỏ hàng trống.");
 
+        setIsLoading(true);
         try {
             const payload = {
                 addressId: selectedAddressId,
                 items: cart.map((i) => ({ productId: i.id || i._id, quantity: i.quantity })),
                 payment,
             };
+            // Debug: log payload trước khi gửi
+            console.log("[Checkout] Payload:", JSON.stringify(payload, null, 2));
             const result = await checkout(payload);
-            
+
             if (result.ok && result.order) {
-                setOrderId(result.order._id); // Lưu orderId từ response
-                
-                // Clear cart cho tất cả phương thức thanh toán
-                clearCart();
-                
-                // Xử lý theo phương thức thanh toán
                 if (payment === "Bank") {
-                    // Thanh toán chuyển khoản - hiển thị QR, sau đó redirect
-                    toast.success("Đơn hàng đã được tạo! Vui lòng quét mã QR để thanh toán.");
-                    setTimeout(() => {
-                        navigate("/");
-                    }, 3000); // Redirect sau 3 giây để user thấy QR
+                    // Chuyển khoản QR: Mở modal SePay, KHÔNG navigate ngay
+                    // Cart xóa sau khi modal xác nhận thành công
+                    setQrOrder(result.order);
+                    setShowQRModal(true);
+                    toast.success("Đơn hàng đã tạo! Vui lòng quét mã QR để thanh toán.");
                 } else {
-                    // COD - thanh toán khi nhận hàng
+                    // COD: xóa cart và navigate thẳng
+                    clearCart();
                     toast.success("Đặt hàng thành công!");
                     navigate("/");
                 }
@@ -69,10 +72,26 @@ const CheckoutPage = () => {
                 toast.error(result.message || "Không thể tạo đơn hàng");
             }
         } catch (err) {
-            console.error(err);
-            toast.error(err.response?.data?.message || "Có lỗi xảy ra!");
+            // Backend trả về { error: "...", detail: "..." } — không phải "message"
+            const errMsg =
+                err.response?.data?.error ||
+                err.response?.data?.detail ||
+                err.response?.data?.message ||
+                "Có lỗi xảy ra!";
+            console.error("[Checkout] Lỗi:", err.response?.data || err.message);
+            toast.error(errMsg);
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    // Callback khi SePay xác nhận thanh toán thành công
+    const handlePaymentSuccess = () => {
+        clearCart();
+        setShowQRModal(false);
+        navigate(`/payment/success?orderId=${qrOrder?._id}`);
+    };
+
 
     return (
         <>
@@ -169,18 +188,11 @@ const CheckoutPage = () => {
                                 ))}
                             </div>
 
-                            {/* Hiển thị QR nếu chọn Bank */}
+                        {/* Hiển thị thông báo QR nếu đang chờ thanh toán Bank */}
                             {payment === "Bank" && (
-                                <div className="mt-4 border border-emerald-200 p-4 rounded-2xl bg-emerald-50 text-center">
-                                    <p className="font-medium text-emerald-700 mb-2">Quét mã QR để thanh toán</p>
-                                    <img
-                                        src="/assets/QR.png"
-                                        alt="QR thanh toán ngân hàng"
-                                        className="mx-auto w-64 h-64 object-contain rounded-xl border border-emerald-300 shadow-md"
-                                    />
-                                    <p className="text-sm text-gray-600 mt-2">
-                                        Nội dung chuyển khoản: <strong>Thanh toán đơn hàng #{orderId || "###"}</strong>
-                                    </p>
+                                <div className="mt-4 border border-emerald-200 p-4 rounded-2xl bg-emerald-50 text-sm text-emerald-700">
+                                    <p className="font-medium">💳 Sau khi đặt hàng, mã QR VietQR sẽ hiện ra để bạn chuyển khoản.</p>
+                                    <p className="mt-1 text-emerald-600">Hệ thống sẽ tự động xác nhận khi nhận được tiền.</p>
                                 </div>
                             )}
 
@@ -188,9 +200,18 @@ const CheckoutPage = () => {
 
                         <button
                             type="submit"
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-semibold shadow-md transition-all"
+                            disabled={isLoading}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed text-white py-3 rounded-2xl font-semibold shadow-md transition-all flex items-center justify-center gap-2"
                         >
-                            Xác nhận đặt hàng
+                            {isLoading ? (
+                                <>
+                                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                    </svg>
+                                    Đang xử lý...
+                                </>
+                            ) : "Xác nhận đặt hàng"}
                         </button>
                     </form>
                 </div>
@@ -246,6 +267,14 @@ const CheckoutPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* SePay QR Modal — tự động polling, hiện khi chọn Bank */}
+            <SepayQRModal
+                order={qrOrder}
+                isOpen={showQRModal}
+                onClose={() => setShowQRModal(false)}
+                onSuccess={handlePaymentSuccess}
+            />
         </>
     );
 };

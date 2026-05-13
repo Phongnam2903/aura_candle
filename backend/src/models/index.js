@@ -13,6 +13,7 @@ const Shop = require("./Shops");
 const User = require("./Users");
 const Voucher = require("./Voucher");
 const Notification = require("./Notification");
+const PaymentTransaction = require("./PaymentTransaction");
 
 module.exports = {
     Address,
@@ -30,4 +31,5 @@ module.exports = {
     User,
     Voucher,
     Notification,
+    PaymentTransaction,
 };
