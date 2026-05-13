@@ -13,13 +13,13 @@ const PaymentSuccess = () => {
   useEffect(() => {
     // Clear cart khi thanh toán thành công
     clearCart();
-  }, [clearCart]);
+  }, []);
 
   const handleGoToProfile = () => {
     try {
       const userStr = localStorage.getItem('user');
       console.log("[PaymentSuccess] userStr:", userStr);
-      
+
       if (!userStr || userStr === 'undefined') {
         navigate('/');
         return;
@@ -69,7 +69,7 @@ const PaymentSuccess = () => {
             >
               Xem đơn hàng của tôi
             </button>
-            
+
             <button
               onClick={() => {
                 console.log("[PaymentSuccess] Navigating to home");
