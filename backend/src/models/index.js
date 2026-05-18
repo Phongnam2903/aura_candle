@@ -4,6 +4,7 @@ const Blog = require("./Blog");
 const Brand = require("./Brand");
 const Cart = require("./Cart");
 const Category = require("./Category");
+const Counter = require("./Counter");
 const Material = require("./Material");
 const Order = require("./Order");
 const Payment = require("./Payment");
@@ -22,6 +23,7 @@ module.exports = {
     Brand,
     Cart,
     Category,
+    Counter,
     Material,
     Order,
     Payment,

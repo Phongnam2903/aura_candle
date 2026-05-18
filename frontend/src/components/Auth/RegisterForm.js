@@ -13,7 +13,7 @@ export default function RegisterForm() {
         password: "",
     });
     const [message, setMessage] = useState("");
-    const [messageType, setMessageType] = useState("error"); // "error" | "success"
+    const [messageType, setMessageType] = useState("error");
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -77,11 +77,10 @@ export default function RegisterForm() {
                 </div>
 
                 {message && (
-                    <p className={`text-center mb-4 text-sm py-2 px-4 rounded-lg ${
-                        messageType === "success"
-                            ? "text-green-700 bg-green-50 border border-green-200"
-                            : "text-red-600 bg-red-50 border border-red-200 animate-pulse"
-                    }`}>
+                    <p className={`text-center mb-4 text-sm py-2 px-4 rounded-lg ${messageType === "success"
+                        ? "text-green-700 bg-green-50 border border-green-200"
+                        : "text-red-600 bg-red-50 border border-red-200 animate-pulse"
+                        }`}>
                         {messageType === "success" ? "✓ " : "✕ "}{message}
                     </p>
                 )}

@@ -1,4 +1,4 @@
-const { Product, Order, Address, Notification } = require("../../models");
+const { Product, Order, Address, Notification, Counter } = require("../../models");
 
 // Checkout (tạo đơn hàng)
 const createOrder = async (req, res) => {
@@ -10,7 +10,7 @@ const createOrder = async (req, res) => {
         console.log(`[Order] Payload:`, JSON.stringify({ addressId, payment, itemCount: items?.length }));
 
         if (!items || items.length === 0) {
-            console.warn('[Order] ❌ Cart is empty');
+            console.warn('[Order] Cart is empty');
             return res.status(400).json({ error: "Cart is empty" });
         }
 
@@ -18,10 +18,10 @@ const createOrder = async (req, res) => {
         console.log(`[Order] Bước 1 — Kiểm tra address: ${addressId}`);
         const address = await Address.findOne({ _id: addressId, user: userId });
         if (!address) {
-            console.warn(`[Order] ❌ Address not found: ${addressId} cho user ${userId}`);
+            console.warn(`[Order] Address not found: ${addressId} cho user ${userId}`);
             return res.status(404).json({ error: "Address not found" });
         }
-        console.log(`[Order] ✅ Address OK: ${address._id}`);
+        console.log(`[Order] Address OK: ${address._id}`);
 
         // 2. Lấy giá sản phẩm thực tế từ DB và trừ stock
         console.log(`[Order] Bước 2 — Xử lý ${items.length} sản phẩm`);
@@ -32,11 +32,11 @@ const createOrder = async (req, res) => {
             console.log(`[Order]   → productId: ${item.productId}, qty: ${item.quantity}`);
             const product = await Product.findById(item.productId);
             if (!product) {
-                console.warn(`[Order] ❌ Product not found: ${item.productId}`);
+                console.warn(`[Order] Product not found: ${item.productId}`);
                 return res.status(404).json({ error: `Product not found: ${item.productId}` });
             }
             if (product.stock < item.quantity) {
-                console.warn(`[Order] ❌ Out of stock: ${product.name} (stock: ${product.stock}, req: ${item.quantity})`);
+                console.warn(`[Order] Out of stock: ${product.name} (stock: ${product.stock}, req: ${item.quantity})`);
                 return res.status(400).json({ error: `${product.name} is out of stock` });
             }
 
@@ -52,7 +52,7 @@ const createOrder = async (req, res) => {
 
             totalAmount += product.price * item.quantity;
         }
-        console.log(`[Order] ✅ Tổng tiền: ${totalAmount}`);
+        console.log(`[Order] Tổng tiền: ${totalAmount}`);
 
         // 3. Map payment method từ frontend
         const paymentMap = {
@@ -62,11 +62,16 @@ const createOrder = async (req, res) => {
             ZaloPay: "E-Wallet"
         };
 
-        // 4. Tạo mã đơn hàng (orderCode)
-        // Prefix "DH" khớp với filter trong SePay dashboard
-        const random = Math.floor(1000 + Math.random() * 9000);
-        const orderCode = `DH${Date.now()}${random}`;
-        console.log(`[Order] Bước 4 — orderCode: ${orderCode}, paymentMethod: ${paymentMap[payment] || 'COD'}`);
+        // 4. Sinh orderCode — atomic counter, không bao giờ trùng dù concurrent
+        // findOneAndUpdate + $inc là operation atomic trong MongoDB:
+        // mỗi lần gọi, seq tăng 1 và trả về giá trị MỚI → không thể 2 request lấy cùng số
+        const counter = await Counter.findOneAndUpdate(
+            { _id: "orderCode" },
+            { $inc: { seq: 1 } },
+            { new: true, upsert: true } // upsert: tạo mới nếu chưa có document
+        );
+        const orderCode = `DH${String(counter.seq).padStart(6, "0")}`;
+        console.log(`[Order] orderCode: ${orderCode}, paymentMethod: ${paymentMap[payment] || "COD"}`);
 
         // 5. Tạo Order
         console.log(`[Order] Bước 5 — Lưu Order vào DB`);
@@ -81,7 +86,7 @@ const createOrder = async (req, res) => {
         });
 
         await order.save();
-        console.log(`[Order] ✅ Order saved: ${order._id}`);
+        console.log(`[Order] Order saved: ${order._id}`);
 
         // 6. Tạo Notification
         try {
@@ -92,13 +97,13 @@ const createOrder = async (req, res) => {
                 type: "Order",
                 relatedOrder: order._id,
             });
-            console.log("[Order] ✅ Notification created");
+            console.log("[Order] Notification created");
         } catch (notifErr) {
-            console.error("[Order] ⚠️ Notification create failed (không ảnh hưởng đơn hàng):", notifErr.message);
+            console.error("[Order] Notification create failed (không ảnh hưởng đơn hàng):", notifErr.message);
         }
 
         // 7. Trả phản hồi cho frontend
-        console.log(`[Order] ✅ Checkout thành công — orderCode: ${orderCode}`);
+        console.log(`[Order] Checkout thành công — orderCode: ${orderCode}`);
         return res.status(201).json({
             ok: true,
             message: "Đặt hàng thành công!",
@@ -107,7 +112,7 @@ const createOrder = async (req, res) => {
             order,
         });
     } catch (err) {
-        console.error("[Order] ❌ createOrder CRASHED:");
+        console.error("[Order] createOrder CRASHED:");
         console.error("  Message:", err.message);
         console.error("  Stack:", err.stack);
         // Trả về lỗi chi tiết (chỉ dùng khi dev, bỏ err.message ở production)
