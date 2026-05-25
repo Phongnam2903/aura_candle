@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { loginUser } from "../../api/auth/auth";
+import { mergeCart } from "../../api/cart/cartApi";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 
 export default function LoginForm() {
     const [form, setForm] = useState({ email: "", password: "" });
@@ -12,6 +14,7 @@ export default function LoginForm() {
     const [showPass, setShowPass] = useState(false);
     const navigate = useNavigate();
     const { login } = useAuth();
+    const { reloadCartFromServer } = useCart();
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -37,9 +40,30 @@ export default function LoginForm() {
 
         try {
             const data = await loginUser(form);
-            // Sử dụng login từ AuthContext
+
+            // 1. Đăng nhập — lưu token trước để axiosInstance có Bearer header
             login(data.user, data.token);
-            toast.success(`Xin chào ${data.user.name}!`);
+
+            // 2. Merge cart localStorage (guest) lên server
+            try {
+                const localCart = JSON.parse(localStorage.getItem("cart")) || [];
+                if (localCart.length > 0) {
+                    const mergeItems = localCart.map((item) => ({
+                        productId: item.id,
+                        quantity: item.quantity || 1,
+                    }));
+                    await mergeCart(mergeItems);
+                    localStorage.removeItem("cart"); // đã merge, xóa guest cart
+                }
+            } catch (mergeErr) {
+                // Merge thất bại không block login — chỉ log
+                console.warn("[Login] Merge cart failed:", mergeErr?.message);
+            }
+
+            // 3. Reload cart từ server vào context
+            reloadCartFromServer();
+
+            toast.success(`Xin ch\u00e0o ${data.user.name}!`);
             switch (data.user.role) {
                 case "admin":
                     navigate("/admin/dashboard");

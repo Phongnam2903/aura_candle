@@ -77,4 +77,67 @@ const updateQuantity = async (req, res) => {
   }
 };
 
-module.exports = { getCart, addToCart, removeFromCart, updateQuantity };
+/**
+ * POST /cart/merge
+ * Merge giỏ hàng localStorage (guest) vào cart server sau khi login.
+ * Body: { items: [{ productId, quantity }] }
+ *
+ * Logic merge:
+ *   - Sản phẩm đã có trong server cart → cộng dồn quantity
+ *   - Sản phẩm chưa có → thêm mới
+ * Trả về cart đã merge và populate đầy đủ.
+ */
+const mergeCart = async (req, res) => {
+  try {
+    const { items: localItems } = req.body; // [{productId, quantity}]
+
+    if (!Array.isArray(localItems) || localItems.length === 0) {
+      // Không có gì để merge — trả về cart server hiện tại
+      const cart = await Cart.findOne({ user: req.user.id }).populate("items.product");
+      return res.json(cart || { items: [] });
+    }
+
+    // Lấy hoặc tạo mới cart
+    let cart = await Cart.findOne({ user: req.user.id });
+    if (!cart) {
+      cart = new Cart({ user: req.user.id, items: [] });
+    }
+
+    for (const localItem of localItems) {
+      const { productId, quantity = 1 } = localItem;
+
+      // Bỏ qua nếu productId không hợp lệ
+      if (!productId) continue;
+
+      const exist = cart.items.find((i) => i.product.toString() === productId);
+      if (exist) {
+        // Cộng dồn — không override, tránh mất cart server
+        exist.quantity += quantity;
+      } else {
+        cart.items.push({ product: productId, quantity });
+      }
+    }
+
+    await cart.save();
+    res.json(await cart.populate("items.product"));
+  } catch (err) {
+    console.error("[Cart] Merge error:", err);
+    res.status(500).json({ message: "Lỗi merge giỏ hàng" });
+  }
+};
+
+// Xóa toàn bộ giỏ hàng (dùng sau checkout)
+const clearCart = async (req, res) => {
+  try {
+    await Cart.findOneAndUpdate(
+      { user: req.user.id },
+      { $set: { items: [] } }
+    );
+    res.json({ ok: true, message: "Đã xóa giỏ hàng" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Lỗi xóa giỏ hàng" });
+  }
+};
+
+module.exports = { getCart, addToCart, removeFromCart, updateQuantity, mergeCart, clearCart };
