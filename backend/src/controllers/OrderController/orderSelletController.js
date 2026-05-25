@@ -4,9 +4,21 @@ const STATUS_OPTIONS = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancell
 const getSellerOrders = async (req, res) => {
     try {
         const sellerId = req.user.id;
+        const { paymentStatus, search } = req.query;
+
+        // Build base query filter
+        const queryFilter = {};
+
+        // Filter theo paymentStatus nếu có
+        if (paymentStatus && paymentStatus !== "all") {
+            const validPaymentStatuses = ["unpaid", "paid", "failed", "refunded", "processing"];
+            if (validPaymentStatuses.includes(paymentStatus)) {
+                queryFilter.paymentStatus = paymentStatus;
+            }
+        }
 
         // Tìm tất cả order có ít nhất 1 product của seller
-        const orders = await Order.find()
+        let orders = await Order.find(queryFilter)
             .populate({
                 path: "items.product",
                 match: { seller: sellerId },
@@ -14,15 +26,25 @@ const getSellerOrders = async (req, res) => {
             })
             .populate("address")
             .populate({
-                path: "user",        // populate user để lấy thông tin khách hàng
-                select: "name email" // lấy tên và email khách
+                path: "user",
+                select: "name email phone"
             })
             .sort({ createdAt: -1 });
 
-        // Lọc những order không còn item nào sau khi match
-        const filteredOrders = orders.filter(order => order.items.length > 0);
+        // Lọc những order không còn item nào sau khi match seller
+        orders = orders.filter(order => order.items.length > 0);
 
-        res.json(filteredOrders);
+        // Filter theo tên hoặc số điện thoại khách hàng (sau populate)
+        if (search && search.trim()) {
+            const keyword = search.trim().toLowerCase();
+            orders = orders.filter(order => {
+                const nameMatch = (order.user?.name || "").toLowerCase().includes(keyword);
+                const phoneMatch = (order.user?.phone || "").toLowerCase().includes(keyword);
+                return nameMatch || phoneMatch;
+            });
+        }
+
+        res.json(orders);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Server error" });

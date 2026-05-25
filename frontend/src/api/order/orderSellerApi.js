@@ -1,9 +1,13 @@
 import api from "../axiosInstance";
 
 const BASE_URL = "/orderSeller/seller-orders";
-// Lấy danh sách đơn hàng của seller
-export const getSellerOrders = async () => {
-    const res = await api.get(BASE_URL);
+// Lấy danh sách đơn hàng của seller với filter từ backend
+export const getSellerOrders = async ({ paymentStatus, search } = {}) => {
+    const params = {};
+    if (paymentStatus && paymentStatus !== "all") params.paymentStatus = paymentStatus;
+    if (search && search.trim()) params.search = search.trim();
+
+    const res = await api.get(BASE_URL, { params });
     return res.data;
 };
 
