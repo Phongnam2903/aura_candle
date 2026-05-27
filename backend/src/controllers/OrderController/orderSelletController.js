@@ -40,7 +40,8 @@ const getSellerOrders = async (req, res) => {
             orders = orders.filter(order => {
                 const nameMatch = (order.user?.name || "").toLowerCase().includes(keyword);
                 const phoneMatch = (order.user?.phone || "").toLowerCase().includes(keyword);
-                return nameMatch || phoneMatch;
+                const orderCodeMatch = (order.orderCode || order._id?.toString() || "").toLowerCase().includes(keyword);
+                return nameMatch || phoneMatch || orderCodeMatch;
             });
         }
 
