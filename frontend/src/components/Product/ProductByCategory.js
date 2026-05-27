@@ -11,6 +11,7 @@ export default function ProductByCategory() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [categoryName, setCategoryName] = useState("");
+    const [descriptionProduct, setDescriptionProduct] = useState("");
     const [loading, setLoading] = useState(true);
 
     // Bộ lọc
@@ -44,7 +45,9 @@ export default function ProductByCategory() {
 
                 // Lấy tên danh mục hiện tại
                 const currentCategory = data.find((c) => c.slug === slug);
+                console.log("Current category:", currentCategory);
                 setCategoryName(currentCategory ? currentCategory.name : "");
+                setDescriptionProduct(currentCategory ? currentCategory.description : "");
             } catch (err) {
                 console.error("Error fetching categories:", err);
             }
@@ -140,6 +143,11 @@ export default function ProductByCategory() {
                         ? `Sản phẩm thuộc danh mục: ${categoryName}`
                         : "Danh mục sản phẩm"}
                 </h1>
+                <p className="text-gray-600 mb-8">
+                    {descriptionProduct
+                        ? descriptionProduct
+                        : "Khám phá bộ sưu tập sản phẩm đa dạng và chất lượng của chúng tôi, được thiết kế để mang đến sự hài lòng tối đa cho khách hàng."}
+                </p>
 
                 {/* Bộ lọc */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
@@ -264,7 +272,7 @@ export default function ProductByCategory() {
                                 >
                                     Trang trước
                                 </button>
-                                
+
                                 {[...Array(totalPages)].map((_, i) => (
                                     <button
                                         key={i}
