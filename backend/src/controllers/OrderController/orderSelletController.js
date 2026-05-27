@@ -143,7 +143,7 @@ const updateSellerOrderStatus = async (req, res) => {
         order.markModified("items");
         await order.save();
 
-        // 🔔 Gửi notification cho user
+        // Gửi notification cho user
         try {
             const notificationData = getNotificationMessage(order, paymentStatus, status);
             
@@ -155,10 +155,10 @@ const updateSellerOrderStatus = async (req, res) => {
                     type: "Order",
                     relatedOrder: order._id,
                 });
-                console.log("✅ Notification sent to user:", order.user);
+                console.log("Notification sent to user:", order.user);
             }
         } catch (notifError) {
-            console.error("⚠️ Failed to send notification:", notifError);
+            console.error("Failed to send notification:", notifError);
             // Không block response nếu notification fail
         }
 
@@ -170,7 +170,7 @@ const updateSellerOrderStatus = async (req, res) => {
             order,
         });
     } catch (err) {
-        console.error("❌ Error updating order:", err);
+        console.error("Error updating order:", err);
         return res.status(500).json({ error: "Server error" });
     }
 };
@@ -182,7 +182,7 @@ function getNotificationMessage(order, paymentStatus, status) {
     // Notification cho payment confirmation
     if (paymentStatus === "paid") {
         return {
-            title: "💰 Thanh toán đã được xác nhận!",
+            title: "Thanh toán đã được xác nhận!",
             message: `Đơn hàng ${orderCode} của bạn đã được xác nhận thanh toán. Chúng tôi sẽ xử lý đơn hàng ngay.`
         };
     }
@@ -192,32 +192,32 @@ function getNotificationMessage(order, paymentStatus, status) {
         switch (status) {
             case "Confirmed":
                 return {
-                    title: "✅ Đơn hàng đã được xác nhận!",
+                    title: "Đơn hàng đã được xác nhận!",
                     message: `Đơn hàng ${orderCode} đã được xác nhận. Chúng tôi đang chuẩn bị hàng cho bạn.`
                 };
             case "Shipped":
                 return {
-                    title: "🚚 Đơn hàng đang được giao!",
+                    title: "Đơn hàng đang được giao!",
                     message: `Đơn hàng ${orderCode} đã được giao cho đơn vị vận chuyển. Bạn sẽ nhận hàng sớm thôi!`
                 };
             case "Delivered":
                 return {
-                    title: "📦 Đơn hàng đã được giao!",
+                    title: "Đơn hàng đã được giao!",
                     message: `Đơn hàng ${orderCode} đã được giao đến bạn. Cảm ơn bạn đã mua hàng!`
                 };
             case "Completed":
                 return {
-                    title: "🎉 Đơn hàng hoàn tất!",
+                    title: "Đơn hàng hoàn tất!",
                     message: `Đơn hàng ${orderCode} đã hoàn tất. Cảm ơn bạn! Hãy đánh giá sản phẩm nhé.`
                 };
             case "Cancelled":
                 return {
-                    title: "❌ Đơn hàng đã bị hủy",
+                    title: "Đơn hàng đã bị hủy",
                     message: `Đơn hàng ${orderCode} đã bị hủy. Nếu có thắc mắc, vui lòng liên hệ chúng tôi.`
                 };
             case "Refunded":
                 return {
-                    title: "💸 Đơn hàng đã hoàn tiền",
+                    title: "Đơn hàng đã hoàn tiền",
                     message: `Đơn hàng ${orderCode} đã được hoàn tiền. Tiền sẽ về tài khoản trong 3-5 ngày.`
                 };
             default:
@@ -251,8 +251,8 @@ const getSellerOrderById = async (req, res) => {
             return res.status(404).json({ error: "Order not found" });
         }
 
-        console.log("📦 Order address:", order.address);
-        console.log("📦 Order user:", order.user);
+        console.log("Order address:", order.address);
+        console.log("Order user:", order.user);
 
         // Kiểm tra xem order có chứa sản phẩm của seller này không
         const hasSellerProduct = order.items.some(
@@ -272,7 +272,7 @@ const getSellerOrderById = async (req, res) => {
             )
         };
 
-        console.log("📦 Filtered order address:", filteredOrder.address);
+        console.log("Filtered order address:", filteredOrder.address);
 
         res.json(filteredOrder);
     } catch (err) {
