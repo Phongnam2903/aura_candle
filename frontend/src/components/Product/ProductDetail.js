@@ -80,7 +80,7 @@ export default function ProductDetail() {
 
     const handleAddToCart = () => {
         addItem({ ...product, quantity, image: product.images?.[0] });
-        toast.success("🕯️ Đã thêm vào giỏ hàng!");
+        toast.success("Đã thêm vào giỏ hàng!");
     };
 
     const handleBuyNow = () => {

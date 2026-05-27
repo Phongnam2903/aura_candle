@@ -45,7 +45,6 @@ export default function ProductByCategory() {
 
                 // Lấy tên danh mục hiện tại
                 const currentCategory = data.find((c) => c.slug === slug);
-                console.log("Current category:", currentCategory);
                 setCategoryName(currentCategory ? currentCategory.name : "");
                 setDescriptionProduct(currentCategory ? currentCategory.description : "");
             } catch (err) {
