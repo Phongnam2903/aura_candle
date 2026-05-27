@@ -84,8 +84,14 @@ const Header = () => {
         console.error("Error fetching notifications:", err);
       }
     };
-    fetchData();
-  }, []);
+
+    if (user) {
+      fetchData();
+    } else {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }, [user]);
 
   const handleOpenDropdown = () => {
     setIsDropdownOpen((prev) => !prev);

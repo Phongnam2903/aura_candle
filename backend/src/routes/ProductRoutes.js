@@ -25,10 +25,9 @@ router.post(
 
 router.get("/", ProductController.getProducts);
 router.get("/search", ProductController.searchProducrByName);
+router.get("/related", ProductController.getProductsByCategory);
 router.get("/:id", ProductController.getProductById);
 router.get("/category/:slug", ProductController.getProductBySlug);
-router.get("/related", ProductController.getProductsByCategory);
-
 
 
 // Route cho JSON request (không có file upload)

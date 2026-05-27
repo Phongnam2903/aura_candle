@@ -212,7 +212,7 @@ const updateProduct = async (req, res) => {
             images,
         } = req.body;
 
-        // ✅ Kiểm tra id sản phẩm
+        //  Kiểm tra id sản phẩm
         if (!mongoose.Types.ObjectId.isValid(productId))
             return res.status(400).json({ ok: false, message: "ID sản phẩm không hợp lệ" });
 
@@ -220,7 +220,7 @@ const updateProduct = async (req, res) => {
         if (!product)
             return res.status(404).json({ ok: false, message: "Không tìm thấy sản phẩm" });
 
-        // ✅ Chuẩn hóa dữ liệu nhận vào
+        // Chuẩn hóa dữ liệu nhận vào
         const updatedFields = {};
 
         if (name) updatedFields.name = name.trim();
@@ -233,12 +233,12 @@ const updateProduct = async (req, res) => {
         if (weightGrams) updatedFields.weightGrams = parseFloat(weightGrams);
         if (typeof isKit !== "undefined") updatedFields.isKit = isKit === "true" || isKit === true;
 
-        // ✅ Category
+        //  Category
         if (category && mongoose.Types.ObjectId.isValid(category)) {
             updatedFields.category = category;
         }
 
-        // ✅ Materials
+        //  Materials
         if (materials) {
             const parsedMaterials =
                 typeof materials === "string" ? JSON.parse(materials) : materials;
@@ -247,7 +247,7 @@ const updateProduct = async (req, res) => {
             }
         }
 
-        // ✅ Fragrances
+        //  Fragrances
         if (fragrances) {
             const parsedFragrances =
                 typeof fragrances === "string" ? JSON.parse(fragrances) : fragrances;
@@ -256,7 +256,7 @@ const updateProduct = async (req, res) => {
             }
         }
 
-        // ✅ Ảnh
+        //  Ảnh
         let imageUrls = [];
 
         if (req.files && req.files.length > 0) {
@@ -278,7 +278,7 @@ const updateProduct = async (req, res) => {
             updatedFields.images = imageUrls;
         }
 
-        // ✅ Cập nhật
+        //  Cập nhật
         const updatedProduct = await Product.findByIdAndUpdate(
             productId,
             { $set: updatedFields },
@@ -289,7 +289,7 @@ const updateProduct = async (req, res) => {
 
         res.json({ ok: true, message: "Cập nhật sản phẩm thành công", data: updatedProduct });
     } catch (error) {
-        console.error("❌ Lỗi cập nhật sản phẩm:", error);
+        console.error("Lỗi cập nhật sản phẩm:", error);
         res.status(500).json({ ok: false, message: "Lỗi máy chủ", error: error.message });
     }
 };
@@ -348,7 +348,7 @@ const getProductBySlug = async (req, res) => {
 
         res.json(products);
     } catch (err) {
-        console.error("❌ Lỗi khi lấy sản phẩm theo danh mục:", err);
+        console.error("Lỗi khi lấy sản phẩm theo danh mục:", err);
         res.status(500).json({ message: "Lỗi máy chủ", error: err.message });
     }
 };

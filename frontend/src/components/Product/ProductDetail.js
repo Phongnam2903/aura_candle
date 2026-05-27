@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { FaFacebookF, FaTwitter, FaPinterestP, FaStar, FaReply, FaHeart, FaRegHeart } from "react-icons/fa";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { FaFacebookF, FaTwitter, FaPinterestP, FaStar, FaReply, FaHeart, FaRegHeart, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
@@ -25,6 +25,14 @@ export default function ProductDetail() {
     const currentUserId = currentUser?._id;
     const [currentImage, setCurrentImage] = useState(0);
     const [relatedProducts, setRelatedProducts] = useState([]);
+    const relatedScrollRef = useRef(null);
+
+    const scrollRelated = (direction) => {
+        if (relatedScrollRef.current) {
+            const scrollAmount = 300;
+            relatedScrollRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+        }
+    };
 
     // ==== Khai báo hàm trước useEffect ====
     const fetchComments = useCallback(async () => {
@@ -36,15 +44,15 @@ export default function ProductDetail() {
         }
     }, [id]);
 
-    const fetchRelatedProducts = useCallback(async (category) => {
+    const fetchRelatedProducts = useCallback(async (categoryId, productId) => {
         try {
-            const data = await getProductsByCategoryApi(category, product?._id);
+            const data = await getProductsByCategoryApi(categoryId, productId);
             console.log("getProductsByCategoryApi: ", data);
-            setRelatedProducts(data.slice(0, 4));
+            setRelatedProducts(data);
         } catch (err) {
             console.error("Lỗi load sản phẩm liên quan:", err);
         }
-    }, [product]);
+    }, []);
 
     // ==== Gộp 1 useEffect duy nhất ====
     useEffect(() => {
@@ -53,7 +61,11 @@ export default function ProductDetail() {
                 const productData = await getProductById(id);
                 setProduct(productData);
                 fetchComments();
-                if (productData?.category) fetchRelatedProducts(productData.category);
+
+                const categoryId = productData?.category?._id || productData?.category;
+                if (categoryId) {
+                    fetchRelatedProducts(categoryId, productData._id);
+                }
             } catch (err) {
                 console.error("Lỗi load sản phẩm:", err);
             }
@@ -347,29 +359,57 @@ export default function ProductDetail() {
                                 )}
                             </div>
                         ))}
-                        {/* ==== Sản phẩm liên quan ==== */}
-                        {relatedProducts.length > 0 && (
-                            <div className="mt-12">
-                                <h2 className="text-2xl font-semibold text-gray-800 mb-6">Sản phẩm liên quan</h2>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                                    {relatedProducts.map(rp => (
-                                        <Link to={`/product/${rp._id}`} key={rp._id} className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition">
-                                            <img
-                                                src={rp.images?.[0]?.startsWith("https") ? rp.images[0] : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${rp.images?.[0]}`}
-                                                alt={rp.name}
-                                                className="w-full h-48 object-cover transition-transform duration-500 hover:scale-105"
-                                            />
-                                            <div className="p-3">
-                                                <h3 className="text-gray-800 font-medium">{rp.name}</h3>
-                                                <p className="text-emerald-600 font-bold">{rp.price?.toLocaleString("vi-VN")}₫</p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
+
+                {/* ==== Sản phẩm liên quan ==== */}
+                {relatedProducts.length > 0 && (
+                    <div className="bg-white/70 backdrop-blur-md mt-10 p-8 rounded-3xl shadow-xl border border-emerald-100">
+                        <h2 className="text-xl font-semibold text-gray-800 mb-6">Sản phẩm liên quan</h2>
+                        
+                        <div className="relative group">
+                            {/* Nút cuộn trái */}
+                            <button
+                                onClick={() => scrollRelated('left')}
+                                className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border border-emerald-100 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+                            >
+                                <FaChevronLeft size={16} />
+                            </button>
+
+                            <div
+                                ref={relatedScrollRef}
+                                className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-4 [&::-webkit-scrollbar]:hidden"
+                                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            >
+                                {relatedProducts.map(rp => (
+                                    <Link
+                                        to={`/product/${rp._id}`}
+                                        key={rp._id}
+                                        className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition snap-start flex-none w-[250px] sm:w-[280px]"
+                                    >
+                                        <img
+                                            src={rp.images?.[0]?.startsWith("https") ? rp.images[0] : `${process.env.REACT_APP_API_URL || "http://localhost:5000"}${rp.images?.[0]}`}
+                                            alt={rp.name}
+                                            className="w-full h-48 object-cover transition-transform duration-500 hover:scale-105"
+                                        />
+                                        <div className="p-3">
+                                            <h3 className="text-gray-800 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{rp.name}</h3>
+                                            <p className="text-emerald-600 font-bold">{rp.price?.toLocaleString("vi-VN")}₫</p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+
+                            {/* Nút cuộn phải */}
+                            <button
+                                onClick={() => scrollRelated('right')}
+                                className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-white shadow-lg border border-emerald-100 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+                            >
+                                <FaChevronRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                )}
 
             </div>
         </div>
