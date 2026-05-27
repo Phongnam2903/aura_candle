@@ -18,6 +18,10 @@ export default function ProductByCategory() {
     const [sortOption, setSortOption] = useState("latest");
     const [priceRange, setPriceRange] = useState([0, 2000000]);
 
+    // Phân trang
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
+
     useEffect(() => {
         async function fetchProducts() {
             try {
@@ -68,6 +72,17 @@ export default function ProductByCategory() {
 
         return result;
     }, [products, searchTerm, sortOption, priceRange]);
+
+    // Reset về trang 1 khi thay đổi bộ lọc
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, sortOption, priceRange]);
+
+    // Tính toán sản phẩm hiển thị trên trang hiện tại
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
 
     if (loading)
         return (
@@ -200,40 +215,82 @@ export default function ProductByCategory() {
                         Không có sản phẩm nào phù hợp với bộ lọc.
                     </p>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                        {filteredProducts.map((p) => (
-                            <Link
-                                key={p._id}
-                                to={`/product/${p._id}`}
-                                className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative"
-                            >
-                                <div className="overflow-hidden">
-                                    <img
-                                        src={
-                                            p.images?.[0]?.startsWith("https")
-                                                ? p.images[0]
-                                                : `${CONFIG.API_URL}${p.images?.[0] || ""}`
-                                        }
-                                        alt={p.name}
-                                        className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                </div>
-                                <div className="p-4">
-                                    <h2 className="font-medium text-gray-800 group-hover:text-[#2C2420] truncate text-lg">
-                                        {p.name}
-                                    </h2>
-                                    <p className="text-pink-600 font-semibold mt-1 text-base">
-                                        {p.price.toLocaleString()}₫
-                                    </p>
-                                </div>
-                                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-                                    <span className="bg-[#2C2420] text-white px-4 py-2 rounded-full text-sm font-medium">
-                                        Xem chi tiết
-                                    </span>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                            {currentProducts.map((p) => (
+                                <Link
+                                    key={p._id}
+                                    to={`/product/${p._id}`}
+                                    className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative"
+                                >
+                                    <div className="overflow-hidden">
+                                        <img
+                                            src={
+                                                p.images?.[0]?.startsWith("https")
+                                                    ? p.images[0]
+                                                    : `${CONFIG.API_URL}${p.images?.[0] || ""}`
+                                            }
+                                            alt={p.name}
+                                            className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+                                        />
+                                    </div>
+                                    <div className="p-4">
+                                        <h2 className="font-medium text-gray-800 group-hover:text-[#2C2420] truncate text-lg">
+                                            {p.name}
+                                        </h2>
+                                        <p className="text-pink-600 font-semibold mt-1 text-base">
+                                            {p.price.toLocaleString()}₫
+                                        </p>
+                                    </div>
+                                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                                        <span className="bg-[#2C2420] text-white px-4 py-2 rounded-full text-sm font-medium">
+                                            Xem chi tiết
+                                        </span>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+
+                        {/* Pagination UI */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center mt-10 gap-2">
+                                <button
+                                    onClick={() => {
+                                        setCurrentPage(prev => Math.max(prev - 1, 1));
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    disabled={currentPage === 1}
+                                    className={`px-4 py-2 rounded-lg font-medium transition ${currentPage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-[#2C2420] border border-gray-300 hover:bg-gray-50"}`}
+                                >
+                                    Trang trước
+                                </button>
+                                
+                                {[...Array(totalPages)].map((_, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => {
+                                            setCurrentPage(i + 1);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition ${currentPage === i + 1 ? "bg-[#2C2420] text-white" : "bg-white text-[#2C2420] border border-gray-300 hover:bg-gray-50"}`}
+                                    >
+                                        {i + 1}
+                                    </button>
+                                ))}
+
+                                <button
+                                    onClick={() => {
+                                        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    disabled={currentPage === totalPages}
+                                    className={`px-4 py-2 rounded-lg font-medium transition ${currentPage === totalPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-[#2C2420] border border-gray-300 hover:bg-gray-50"}`}
+                                >
+                                    Trang sau
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </main>
         </div>
