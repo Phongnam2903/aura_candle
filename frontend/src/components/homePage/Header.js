@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { io } from "socket.io-client";
+import { toast } from "react-toastify";
 import {
   FaSearch,
   FaUser,
@@ -91,6 +93,44 @@ const Header = () => {
       setNotifications([]);
       setUnreadCount(0);
     }
+  }, [user]);
+
+  // ==== Socket.IO: kết nối khi user đăng nhập, lắng nghe thông báo real-time ====
+  useEffect(() => {
+    if (!user) return;
+
+    const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
+    const socket = io(SOCKET_URL, { transports: ["websocket"] });
+
+    socket.on("connect", () => {
+      console.log("🔌 Socket connected:", socket.id);
+      // Đăng ký userId với server để nhận thông báo đúng người
+      socket.emit("register", user._id);
+    });
+
+    socket.on("new_notification", (notif) => {
+      console.log("🔔 Nhận thông báo real-time:", notif);
+      // Cập nhật danh sách thông báo và badge ngay lập tức
+      setNotifications((prev) => [notif, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+      // Hiển thị toast popup cho user
+      toast.info(
+        <div>
+          <strong>{notif.title}</strong>
+          <div style={{ fontSize: "13px", marginTop: "4px" }}>{notif.message}</div>
+        </div>,
+        { position: "top-right", autoClose: 6000, icon: "🔔" }
+      );
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🔌 Socket disconnected");
+    });
+
+    // Cleanup: ngắt kết nối khi user logout hoặc component unmount
+    return () => {
+      socket.disconnect();
+    };
   }, [user]);
 
   const handleOpenDropdown = () => {

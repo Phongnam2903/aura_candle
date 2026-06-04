@@ -1,4 +1,6 @@
 const { Blog, User, Notification } = require("../../models");
+const { getIo, getUserSocketMap } = require("../../socket");
+
 
 // Lấy tất cả blogs (public)
 const getAllBlogs = async (req, res) => {
@@ -44,12 +46,12 @@ const getBlogById = async (req, res) => {
 // Tạo blog mới (seller only)
 const createBlog = async (req, res) => {
     try {
-        console.log("📝 Creating new blog...", { userId: req.user?.id });
+        console.log("Creating new blog...", { userId: req.user?.id });
         const { title, description, content, images, link } = req.body;
         const author = req.user.id;
 
         if (!title) {
-            console.log("❌ Title is missing");
+            console.log("Title is missing");
             return res.status(400).json({ error: "Title is required" });
         }
 
@@ -63,30 +65,52 @@ const createBlog = async (req, res) => {
         });
 
         await blog.save();
-        console.log("✅ Blog saved:", blog._id);
+        console.log("Blog saved:", blog._id);
         const populatedBlog = await Blog.findById(blog._id).populate("author", "name email");
-
-        // 🔔 Gửi thông báo cho tất cả người dùng
+        // Gửi thông báo cho tất cả người dùng
         try {
             // Lấy tất cả users (có thể lọc theo điều kiện nếu cần)
             const allUsers = await User.find({ role: { $ne: "seller" } }).select("_id");
-            
+
             if (allUsers.length > 0) {
                 // Tạo mảng notifications cho tất cả users
                 const notifications = allUsers.map(user => ({
                     user: user._id,
-                    title: "📰 Bài viết mới!",
+                    title: "Bài viết mới!",
                     message: `${populatedBlog.author.name || "Seller"} vừa đăng bài viết mới: "${title}"`,
                     type: "Blog",
                     relatedBlog: blog._id,
                 }));
 
                 // Insert nhiều notifications cùng lúc
-                await Notification.insertMany(notifications);
-                console.log(`✅ Đã gửi thông báo blog mới cho ${allUsers.length} người dùng`);
+                const insertedNotifs = await Notification.insertMany(notifications);
+                console.log(`Đã gửi thông báo blog mới cho ${allUsers.length} người dùng`);
+
+                // Emit real-time qua Socket.IO đến từng user đang online
+                try {
+                    const io = getIo();
+                    const userSocketMap = getUserSocketMap();
+                    insertedNotifs.forEach((notif) => {
+                        const socketId = userSocketMap[notif.user.toString()];
+                        if (socketId) {
+                            io.to(socketId).emit("new_notification", {
+                                _id: notif._id,
+                                title: notif.title,
+                                message: notif.message,
+                                type: notif.type,
+                                isRead: false,
+                                createdAt: notif.createdAt,
+                            });
+                            console.log(`Emitted to user ${notif.user} (socket: ${socketId})`);
+                        }
+                    });
+                } catch (socketErr) {
+                    console.error("Lỗi emit socket:", socketErr.message);
+                }
+
             }
         } catch (notifError) {
-            console.error("⚠️ Lỗi khi gửi thông báo blog:", notifError);
+            console.error("Lỗi khi gửi thông báo blog:", notifError);
             // Không block response nếu notification fail
         }
 

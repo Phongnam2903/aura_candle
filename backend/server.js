@@ -1,13 +1,15 @@
 const express = require("express");
+const http = require("http");
 const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
 const connectDB = require("./src/config/db");
+const { initSocket } = require("./src/socket");
 
 //  Kiểm tra SECRET_KEY có đọc được không
 if (!process.env.SECRET_KEY) {
   console.error("❌ Lỗi: SECRET_KEY không được định nghĩa trong file .env");
-  process.exit(1); // Dừng server để tránh lỗi jwt.sign
+  process.exit(1);
 }
 
 //  Kết nối database
@@ -65,8 +67,7 @@ app.use("/dashboard", dashboardRouter);
 app.use("/payment", paymentRouter);
 app.use("/blog", blogRouter);
 
-
-// Test route để kiểm tra server hoạt động
+// Test route
 app.get("/", (req, res) => {
   res.json({
     message: "Aura Candle API is running",
@@ -74,15 +75,20 @@ app.get("/", (req, res) => {
   });
 });
 
-// 404 handler - đặt sau tất cả routes
+// 404 handler
 app.use((req, res) => {
   console.log(` 404 Not Found: ${req.method} ${req.url}`);
   res.status(404).json({ error: "Route not found", path: req.url });
 });
 
+// Tạo HTTP server và gắn Socket.IO
+const httpServer = http.createServer(app);
+initSocket(httpServer);
+
 // Chạy server
 const port = process.env.PORT || 5000;
-app.listen(port, () => {
+httpServer.listen(port, () => {
   console.log(`Server đang chạy tại http://localhost:${port}`);
+  console.log(`Socket.IO đã được khởi tạo ✅`);
   console.log(`SECRET_KEY: ${process.env.SECRET_KEY ? "Loaded OK" : "Not found"}`);
 });
